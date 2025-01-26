@@ -1,64 +1,50 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
 import api from '@/lib/api';
 import { Group, User, Todo } from '@/types';
 import currentUser from '@/hooks/getCurrentUser';
+import { getCurrentGroup } from '@/hooks/getCurrentGroup';
 
 export default function TodosScreen() {
-  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
-  const [groups, setGroups] = useState<Group[]>([]);
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
   const [todos, setTodos] = useState<Todo[]>([]);
   const [newTodoTitle, setNewTodoTitle] = useState('');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadGroups();
-  }, []);
-
-  useEffect(() => {
-    if (selectedGroup) {
-      loadTodos(selectedGroup.id);
-    }
-  }, [selectedGroup]);
-
-  const loadGroups = async () => {
+  const loadTodos = useCallback(async (groupId: number) => {
     try {
-
-      let groupsData: Group[] = [];
-
-      if (currentUser.role === 'SUPERADMIN') {
-        groupsData = await api.getAllGroups();
-      } else if (currentUser.role === 'OWNER') {
-        groupsData = await api.getOwnerGroups(currentUser.id);
-      } else if (currentUser.role === 'MANAGER') {
-        groupsData = await api.getManagerGroups(currentUser.id);
-      } else if (currentUser.role === 'CUSTOMER') {
-        groupsData = await api.getUserGroups(currentUser.id);
-      }
-      setGroups(groupsData);
-      
-    } catch (error) {
-      console.error('Error loading groups:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadTodos = async (groupId: number) => {
-    try {
+      setLoading(true);
       const todosData = await api.getGroupTodos(groupId);
       setTodos(todosData);
     } catch (error) {
       console.error('Error loading todos:', error);
+      setTodos([]);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
+
+  // Load current group and todos on mount and when focused
+  useEffect(() => {
+    const loadCurrentGroup = async () => {
+      const groupId = await getCurrentGroup();
+      setSelectedGroupId(groupId);
+      if (groupId) {
+        loadTodos(groupId);
+      } else {
+        setLoading(false);
+      }
+    };
+
+    loadCurrentGroup();
+  }, [loadTodos]);
 
   const handleCreateTodo = async () => {
-    if (!selectedGroup || !newTodoTitle.trim()) return;
+    if (!selectedGroupId || !newTodoTitle.trim()) return;
     try {
-      await api.createTodo(selectedGroup.id, newTodoTitle,currentUser.id);
+      await api.createTodo(selectedGroupId, newTodoTitle, currentUser.id);
       setNewTodoTitle('');
-      loadTodos(selectedGroup.id);
+      loadTodos(selectedGroupId);
     } catch (error) {
       console.error('Error creating todo:', error);
     }
@@ -67,7 +53,9 @@ export default function TodosScreen() {
   const handleToggleTodo = async (todo: Todo) => {
     try {
       await api.updateTodo(todo.id, { status: !todo.status });
-      loadTodos(todo.groupId);
+      if (selectedGroupId) {
+        loadTodos(selectedGroupId);
+      }
     } catch (error) {
       console.error('Error updating todo:', error);
     }
@@ -76,25 +64,13 @@ export default function TodosScreen() {
   const handleDeleteTodo = async (todoId: number) => {
     try {
       await api.deleteTodo(todoId);
-      if (selectedGroup) {
-        loadTodos(selectedGroup.id);
+      if (selectedGroupId) {
+        loadTodos(selectedGroupId);
       }
     } catch (error) {
       console.error('Error deleting todo:', error);
     }
   };
-
-  const renderGroup = ({ item }: { item: Group }) => (
-    <TouchableOpacity
-      style={[
-        styles.groupItem,
-        selectedGroup?.id === item.id && styles.selectedGroup,
-      ]}
-      onPress={() => setSelectedGroup(item)}
-    >
-      <Text style={styles.groupName}>{item.name}</Text>
-    </TouchableOpacity>
-  );
 
   const renderTodo = ({ item }: { item: Todo }) => (
     <View style={styles.todoItem}>
@@ -112,7 +88,7 @@ export default function TodosScreen() {
           Created by: {item.creator.phoneNumber}
         </Text>
       </View>
-      {currentUser.role === ('MANAGER'||'OWNER') && (
+      {currentUser.role == 'MANAGER' || currentUser.role == 'OWNER' && (
         <TouchableOpacity
           style={styles.deleteButton}
           onPress={() => handleDeleteTodo(item.id)}
@@ -133,17 +109,7 @@ export default function TodosScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.groupsList}>
-        <FlatList
-          horizontal
-          data={groups}
-          renderItem={renderGroup}
-          keyExtractor={(item) => item.id.toString()}
-          showsHorizontalScrollIndicator={false}
-        />
-      </View>
-
-      {selectedGroup && (
+      {selectedGroupId && (
         <View style={styles.todosContainer}>
           <View style={styles.createTodo}>
             <TextInput
@@ -169,7 +135,7 @@ export default function TodosScreen() {
         </View>
       )}
 
-      {!selectedGroup && (
+      {!selectedGroupId && (
         <View style={styles.noSelection}>
           <Text>Select a group to view todos</Text>
         </View>
@@ -182,26 +148,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-  },
-  groupsList: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  groupItem: {
-    padding: 8,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 20,
-    marginRight: 8,
-  },
-  selectedGroup: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
-  },
-  groupName: {
-    fontWeight: '500',
   },
   todosContainer: {
     flex: 1,

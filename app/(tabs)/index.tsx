@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Group } from '@/types';
 import currentUser from '@/hooks/getCurrentUser';
 import JoinGroup from '@/components/JoinGroup';
 import GroupManagement from '@/components/GroupManagement';
 import api from '@/lib/api';
+import { getCurrentGroup, setCurrentGroup } from '@/hooks/getCurrentGroup';
+import { router } from 'expo-router';
 
 export default function GroupsScreen() {
   const [groups, setGroups] = useState<Group[]>([]);
@@ -14,6 +17,15 @@ export default function GroupsScreen() {
 
   useEffect(() => {
     loadGroups();
+    // Load currently selected group on mount
+    getCurrentGroup().then((groupId) => {
+      if (groupId) {
+        const group = groups.find(g => g.id === groupId);
+        if (group) {
+          setSelectedGroup(group);
+        }
+      }
+    });
   }, []);
 
   const loadGroups = async () => {
@@ -68,7 +80,14 @@ export default function GroupsScreen() {
         styles.groupItem,
         selectedGroup?.id === item.id && styles.selectedGroupItem,
       ]}
-      onPress={() => setSelectedGroup(selectedGroup?.id === item.id ? null : item)}
+      onPress={async () => {
+        const newSelectedGroup = selectedGroup?.id === item.id ? null : item;
+        setSelectedGroup(newSelectedGroup);
+        await setCurrentGroup(newSelectedGroup?.id ?? null);
+        
+        // Force refresh todos page by navigating to it
+        router.push('/todos');
+      }}
     >
       <View style={styles.groupInfo}>
         <Text style={styles.groupName}>{item.name}</Text>

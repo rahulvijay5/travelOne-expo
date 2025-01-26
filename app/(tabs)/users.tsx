@@ -3,6 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-nativ
 import api from '@/lib/api';
 import { User } from '@/types';
 import currentUser from '@/hooks/getCurrentUser';
+import { Link } from 'expo-router';
+import { SignedIn, SignedOut } from '@clerk/clerk-expo';
 export default function UsersScreen() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [selectedRole, setSelectedRole] = useState<User['role']>('CUSTOMER');
@@ -36,6 +38,7 @@ export default function UsersScreen() {
 
   return (
     <View style={styles.container}>
+      <SignedIn>
       <View style={styles.form}>
         <Text style={styles.title}>Create New User</Text>
         
@@ -80,6 +83,20 @@ export default function UsersScreen() {
           <Text style={styles.message}>{message}</Text>
         ) : null}
       </View>
+
+      </SignedIn>
+
+      <SignedOut>
+        <View className='flex flex-col gap-2'>
+        <Text className='text-2xl font-semibold'>Please sign in to continue</Text>
+        <Link href="/(auth)/sign-in" className='bg-blue-500 p-4 rounded-md'>
+          <Text className='text-white'>Sign in</Text>
+        </Link>
+        <Link href="/(auth)/sign-up" className='bg-blue-500 p-4 rounded-md'>
+          <Text className='text-white'>Sign up</Text>
+        </Link>
+        </View>
+      </SignedOut>
     </View>
   );
 }

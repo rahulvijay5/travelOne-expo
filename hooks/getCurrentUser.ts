@@ -1,9 +1,9 @@
 import { User } from "@/types";
 
 const currentUser: User = {
-    id: 6,
-    phoneNumber: '201',
-    role: 'CUSTOMER',
+    id: 1,
+    phoneNumber: '9252993111',
+    role: 'SUPERADMIN',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
