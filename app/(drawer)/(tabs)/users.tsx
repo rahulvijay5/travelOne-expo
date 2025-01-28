@@ -83,7 +83,6 @@ export default function UsersScreen() {
           <Text style={styles.message}>{message}</Text>
         ) : null}
       </View>
-
       </SignedIn>
 
       <SignedOut>

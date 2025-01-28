@@ -9,3 +9,4 @@ const currentUser: User = {
   };
 
 export default currentUser;
+
