@@ -16,6 +16,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Text } from "@/components/ui/text";
 import { HotelData } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
+import SignOutButton from "@/components/auth/SignOutButton";
 
 const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   const pathname = usePathname();
@@ -23,51 +24,73 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   const { isDarkColorScheme } = useColorScheme();
 
   return (
-    <DrawerContentScrollView {...props} style={{ backgroundColor: isDarkColorScheme ? "#000" : "#fff" }}>
-      <View className="p-4 w-full">
-        <Image
-          source={require("@/assets/images/icon.png")}
-          className="h-12 w-12 aspect-square mb-4"
-        />
-        <Separator orientation="horizontal" className="my-4 dark:bg-white bg-black w-2/3" />
-        
-        <Button 
-              className="flex-row items-center justify-start mb-4 py-4 pl-4 bg-lime-100 dark:bg-lime-950 rounded-lg"
-              onPress={() => {
-                // Handle hotel selection
-                console.log("Selected hotel:", 1);
-              }}
-            >
-              <Text className="text-xl font-bold dark:text-white text-black">Sunset Paradise Hotel</Text>
-            </Button>
-        {/* <DrawerItem
-          icon={({ color, size }) => (
-            <Feather name="home" size={size} color={"#84cc16"} />
-          )}
-          label="Home"
-          labelStyle={{ color: isDarkColorScheme ? "white" : "black" }}
-          onPress={() => router.push("/(drawer)/(tabs)")}
-        /> */}
+    <DrawerContentScrollView
+      {...props}
+      style={{ backgroundColor: isDarkColorScheme ? "#000" : "#fff" }}
+    >
+      <View className="p-2 w-full">
+        <Text className="text-lg font-bold mb-4 dark:text-white">
+          Current Stay
+        </Text>
+        <Button
+          className="flex-row items-center justify-start mb-4 py-4 pl-4 bg-lime-100 dark:bg-lime-950 rounded-lg border-2 dark:border-lime-100 border-lime-600"
+          onPress={() => {
+            // Handle hotel selection
+            console.log("Selected hotel:", 1);
+          }}
+        >
+          <Image
+            source={require("@/assets/images/favicon.png")}
+            className="h-16 w-16 aspect-square mb-4 rounded-2xl
+                "
+          />
+          <View className="ml-3 flex-1 items-start justify-start">
+            <Text className="text-xl font-bold dark:text-white text-black">
+              Sunset Paradise Hotel
+            </Text>
+            <Text className="text-sm text-gray-600 dark:text-gray-300">
+              Code: 1234
+            </Text>
+            <Text className="text-sm text-gray-600 dark:text-gray-300">
+              Location: Jaipur, Rajasthan, India
+            </Text>
+          </View>
+        </Button>
         <Separator className="my-4 dark:bg-white bg-black w-2/3" />
-        <Text className="text-lg font-bold mb-4 dark:text-white">Available Hotels</Text>
+        <Text className="text-lg font-bold mb-4 dark:text-white">
+          Previous Stays
+        </Text>
         <View>
-          {HotelData.filter((item) => parseInt(item.hotelId) !== 1).map((item) => (
-            <Button 
-              key={item.hotelId}
-              className="flex-row items-center justify-start mb-4 py-4 pl-4 bg-lime-100 dark:bg-lime-950 rounded-lg"
-              onPress={() => {
-                // Handle hotel selection
-                console.log("Selected hotel:", item.hotelId);
-              }}
-            >
-              <Feather name="home" size={24} color="#84cc16" />
-              <View className="ml-3">
-                <Text className="font-semibold dark:text-white text-lg truncate line-clamp-1">{item.hotelName}</Text>
-                <Text className="text-sm text-gray-600 dark:text-gray-300">Code: {item.code}</Text>
-              </View>
-            </Button>
-          ))}
+          {HotelData.filter((item) => parseInt(item.hotelId) !== 1).map(
+            (item) => (
+              <Button
+                key={item.hotelId}
+                className="flex-row items-center justify-start mb-4 py-4 pl-4 bg-lime-100 dark:bg-lime-950 rounded-3xl"
+                onPress={() => {
+                  // Handle hotel selection
+                  console.log("Selected hotel:", item.hotelId);
+                }}
+              >
+                <Feather name="home" size={24} color="#84cc16" />
+                <View className="ml-3">
+                  <Text className="font-semibold dark:text-white text-lg truncate line-clamp-1">
+                    {item.hotelName}
+                  </Text>
+                  <Text className="text-sm text-gray-600 dark:text-gray-300">
+                    Code: {item.code}
+                  </Text>
+                </View>
+              </Button>
+            )
+          )}
         </View>
+
+       <SignOutButton/>
+        <Button onPress={() => router.push("/(extras)/onboarding")} className="mt-16">
+          <Text className="text-lg font-bold mb-4 dark:text-white">
+            Onboarding
+          </Text>
+        </Button>
       </View>
     </DrawerContentScrollView>
   );
@@ -76,14 +99,14 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
 export default function Layout() {
   const { isDarkColorScheme } = useColorScheme();
 
-    const { isSignedIn } = useAuth();
+  const { isSignedIn } = useAuth();
 
   const handleScanPress = () => {
     if (!isSignedIn) {
-      router.push('/sign-up');
+      router.push("/sign-up");
       return;
     }
-    router.push('/scanqr');
+    router.push("/scanqr");
   };
 
   return (
@@ -101,7 +124,9 @@ export default function Layout() {
           },
           headerTitle(props) {
             return (
-              <Text className="text-2xl font-bold dark:text-white text-black">Grand Shine</Text>
+              <Text className="text-2xl font-bold dark:text-white text-black">
+                Grand Shine
+              </Text>
             );
           },
           headerTitleStyle: { color: "#A9A9A9" },

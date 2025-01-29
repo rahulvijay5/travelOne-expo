@@ -4,13 +4,25 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const api = {
   // User Management
-  createUser: async (phoneNumber: string, role: User["role"]) => {
+  createUser: async (phoneNumber: string,UserEmail: string,UserName: string, role: User["role"], clerkId: string) => {
+    console.log("Creating user:", phoneNumber, UserEmail, UserName, role,clerkId);
+    console.log("API URL:", API_URL);
     const res = await fetch(`${API_URL}/users`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phoneNumber, role }),
+      body: JSON.stringify({ phoneNumber, email:UserEmail, name:UserName, role, clerkId }),
     });
-    return res.json();
+    const data = await res.json();
+    
+    if (res.status === 400) {
+      throw new Error("User with this phone number already exists");
+    }
+    
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to create user");
+    }
+    
+    return data;
   },
 
   // SuperAdmin Routes

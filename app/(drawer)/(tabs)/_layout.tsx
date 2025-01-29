@@ -56,6 +56,15 @@ export default function TabLayout() {
           headerShown: false,
         }}
       />
+
+      <Tabs.Screen
+        name="auth"
+        options={{
+          title: 'Auth',
+          tabBarIcon: ({ color }) => <MaterialIcons name="people" size={24} color={color} />,
+          headerShown: true,
+        }}
+      />
     </Tabs>
   );
 }

@@ -4,7 +4,7 @@ import api from '@/lib/api';
 import { User } from '@/types';
 import currentUser from '@/hooks/getCurrentUser';
 import { Link } from 'expo-router';
-import { SignedIn, SignedOut } from '@clerk/clerk-expo';
+import { SignedIn, SignedOut, useUser } from '@clerk/clerk-expo';
 export default function UsersScreen() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [selectedRole, setSelectedRole] = useState<User['role']>('CUSTOMER');
@@ -18,8 +18,11 @@ export default function UsersScreen() {
       return;
     }
 
+    const user = useUser();
+    const clerkId = user?.user?.id || '';
+
     try {
-      await api.createUser(phoneNumber, selectedRole);
+      await api.createUser(phoneNumber, "", "", selectedRole, clerkId);
       setMessage(`Successfully created ${selectedRole} user`);
       setPhoneNumber('');
     } catch (error) {

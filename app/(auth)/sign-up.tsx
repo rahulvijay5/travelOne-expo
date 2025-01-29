@@ -50,8 +50,9 @@ export default function SignUpScreen() {
       // If verification was completed, set the session to active
       // and redirect the user
       if (signUpAttempt.status === "complete") {
+
         await setActive({ session: signUpAttempt.createdSessionId });
-        router.replace("/");
+        router.replace("/(extras)/onboarding");
       } else {
         // If the status is not complete, check why. User may need to
         // complete further steps.
