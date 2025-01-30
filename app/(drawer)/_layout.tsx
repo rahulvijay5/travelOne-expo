@@ -6,7 +6,7 @@ import {
 } from "@react-navigation/drawer";
 import { DrawerContentScrollView } from "@react-navigation/drawer";
 import Feather from "@expo/vector-icons/Feather";
-import { router, Tabs, usePathname } from "expo-router";
+import { Redirect, router, Tabs, usePathname } from "expo-router";
 import { useEffect } from "react";
 import { FlatList, View, Image } from "react-native";
 import { SignedOut, useAuth, useClerk } from "@clerk/clerk-expo";
@@ -17,11 +17,17 @@ import { Text } from "@/components/ui/text";
 import { HotelData } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import SignOutButton from "@/components/auth/SignOutButton";
+import { useUserStorage } from "@/hooks/useUserStorage";
+import React from "react";
 
 const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   const pathname = usePathname();
   const { signOut } = useClerk();
   const { isDarkColorScheme } = useColorScheme();
+
+  // if (!userData) {
+  //   return <Redirect href="/(auth)/sign-in" />;
+  // }
 
   return (
     <DrawerContentScrollView

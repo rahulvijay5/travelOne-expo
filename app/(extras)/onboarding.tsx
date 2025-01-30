@@ -1,13 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
-import { useSignIn, useUser } from "@clerk/clerk-expo";
+import { useUser, useAuth } from "@clerk/clerk-expo";
 import { useClerk } from "@clerk/clerk-expo";
 import { useUserStorage } from "@/hooks/useUserStorage";
 import { router } from "expo-router";
 import * as React from "react";
 import { useState, useEffect } from "react";
-import { Alert, View } from "react-native";
+import { Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import api from "@/lib/api";
@@ -20,68 +20,146 @@ const onboarding = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const user = useUser();
-  if(!user){
-    router.replace("/(auth)/sign-in");
-    return null;
-  }
-  const clerkId = user.user?.id || '';
-
+  const { getToken } = useAuth();
+  
   useEffect(() => {
+    if (!user.isLoaded) return;
+    
+    if (!user.user) {
+      router.replace("/(auth)/sign-in");
+      return;
+    }
+    
     checkOnboardingStatus();
-  }, []);
+  }, [user.isLoaded]);
 
   const checkOnboardingStatus = async () => {
+    if (!user.user?.id) return;
+    
     try {
-      const userData = await getUserData();
-      if (userData?.isOnboarded) {
-        router.replace("/");
+      setIsLoading(true);
+      console.log("Checking onboarding status for clerkId:", user.user.id);
+
+      const token = await getToken();
+      if (!token) {
+        console.error("No auth token available");
         return;
+      }
+      
+      // First check if user exists in DB
+      try {
+        const dbUser = await api.getUserByClerkId(user.user.id, token);
+        console.log("DB User response:", dbUser);
+
+        if (dbUser) {
+          console.log("User exists in DB, storing data and redirecting");
+          await storeUserData({
+            userId: dbUser.id.toString(),
+            name: dbUser.name,
+            email: dbUser.email,
+            phone: dbUser.phoneNumber,
+            clerkId: dbUser.clerkId,
+            isOnboarded: true,
+            currentStay: "",
+            role: dbUser.role,
+          });
+          router.replace("/");
+          return;
+        }
+      } catch (error) {
+        console.error("Error checking user in DB:", error);
+      }
+
+      // Then check local storage
+      try {
+        const userData = await getUserData();
+        console.log("Local storage user data:", userData);
+
+        if (userData?.isOnboarded) {
+          console.log("User is onboarded in local storage, redirecting");
+          router.replace("/");
+          return;
+        }
+      } catch (storageError) {
+        console.error("Error reading from local storage:", storageError);
       }
       setIsLoading(false);
     } catch (error) {
-      console.error("Error checking onboarding status:", error);
+      console.error("Error in checkOnboardingStatus:", error);
       setIsLoading(false);
     }
   };
 
   const handleOnboardingSubmit = async () => {
-    if (!phone || !name || !user?.user?.emailAddresses[0]?.emailAddress) {
+    if (!user.user?.id) {
+      Alert.alert("Error", "Not authenticated");
+      return;
+    }
+
+    if (!phone || !name || !user.user?.emailAddresses[0]?.emailAddress) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
 
     try {
+      setIsLoading(true);
       const email = user.user.emailAddresses[0].emailAddress;
-      
-      await api.createUser(phone, email, name, "CUSTOMER", clerkId);
-      
+      const token = await getToken();
+      if (!token) {
+        Alert.alert("Error", "Authentication failed");
+        return;
+      }
+
+      console.log("Creating user with data:", {
+        phone,
+        email,
+        name,
+        clerkId: user.user.id
+      });
+
+      const userData = await api.createUser(
+        phone,
+        email,
+        name,
+        "CUSTOMER",
+        user.user.id,
+        token
+      );
+
+      console.log("User created:", userData);
+
+      try {
+        const roleResponse = await api.updateUserRole(user.user.id, "CUSTOMER", token);
+        console.log("Role update response:", roleResponse);
+      } catch (roleError) {
+        console.error("Error updating role, but user was created:", roleError);
+      }
+
       // Store user data in secure storage
       await storeUserData({
+        userId: userData.id.toString(),
         name,
         email,
         phone,
-        clerkId,
+        clerkId: user.user.id,
         isOnboarded: true,
         currentStay: "",
-        role: "CUSTOMER"
+        role: "CUSTOMER",
       });
 
       Alert.alert("Success", "Account created successfully!");
       router.replace("/");
     } catch (error: any) {
-      console.error(error);
+      console.error("Error in handleOnboardingSubmit:", error);
       if (error.message === "User with this phone number already exists") {
         Alert.alert("Error", "This phone number is already registered with us");
       } else {
         Alert.alert("Error", "Failed to create account. Please try again.");
       }
+    } finally {
+      setIsLoading(false);
     }
   };
-
-  if (!user) {
-    router.replace("/");
-    return null;
-  }
 
   if (isLoading) {
     return (
@@ -113,7 +191,7 @@ const onboarding = () => {
         onPress={handleOnboardingSubmit}
         className="mt-4 border-2 border-gray-300 bg-yellow-200 flex items-center justify-center"
       >
-        <Text className="text-lg font-bold p-4 dark:text-white flex items-center justify-center">
+        <Text className="text-lg font-bold p-4 flex items-center justify-center">
           Submit
         </Text>
       </Button>
@@ -122,13 +200,13 @@ const onboarding = () => {
         onPress={() => router.push("/(auth)/sign-in")}
         className="mt-4 border-2 border-gray-300 bg-yellow-200 flex items-center justify-center"
       >
-        <Text className="text-lg font-bold p-4 dark:text-white">SignIn</Text>
+        <Text className="text-lg font-bold p-4 ">SignIn</Text>
       </Button>
       <Button
         onPress={() => signOut()}
         className="mt-4 border-2 border-gray-300 bg-yellow-200 flex items-center justify-center"
       >
-        <Text className="text-lg font-bold p-4 dark:text-white">SignOut</Text>
+        <Text className="text-lg font-bold p-4 ">SignOut</Text>
       </Button>
     </SafeAreaView>
   );

@@ -1,13 +1,13 @@
 import { useSignIn } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
 import {
-  Text,
   TextInput,
   Button,
   View,
   SafeAreaView,
   Pressable,
 } from "react-native";
+import { Text } from "@/components/ui/text";
 import React from "react";
 
 export default function Page() {
@@ -32,7 +32,7 @@ export default function Page() {
       // and redirect the user
       if (signInAttempt.status === "complete") {
         await setActive({ session: signInAttempt.createdSessionId });
-        router.replace("/");
+        router.replace("/(extras)/onboarding");
       } else {
         // If the status isn't complete, check why. User might need to
         // complete further steps.
@@ -54,14 +54,14 @@ export default function Page() {
           value={emailAddress}
           placeholder="Enter email"
           onChangeText={(email) => setEmailAddress(email)}
-          className="border border-gray-300 p-2 placeholder:text-gray-500 rounded-md text-black"
+          className="border border-gray-300 dark:text-white p-4 rounded-md text-black"
         />
         <TextInput
           value={password}
           placeholder="Enter password"
           secureTextEntry={true}
           onChangeText={(password) => setPassword(password)}
-          className="border border-gray-300 p-2 placeholder:text-gray-500 rounded-md text-black"
+          className="border border-gray-300 dark:text-white p-4 rounded-md text-black"
         />
         <Pressable
           className="bg-blue-500 p-2 py-4 text-center rounded-md"
@@ -70,9 +70,9 @@ export default function Page() {
           <Text className="text-white">Sign In</Text>
         </Pressable>
         <View className="flex-row justify-center gap-2 flex">
-          <Text>Don't have an account?</Text>
+          <Text className="dark:text-white text-black">Don't have an account?</Text>
           <Link href="/(auth)/sign-up">
-            <Text className="text-blue-500 text-center">Sign Up</Text>
+            <Text className="text-blue-500 text-center ">Sign Up</Text>
           </Link>
         </View>
       </View>

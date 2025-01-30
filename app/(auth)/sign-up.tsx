@@ -1,8 +1,11 @@
 import * as React from "react";
-import { Text, TextInput, Button, View, Pressable } from "react-native";
+import { TextInput, View, Pressable } from "react-native";
+import { Text } from "@/components/ui/text";
 import { useSignUp } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Button } from "@/components/ui/button";
+
 
 export default function SignUpScreen() {
   const { isLoaded, signUp, setActive } = useSignUp();
@@ -68,19 +71,19 @@ export default function SignUpScreen() {
   if (pendingVerification) {
     return (
       <SafeAreaView className="flex-1 p-4 gap-2">
-        <Text>Verify your email</Text>
+        <Text className="dark:text-white text-black text-2xl font-semibold">Verify your email</Text>
         <TextInput
           value={code}
           placeholder="Enter your verification code"
           onChangeText={(code) => setCode(code)}
-          className="border border-gray-300 p-2 placeholder:text-gray-500 rounded-md text-black"
+          className="border border-gray-300 p-4 rounded-md dark:text-white text-black"
         />
-        <Pressable
-          className="bg-blue-500 p-2 rounded-md"
+        <Button
+          className="bg-blue-500 p-4 rounded-md"
           onPress={onVerifyPress}
         >
           <Text className="text-white">Verify</Text>
-        </Pressable>
+        </Button>
       </SafeAreaView>
     );
   }
@@ -88,29 +91,29 @@ export default function SignUpScreen() {
   return (
     <SafeAreaView className="flex-1 p-4">
       <View className="flex-1 gap-2">
-        <Text className="text-2xl font-semibold">Sign up</Text>
+        <Text className="text-2xl font-semibold dark:text-white text-black">Sign up</Text>
         <TextInput
           autoCapitalize="none"
           value={emailAddress}
           placeholder="Enter email"
           onChangeText={(email) => setEmailAddress(email)}
-          className="border border-gray-300 p-2 placeholder:text-gray-500 rounded-md text-black"
+          className="border border-gray-300 p-4 rounded-md dark:text-white text-black"
         />
         <TextInput
           value={password}
           placeholder="Enter password"
           secureTextEntry={true}
           onChangeText={(password) => setPassword(password)}
-          className="border border-gray-300 p-2 placeholder:text-gray-500 rounded-md text-black"
+          className="border border-gray-300 p-4 rounded-md dark:text-white text-black"
         />
-        <Pressable
-          className="bg-blue-500 p-2 py-4 text-center rounded-md"
+        <Button
+          className="bg-blue-500 p-4 py-4 text-center rounded-md"
           onPress={onSignUpPress}
         >
-          <Text className="text-white">Continue</Text>
-        </Pressable>
+          <Text className="text-white dark:text-white font-semibold text-lg">Continue</Text>
+        </Button>
         <View className="flex-row justify-center gap-2 flex">
-          <Text>Already have an account?</Text>
+          <Text className="dark:text-white text-black">Already have an account?</Text>
           <Link href="/(auth)/sign-in">
             <Text className="text-blue-500 text-center">Sign In</Text>
           </Link>

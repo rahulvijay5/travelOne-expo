@@ -1,31 +1,34 @@
+import { UserData } from '@/types';
 import * as SecureStore from 'expo-secure-store';
-
-interface UserData {
-  name: string;
-  email: string;
-  phone: string;
-  clerkId: string;
-  isOnboarded: boolean;
-  currentStay: string;
-  role: string;
-  lastUpdated: string;
-}
 
 const USER_STORAGE_KEY = 'user_data';
 
 export const useUserStorage = () => {
   const storeUserData = async (data: Partial<UserData>) => {
     try {
-      const existingData = await SecureStore.getItemAsync(USER_STORAGE_KEY);
-      const currentData = existingData ? JSON.parse(existingData) : {};
+      let existingData: Partial<UserData> = {};
+      
+      try {
+        const stored = await SecureStore.getItemAsync(USER_STORAGE_KEY);
+        if (stored) {
+          existingData = JSON.parse(stored);
+        }
+      } catch (parseError) {
+        console.error('Error parsing existing user data:', parseError);
+        // Continue with empty existing data if parse fails
+      }
       
       const newData = {
-        ...currentData,
+        ...existingData,
         ...data,
+        userId: data.userId?.toString() || existingData.userId,
         lastUpdated: new Date().toISOString(),
       };
 
-      await SecureStore.setItemAsync(USER_STORAGE_KEY, JSON.stringify(newData));
+      const stringifiedData = JSON.stringify(newData);
+      console.log('Storing data:', stringifiedData);
+      
+      await SecureStore.setItemAsync(USER_STORAGE_KEY, stringifiedData);
       return true;
     } catch (error) {
       console.error('Error storing user data:', error);
@@ -36,7 +39,24 @@ export const useUserStorage = () => {
   const getUserData = async (): Promise<UserData | null> => {
     try {
       const data = await SecureStore.getItemAsync(USER_STORAGE_KEY);
-      return data ? JSON.parse(data) : null;
+      
+      if (!data) return null;
+      
+      try {
+        if (data.startsWith('<')) {
+          console.error('Invalid data format received');
+          return null;
+        }
+        
+        const parsedData = JSON.parse(data);
+        if (parsedData?.userId) {
+          parsedData.userId = parsedData.userId.toString();
+        }
+        return parsedData;
+      } catch (parseError) {
+        console.error('Error parsing user data:', parseError);
+        return null;
+      }
     } catch (error) {
       console.error('Error getting user data:', error);
       return null;

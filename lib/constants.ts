@@ -17,6 +17,32 @@ export const NAV_THEME = {
     },
   };
 
+export const defaultAmenities = [
+  "WiFi",
+  "Parking",
+  "Swimming Pool",
+  "Restaurant",
+  "Gym",
+  "Spa",
+  "Room Service",
+  "Air Conditioning",
+  "Bar",
+  "Conference Room",
+] as const;
+
+export const defaultRoomFeatures = [
+  'Air Conditioning',
+  'TV',
+  'Mini Bar',
+  'Safe',
+  'Desk',
+  'Balcony',
+  'Sea View',
+  'Mountain View',
+  'Room Service',
+  'Free WiFi'
+] as const;
+
 export const HotelData = [
   {
     "hotelId": "H1234",
