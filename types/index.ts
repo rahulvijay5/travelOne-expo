@@ -26,12 +26,9 @@ export interface HotelFormData {
   totalRooms: number;
   contactNumber: string;
   amenities: string[];
-  customAmenity: string;
   hotelImages: string[];
   owner: string;
-  managers: [];
-  rooms: [];
-  bookings: [];
+  customAmenity?: string; // Temporary field for UI only, won't be sent to API
 }
 
 export interface RoomForm {
@@ -47,11 +44,11 @@ export interface RoomForm {
 
 export interface HotelRules {
   petsAllowed: boolean;
-  maxPeopleInOneRoom: string;
+  maxPeopleInOneRoom: number;
   extraMattressOnAvailability: boolean;
   parking: boolean;
   swimmingPool: boolean;
-  swimmingPoolTimings: string;
+  swimmingPoolTimings?: string;
   ownRestaurant: boolean;
   checkInTime: string;
   checkOutTime: string;
@@ -59,7 +56,7 @@ export interface HotelRules {
   smokingAllowed: boolean;
   alcoholAllowed: boolean;
   eventsAllowed: boolean;
-  minimumAgeForCheckIn: string;
+  minimumAgeForCheckIn: number;
 }
 
 export interface Group {

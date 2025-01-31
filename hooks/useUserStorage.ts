@@ -1,4 +1,4 @@
-import { UserData } from '@/types';
+import { User, UserData } from '@/types';
 import * as SecureStore from 'expo-secure-store';
 
 const USER_STORAGE_KEY = 'user_data';

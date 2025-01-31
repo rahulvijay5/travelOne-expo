@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, ScrollView, TextInput, TouchableOpacity } from "react-native";
+import { View, ScrollView, TextInput } from "react-native";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
 import { useAuth, useUser } from "@clerk/clerk-expo";
@@ -9,12 +9,13 @@ import { defaultAmenities } from "@/lib/constants";
 import { HotelFormData, UserData } from "@/types";
 import { Textarea } from "@/components/ui/textarea";
 import { useUserStorage } from "@/hooks/useUserStorage";
+import CustomImagePicker from "@/components/ImagePicker";
 
 const NewHotel = () => {
   const { user } = useUser();
   const { getToken } = useAuth();
 
-  const [step, setStep] = useState(1); // 1: Hotel Details, 2: Success, redirecting to rules
+  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [userData, setUserData] = useState<UserData | null>(null);
@@ -28,12 +29,9 @@ const NewHotel = () => {
     totalRooms: 0,
     contactNumber: "",
     amenities: [],
-    customAmenity: "",
     hotelImages: [],
     owner: "",
-    managers: [],
-    rooms: [],
-    bookings: [],
+    customAmenity: "",
   });
 
   // Fetch user data only once when component mounts
@@ -47,7 +45,7 @@ const NewHotel = () => {
           if (data?.phone) {
             setFormData(prev => ({
               ...prev,
-              contactNumber: data.phone
+              contactNumber: data.phone || ""
             }));
           }
         }
@@ -71,21 +69,18 @@ const NewHotel = () => {
     }));
   }, []);
 
-  const addCustomAmenity = useCallback(() => {
-    if (formData.customAmenity.trim()) {
-      setFormData(prev => ({
-        ...prev,
-        amenities: [...prev.amenities, prev.customAmenity.trim()],
-        customAmenity: "",
-      }));
-    }
-  }, [formData.customAmenity]);
+  const handleImagesSelected = useCallback((images: string[]) => {
+    setFormData(prev => ({
+      ...prev,
+      hotelImages: images,
+    }));
+  }, []);
 
   const handleSubmit = async () => {
     try {
       setLoading(true);
       setError("");
-      
+
       if (user?.publicMetadata.role !== "OWNER") {
         router.push("/not-authorized");
         return;
@@ -113,6 +108,11 @@ const NewHotel = () => {
         return;
       }
 
+      if (formData.hotelImages.length === 0) {
+        setError("Please add at least one hotel image");
+        return;
+      }
+
       const token = await getToken();
       if (!token) {
         console.error("No auth token available");
@@ -120,19 +120,44 @@ const NewHotel = () => {
         return;
       }
 
-      const response = await api.createHotel(formData, token);
-
-      if (!response.ok) {
-        throw new Error("Failed to create hotel");
+      // First upload the images
+      let uploadedImageUrls: string[] = [];
+      try {
+        uploadedImageUrls = await api.uploadImages(formData.hotelImages, "Hotel Images", token);
+      } catch (uploadError) {
+        console.error('Error uploading images:', uploadError);
+        setError('Failed to upload images. Please try again.');
+        return;
       }
 
-      const data = await response.json();
+      // Create hotel with uploaded image URLs
+      const hotelData = {
+        hotelName: formData.hotelName,
+        description: formData.description,
+        location: formData.location,
+        address: formData.address,
+        totalRooms: formData.totalRooms,
+        contactNumber: formData.contactNumber,
+        amenities: formData.amenities,
+        hotelImages: uploadedImageUrls,
+        owner: user.id,
+      };
+
+      const response = await api.createHotel(hotelData, token);
+      if (!response.ok) {
+        throw new Error(response.error || "Failed to create hotel");
+      }
+
+      // Save hotel data to local storage
+      await api.saveHotelToStorage(response.data);
+      
       setStep(2);
 
+      // Navigate to hotel rules page
       setTimeout(() => {
         router.push({
           pathname: "/(extras)/hotelrules",
-          params: { id: data.id },
+          params: { id: response.data.id },
         } as any);
       }, 2000);
     } catch (err: unknown) {
@@ -151,6 +176,9 @@ const NewHotel = () => {
         <Text className="text-base mb-4 dark:text-white">
           Redirecting to hotel rules setup...
         </Text>
+        <View className="w-2/3 h-2 bg-gray-200 rounded-full">
+          <View className="w-1/3 h-full bg-blue-500 rounded-full" />
+        </View>
       </View>
     );
   }
@@ -160,7 +188,13 @@ const NewHotel = () => {
       <View className="w-full h-0.5 bg-gray-200 rounded-full">
         <View className="w-1/3 h-full bg-blue-500 rounded-full" />
       </View>
+        <CustomImagePicker
+          images={formData.hotelImages}
+          onImagesSelected={handleImagesSelected}
+          maxImages={5}
+        />
       <View className="flex-1 p-4">
+
         <View className="space-y-4 gap-3">
           <View>
             <Text className="text-base mb-2 dark:text-white">Hotel Name *</Text>
@@ -176,9 +210,7 @@ const NewHotel = () => {
           </View>
 
           <View>
-            <Text className="text-base mb-2 dark:text-white">
-              Description *
-            </Text>
+            <Text className="text-base mb-2 dark:text-white">Description *</Text>
             <Textarea
               className="border border-gray-300 dark:border-gray-600 min-h-32 max-h-64 rounded-lg p-3 dark:text-white"
               value={formData.description}
@@ -221,16 +253,14 @@ const NewHotel = () => {
           </View>
 
           <View className="flex-row items-center gap-2 justify-between">
-            <Text className="text-base mb-2 dark:text-white">
-              Total Rooms *
-            </Text>
+            <Text className="text-base mb-2 dark:text-white">Total Rooms *</Text>
             <TextInput
               className="border border-gray-300 dark:border-gray-600 rounded-lg p-3 dark:text-white"
               value={formData.totalRooms.toString()}
               onChangeText={(text) =>
                 setFormData((prev) => ({
                   ...prev,
-                  totalRooms: parseInt(text.replace(/[^0-9]/g, "")),
+                  totalRooms: parseInt(text.replace(/[^0-9]/g, "") || "0"),
                 }))
               }
               placeholder="Enter total number of rooms"
@@ -240,9 +270,7 @@ const NewHotel = () => {
           </View>
 
           <View>
-            <Text className="text-base mb-2 dark:text-white">
-              Contact Number *
-            </Text>
+            <Text className="text-base mb-2 dark:text-white">Contact Number *</Text>
             <TextInput
               className="border border-gray-300 dark:border-gray-600 rounded-lg p-3 dark:text-white"
               value={formData.contactNumber}
@@ -258,7 +286,7 @@ const NewHotel = () => {
           <View>
             <Text className="text-base mb-2 dark:text-white">Amenities</Text>
             <View className="flex-row flex-wrap gap-2">
-              {defaultAmenities.map((amenity) => (
+              {[...defaultAmenities, ...formData.amenities.filter(a => !defaultAmenities.includes(a as any))].map((amenity) => (
                 <Button
                   key={amenity}
                   onPress={() => handleAmenityToggle(amenity)}
@@ -291,8 +319,22 @@ const NewHotel = () => {
               }
               placeholder="Add custom amenity"
               placeholderTextColor="#666"
+              onSubmitEditing={() => {
+                if (formData.customAmenity?.trim()) {
+                  handleAmenityToggle(formData.customAmenity.trim());
+                  setFormData(prev => ({ ...prev, customAmenity: "" }));
+                }
+              }}
             />
-            <Button onPress={addCustomAmenity} className="bg-blue-500 p-3">
+            <Button 
+              onPress={() => {
+                if (formData.customAmenity?.trim()) {
+                  handleAmenityToggle(formData.customAmenity.trim());
+                  setFormData(prev => ({ ...prev, customAmenity: "" }));
+                }
+              }} 
+              className="bg-blue-500 p-3"
+            >
               <Text className="text-white">Add</Text>
             </Button>
           </View>
@@ -306,15 +348,6 @@ const NewHotel = () => {
           >
             <Text className="text-lg text-white">
               {loading ? "Creating..." : "Create Hotel"}
-            </Text>
-          </Button>
-          <Button
-            onPress={() => router.push("/(extras)/hotelrules")}
-            disabled={loading}
-            className={` bg-blue-500 ${loading ? "opacity-50" : ""}`}
-          >
-            <Text className="text-lg text-white">
-              {loading ? "Creating..." : "HotelRules"}
             </Text>
           </Button>
         </View>

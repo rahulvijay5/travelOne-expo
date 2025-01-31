@@ -1,27 +1,9 @@
 import { useUserStorage } from "@/hooks/useUserStorage";
-import { HotelFormData, User } from "@/types";
+import { HotelFormData, User, HotelRules } from "@/types";
 import { useAuth } from "@clerk/clerk-expo";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
-
-// const handleResponse = async (res: Response) => {
-//   const contentType = res.headers.get("content-type");
-//   if (!contentType || !contentType.includes("application/json")) {
-//     console.error("Invalid content type:", contentType);
-//     throw new Error("Invalid response format");
-//   }
-
-//   const text = await res.text();
-//   console.log("Raw response:", text);
-
-//   try {
-//     console.log("Parsing JSON finally:", JSON.parse(text));
-//     return JSON.parse(text);
-//   } catch (parseError) {
-//     console.error("Parse error:", parseError);
-//     throw new Error("Invalid JSON response");
-//   }
-// };
 
 const getAuthHeader = async () => {
   const { getToken } = useAuth();
@@ -143,15 +125,28 @@ const api = {
     }
   },
 
-  createHotel: async (hotel: HotelFormData,token?: string) => {
-    const { getUserData } = useUserStorage();
-    const user = await getUserData();
-    const res = await fetch(`${API_URL}/api/hotels`, {
-      method: "POST",
-      headers: getHeaders(token),
-      body: JSON.stringify({...hotel, owner: user?.userId}),
-    });
-    return res.json();
+  createHotel: async (hotel: HotelFormData, token?: string) => {
+    try {
+      const { getUserData } = useUserStorage();
+      const user = await getUserData();
+      
+      const res = await fetch(`${API_URL}/api/hotels`, {
+        method: "POST",
+        headers: getHeaders(token),
+        body: JSON.stringify({...hotel, owner: user?.userId}),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to create hotel');
+      }
+
+      // Parse the response body
+      const responseData = await res.json();
+      return { ok: true, data: responseData };
+    } catch (error) {
+      console.error('Error creating hotel:', error);
+      return { ok: false, error: error instanceof Error ? error.message : 'Failed to create hotel' };
+    }
   },
 
   // SuperAdmin Routes
@@ -283,6 +278,83 @@ const api = {
   getGroupTodos: async (groupId: number) => {
     const res = await fetch(`${API_URL}/groups/${groupId}/todos`);
     return res.json();
+  },
+
+  updateHotelRules: async (hotelId: string, rules: HotelRules, token: string) => {
+    try {
+      const response = await fetch(`${API_URL}/api/hotels/${hotelId}/rules`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(rules),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update hotel rules');
+      }
+
+      return response;
+    } catch (error) {
+      console.error('Error updating hotel rules:', error);
+      throw error;
+    }
+  },
+
+  // Function to save hotel data to local storage
+  saveHotelToStorage: async (hotelData: any) => {
+    try {
+      const existingHotels = await AsyncStorage.getItem('userHotels');
+      let hotels = existingHotels ? JSON.parse(existingHotels) : [];
+      
+      // Add new hotel to the list
+      hotels = [hotelData, ...hotels];
+      
+      await AsyncStorage.setItem('userHotels', JSON.stringify(hotels));
+    } catch (error) {
+      console.error('Error saving hotel to storage:', error);
+      throw error;
+    }
+  },
+
+  // Function to get hotels from storage
+  getHotelsFromStorage: async () => {
+    try {
+      const hotels = await AsyncStorage.getItem('userHotels');
+      return hotels ? JSON.parse(hotels) : [];
+    } catch (error) {
+      console.error('Error getting hotels from storage:', error);
+      throw error;
+    }
+  },
+
+  uploadImages: async (imageUris: string[], folderName: string, token: string) => {
+    try {
+      console.log("Uploading images:", imageUris);
+      const response = await fetch(`${API_URL}/api/images/upload`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          imageUris, // Send the URIs directly
+          folderName,
+        }),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to upload images');
+      }
+  
+      const data = await response.json();
+      return data.imageUrls;
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      throw error;
+    }
   },
 };
 

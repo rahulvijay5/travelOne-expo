@@ -5,15 +5,18 @@ import { Button } from "@/components/ui/button";
 import { useLocalSearchParams, router } from "expo-router";
 import { TextInput } from "react-native";
 import { HotelRules } from "@/types";
+import { useAuth } from "@clerk/clerk-expo";
+import api from "@/lib/api";
 
 const HotelRulesPage = () => {
   const { id } = useLocalSearchParams();
+  const { getToken } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const [rules, setRules] = useState<HotelRules>({
     petsAllowed: false,
-    maxPeopleInOneRoom: "2",
+    maxPeopleInOneRoom: 2,
     extraMattressOnAvailability: false,
     parking: true,
     swimmingPool: false,
@@ -25,7 +28,7 @@ const HotelRulesPage = () => {
     smokingAllowed: false,
     alcoholAllowed: false,
     eventsAllowed: false,
-    minimumAgeForCheckIn: "18",
+    minimumAgeForCheckIn: 18,
   });
 
   const handleSubmit = async () => {
@@ -33,17 +36,14 @@ const HotelRulesPage = () => {
       setLoading(true);
       setError("");
 
-      const response = await fetch("/api/hotels/" + id + "/rules", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...rules,
-          maxPeopleInOneRoom: parseInt(rules.maxPeopleInOneRoom),
-          minimumAgeForCheckIn: parseInt(rules.minimumAgeForCheckIn),
-        }),
-      });
+      const token = await getToken();
+      if (!token) {
+        console.error("No auth token available");
+        router.push("/(extras)/not-authenticated");
+        return;
+      }
+
+      const response = await api.updateHotelRules(id as string, rules, token);
 
       if (!response.ok) {
         throw new Error("Failed to update hotel rules");
@@ -52,8 +52,9 @@ const HotelRulesPage = () => {
       // Redirect to room details page
       router.push({
         pathname: "/(extras)/roomdetails",
-        params: { id },
+        params: { id }
       } as any);
+
     } catch (err: unknown) {
       setError(
         err instanceof Error ? err.message : "Failed to update hotel rules"
@@ -90,11 +91,11 @@ const HotelRulesPage = () => {
 
             <TextInput
               className="border border-gray-300 dark:border-gray-600 rounded-lg p-2 dark:text-white"
-              value={rules.maxPeopleInOneRoom}
+              value={rules.maxPeopleInOneRoom.toString()}
               onChangeText={(text) =>
                 setRules((prev) => ({
                   ...prev,
-                  maxPeopleInOneRoom: text.replace(/[^0-9]/g, ""),
+                  maxPeopleInOneRoom: parseInt(text.replace(/[^0-9]/g, "") || "2"),
                 }))
               }
               keyboardType="numeric"
@@ -242,11 +243,11 @@ const HotelRulesPage = () => {
             <View className="flex-row items-center gap-2">
               <TextInput
                 className="border border-gray-300 dark:border-gray-600 rounded-lg p-2 dark:text-white"
-                value={rules.minimumAgeForCheckIn}
+                value={rules.minimumAgeForCheckIn.toString()}
                 onChangeText={(text) =>
                   setRules((prev) => ({
                     ...prev,
-                    minimumAgeForCheckIn: text.replace(/[^0-9]/g, ""),
+                    minimumAgeForCheckIn: parseInt(text.replace(/[^0-9]/g, "") || "18"),
                   }))
                 }
                 keyboardType="numeric"
@@ -266,19 +267,6 @@ const HotelRulesPage = () => {
           >
             <Text className="text-white text-lg">
               {loading ? "Saving..." : "Continue to Room Details"}
-            </Text>
-          </Button>
-          <Button
-            className="bg-blue-500"
-            onPress={() =>
-              router.push({
-                pathname: "/(extras)/roomdetails",
-                params: { id },
-              } as any)
-            }
-          >
-            <Text className="text-white text-lg">
-              {loading ? "Saving..." : "Room Details"}
             </Text>
           </Button>
         </View>

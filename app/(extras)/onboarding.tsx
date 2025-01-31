@@ -54,7 +54,7 @@ const onboarding = () => {
         if (dbUser) {
           console.log("User exists in DB, storing data and redirecting");
           await storeUserData({
-            userId: dbUser.id.toString(),
+            id: dbUser.id.toString(),
             name: dbUser.name,
             email: dbUser.email,
             phone: dbUser.phoneNumber,
@@ -137,7 +137,7 @@ const onboarding = () => {
 
       // Store user data in secure storage
       await storeUserData({
-        userId: userData.id.toString(),
+        id: userData.id.toString(),
         name,
         email,
         phone,
