@@ -16,6 +16,26 @@ export default function SignUpScreen() {
   const [pendingVerification, setPendingVerification] = React.useState(false);
   const [code, setCode] = React.useState("");
 
+  const [error, setError] = React.useState("");
+  const [tryAgain, setTryAgain] = React.useState(false);
+  const displayError = (error: string) => {
+    setError(error);
+    setTimeout(() => {
+      setError("");
+      setPassword("");
+      setEmailAddress("");
+      setTryAgain(true);
+      displayTryAgain();
+    }, 5000);
+  };
+  const displayTryAgain = () => {
+    setTimeout(() => {
+      setTryAgain(false);
+    }, 5000);
+  };
+
+
+
   // Handle submission of sign-up form
   const onSignUpPress = async () => {
     if (!isLoaded) return;
@@ -33,10 +53,11 @@ export default function SignUpScreen() {
       // Set 'pendingVerification' to true to display second form
       // and capture OTP code
       setPendingVerification(true);
-    } catch (err) {
+    } catch (err: any) {
       // See https://clerk.com/docs/custom-flows/error-handling
       // for more info on error handling
-      console.error(JSON.stringify(err, null, 2));
+      // console.error(JSON.stringify(err, null, 2));
+      displayError(JSON.stringify(err.errors[0].longMessage, null, 2));
     }
   };
 
@@ -61,10 +82,11 @@ export default function SignUpScreen() {
         // complete further steps.
         console.error(JSON.stringify(signUpAttempt, null, 2));
       }
-    } catch (err) {
+    } catch (err:any) {
       // See https://clerk.com/docs/custom-flows/error-handling
       // for more info on error handling
-      console.error(JSON.stringify(err, null, 2));
+      // console.error(JSON.stringify(err, null, 2));
+      displayError(JSON.stringify(err.errors[0].message, null, 2));
     }
   };
 
@@ -106,6 +128,8 @@ export default function SignUpScreen() {
           onChangeText={(password) => setPassword(password)}
           className="border border-gray-300 p-4 rounded-md dark:text-white text-black"
         />
+        {error && <Text className="text-red-500 text-center">{error}</Text>}
+        {tryAgain && <Text className="dark:text-lime-300 text-lime-800 font-extrabold text-center">Try again</Text>}
         <Button
           className="bg-blue-500 p-4 py-4 text-center rounded-md"
           onPress={onSignUpPress}

@@ -38,11 +38,13 @@ const onboarding = () => {
     
     try {
       setIsLoading(true);
+      
       console.log("Checking onboarding status for clerkId:", user.user.id);
 
       const token = await getToken();
       if (!token) {
         console.error("No auth token available");
+        setIsLoading(false);
         return;
       }
       
@@ -50,11 +52,18 @@ const onboarding = () => {
       try {
         const dbUser = await api.getUserByClerkId(user.user.id, token);
         console.log("DB User response:", dbUser);
+        
+        // If there's an error or user not found, just continue with onboarding
+        if (dbUser.error === "User not found") {
+          console.log("User not found in DB, continuing with onboarding");
+          setIsLoading(false);
+          return;
+        }
 
-        if (dbUser) {
+        if (dbUser && dbUser.id) {
           console.log("User exists in DB, storing data and redirecting");
           await storeUserData({
-            id: dbUser.id.toString(),
+            userId: dbUser.id.toString(),
             name: dbUser.name,
             email: dbUser.email,
             phone: dbUser.phoneNumber,
@@ -68,6 +77,7 @@ const onboarding = () => {
         }
       } catch (error) {
         console.error("Error checking user in DB:", error);
+        // Don't throw here, continue checking local storage
       }
 
       // Then check local storage
@@ -83,6 +93,8 @@ const onboarding = () => {
       } catch (storageError) {
         console.error("Error reading from local storage:", storageError);
       }
+      
+      // If we get here, user needs to be onboarded
       setIsLoading(false);
     } catch (error) {
       console.error("Error in checkOnboardingStatus:", error);
@@ -137,7 +149,7 @@ const onboarding = () => {
 
       // Store user data in secure storage
       await storeUserData({
-        id: userData.id.toString(),
+        userId: userData.id.toString(),
         name,
         email,
         phone,
@@ -150,9 +162,10 @@ const onboarding = () => {
       Alert.alert("Success", "Account created successfully!");
       router.replace("/");
     } catch (error: any) {
-      console.error("Error in handleOnboardingSubmit:", error);
+      // console.error("Error in handleOnboardingSubmit:", error);
       if (error.message === "User with this phone number already exists") {
         Alert.alert("Error", "This phone number is already registered with us");
+        setPhone("");
       } else {
         Alert.alert("Error", "Failed to create account. Please try again.");
       }

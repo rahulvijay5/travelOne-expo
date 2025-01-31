@@ -1,18 +1,28 @@
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+  Switch,
+} from "react-native";
 import React, { useState } from "react";
-import { View, ScrollView, Switch } from "react-native";
-import { Text } from "@/components/ui/text";
-import { Button } from "@/components/ui/button";
 import { useLocalSearchParams, router } from "expo-router";
-import { TextInput } from "react-native";
-import { HotelRules } from "@/types";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/clerk-expo";
 import api from "@/lib/api";
+import { HotelRules } from "@/types";
+import { Separator } from "@/components/ui/separator";
 
-const HotelRulesPage = () => {
-  const { id } = useLocalSearchParams();
+export default function HotelRulesPage({
+  creatingNewHotel = false,
+}: {
+  creatingNewHotel: boolean;
+}) {
+  const { hotelId } = useLocalSearchParams();
   const { getToken } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   const [rules, setRules] = useState<HotelRules>({
     petsAllowed: false,
@@ -22,8 +32,8 @@ const HotelRulesPage = () => {
     swimmingPool: false,
     swimmingPoolTimings: "6:00 AM - 8:00 PM",
     ownRestaurant: false,
-    checkInTime: "12:00 PM",
-    checkOutTime: "11:00 AM",
+    checkInTime: "14:00",
+    checkOutTime: "11:00",
     guestInfoNeeded: true,
     smokingAllowed: false,
     alcoholAllowed: false,
@@ -34,31 +44,20 @@ const HotelRulesPage = () => {
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      setError("");
-
       const token = await getToken();
-      if (!token) {
-        console.error("No auth token available");
-        router.push("/(extras)/not-authenticated");
-        return;
+      if (!token || !hotelId) {
+        throw new Error("Missing required data");
       }
 
-      const response = await api.updateHotelRules(id as string, rules, token);
-
-      if (!response.ok) {
-        throw new Error("Failed to update hotel rules");
+      await api.updateHotelRules(hotelId as string, rules, token);
+      if (creatingNewHotel) {
+        router.push({ pathname: "/roomdetails", params: { id: hotelId } });
+      } else {
+        router.back(); // Go back to hotel details page after successful update
       }
-
-      // Redirect to room details page
-      router.push({
-        pathname: "/(extras)/roomdetails",
-        params: { id }
-      } as any);
-
-    } catch (err: unknown) {
-      setError(
-        err instanceof Error ? err.message : "Failed to update hotel rules"
-      );
+    } catch (error) {
+      console.error("Error updating hotel rules:", error);
+      // Here you might want to show an error message to the user
     } finally {
       setLoading(false);
     }
@@ -69,212 +68,213 @@ const HotelRulesPage = () => {
       <View className="w-full h-0.5 bg-gray-200 rounded-full">
         <View className="w-2/3 h-full bg-blue-500 rounded-full" />
       </View>
-      <View className="flex-1 p-4">
-        <View className="space-y-6 gap-2">
-          <Text className="text-xl mb-4 text-center font-semibold dark:text-white">
-            Configure your hotel rules
+
+      <View className="flex-1 p-4 gap-2">
+        <View className="flex-row justify-between items-center">
+          <Text className="text-lg dark:text-white text-black">
+            Check-in Time
           </Text>
-          <View className="flex-row justify-between items-center">
-            <Text className="text-base dark:text-white">Pets Allowed</Text>
-            <Switch
-              value={rules.petsAllowed}
-              onValueChange={(value) =>
-                setRules((prev) => ({ ...prev, petsAllowed: value }))
-              }
-            />
-          </View>
-
-          <View className="gap-2 flex-row items-center justify-between">
-            <Text className="text-base mb-2 dark:text-white">
-              Max People in One Room
-            </Text>
-
-            <TextInput
-              className="border border-gray-300 dark:border-gray-600 rounded-lg p-2 dark:text-white"
-              value={rules.maxPeopleInOneRoom.toString()}
-              onChangeText={(text) =>
-                setRules((prev) => ({
-                  ...prev,
-                  maxPeopleInOneRoom: parseInt(text.replace(/[^0-9]/g, "") || "2"),
-                }))
-              }
-              keyboardType="numeric"
-              placeholder="Enter maximum number of people"
-              placeholderTextColor="#666"
-            />
-          </View>
-
-          <View className="flex-row justify-between items-center">
-            <Text className="text-base dark:text-white">
-              Extra Mattress Available
-            </Text>
-            <Switch
-              value={rules.extraMattressOnAvailability}
-              onValueChange={(value) =>
-                setRules((prev) => ({
-                  ...prev,
-                  extraMattressOnAvailability: value,
-                }))
-              }
-            />
-          </View>
-
-          <View className="flex-row justify-between items-center">
-            <Text className="text-base dark:text-white">Parking Available</Text>
-            <Switch
-              value={rules.parking}
-              onValueChange={(value) =>
-                setRules((prev) => ({ ...prev, parking: value }))
-              }
-            />
-          </View>
-
-          <View>
-            <View className="flex-row justify-between items-center mb-2">
-              <Text className="text-base dark:text-white">Swimming Pool</Text>
-              <Switch
-                value={rules.swimmingPool}
-                onValueChange={(value) =>
-                  setRules((prev) => ({ ...prev, swimmingPool: value }))
-                }
-              />
-            </View>
-            {rules.swimmingPool && (
-              <TextInput
-                className="border border-gray-300 dark:border-gray-600 rounded-lg p-3 dark:text-white"
-                value={rules.swimmingPoolTimings}
-                onChangeText={(text) =>
-                  setRules((prev) => ({ ...prev, swimmingPoolTimings: text }))
-                }
-                placeholder="Enter pool timings"
-                placeholderTextColor="#666"
-              />
-            )}
-          </View>
-
-          <View className="flex-row justify-between items-center">
-            <Text className="text-base dark:text-white">
-              Restaurant Available
-            </Text>
-            <Switch
-              value={rules.ownRestaurant}
-              onValueChange={(value) =>
-                setRules((prev) => ({ ...prev, ownRestaurant: value }))
-              }
-            />
-          </View>
-
-          <View>
-            <Text className="text-base mb-2 dark:text-white">
-              Check-in Time
-            </Text>
-            <TextInput
-              className="border border-gray-300 dark:border-gray-600 rounded-lg p-3 dark:text-white"
-              value={rules.checkInTime}
-              onChangeText={(text) =>
-                setRules((prev) => ({ ...prev, checkInTime: text }))
-              }
-              placeholder="Enter check-in time (e.g., 12:00 PM)"
-              placeholderTextColor="#666"
-            />
-          </View>
-
-          <View>
-            <Text className="text-base mb-2 dark:text-white">
-              Check-out Time
-            </Text>
-            <TextInput
-              className="border border-gray-300 dark:border-gray-600 rounded-lg p-3 dark:text-white"
-              value={rules.checkOutTime}
-              onChangeText={(text) =>
-                setRules((prev) => ({ ...prev, checkOutTime: text }))
-              }
-              placeholder="Enter check-out time (e.g., 11:00 AM)"
-              placeholderTextColor="#666"
-            />
-          </View>
-
-          <View className="flex-row justify-between items-center">
-            <Text className="text-base dark:text-white">
-              Guest Info Required
-            </Text>
-            <Switch
-              value={rules.guestInfoNeeded}
-              onValueChange={(value) =>
-                setRules((prev) => ({ ...prev, guestInfoNeeded: value }))
-              }
-            />
-          </View>
-
-          <View className="flex-row justify-between items-center">
-            <Text className="text-base dark:text-white">Smoking Allowed</Text>
-            <Switch
-              value={rules.smokingAllowed}
-              onValueChange={(value) =>
-                setRules((prev) => ({ ...prev, smokingAllowed: value }))
-              }
-            />
-          </View>
-
-          <View className="flex-row justify-between items-center">
-            <Text className="text-base dark:text-white">Alcohol Allowed</Text>
-            <Switch
-              value={rules.alcoholAllowed}
-              onValueChange={(value) =>
-                setRules((prev) => ({ ...prev, alcoholAllowed: value }))
-              }
-            />
-          </View>
-
-          <View className="flex-row justify-between items-center">
-            <Text className="text-base dark:text-white">Events Allowed</Text>
-            <Switch
-              value={rules.eventsAllowed}
-              onValueChange={(value) =>
-                setRules((prev) => ({ ...prev, eventsAllowed: value }))
-              }
-            />
-          </View>
-
-          <View className="gap-2 flex-row items-center justify-between">
-            <Text className="text-base mb-2 dark:text-white">
-              Minimum Age for Check-in
-            </Text>
-            <View className="flex-row items-center gap-2">
-              <TextInput
-                className="border border-gray-300 dark:border-gray-600 rounded-lg p-2 dark:text-white"
-                value={rules.minimumAgeForCheckIn.toString()}
-                onChangeText={(text) =>
-                  setRules((prev) => ({
-                    ...prev,
-                    minimumAgeForCheckIn: parseInt(text.replace(/[^0-9]/g, "") || "18"),
-                  }))
-                }
-                keyboardType="numeric"
-                placeholder="Enter minimum age"
-                placeholderTextColor="#666"
-              />
-              <Text className="text-base mb-2 dark:text-white">yrs</Text>
-            </View>
-          </View>
-
-          {error ? <Text className="text-red-500">{error}</Text> : null}
-
-          <Button
-            onPress={handleSubmit}
-            disabled={loading}
-            className={`mt-6 bg-blue-500 ${loading ? "opacity-50" : ""}`}
-          >
-            <Text className="text-white text-lg">
-              {loading ? "Saving..." : "Continue to Room Details"}
-            </Text>
-          </Button>
+          <TextInput
+            className="border-2 border-gray-300 dark:text-white text-black rounded-lg p-2"
+            value={rules.checkInTime}
+            onChangeText={(text) =>
+              setRules((prev) => ({ ...prev, checkInTime: text }))
+            }
+            placeholder="11:00"
+          />
         </View>
 
-        <View className="h-8" />
+        <View className="flex-row justify-between items-center">
+          <Text className="text-lg dark:text-white text-black">
+            Check-out Time
+          </Text>
+          <TextInput
+            className="border-2 border-gray-300 dark:text-white text-black rounded-lg p-2"
+            value={rules.checkOutTime}
+            onChangeText={(text) =>
+              setRules((prev) => ({ ...prev, checkOutTime: text }))
+            }
+            placeholder="10:00"
+          />
+        </View>
+
+        <View className="h-0.5 bg-gray-200 my-1 rounded-full" />
+
+        <View className="flex-row justify-between items-center">
+          <Text className="text-lg dark:text-white text-black">
+            Maximum People per Room
+          </Text>
+          <TextInput
+            className="border-2 border-gray-300 dark:text-white text-black rounded-lg p-2"
+            value={rules.maxPeopleInOneRoom.toString()}
+            onChangeText={(text) =>
+              setRules((prev) => ({
+                ...prev,
+                maxPeopleInOneRoom: parseInt(text) || 2,
+              }))
+            }
+            keyboardType="numeric"
+            placeholder="2"
+          />
+        </View>
+
+        <View className="flex-row justify-between items-center">
+          <Text className="text-lg dark:text-white text-black">
+            Minimum Age for Check-in
+          </Text>
+          <TextInput
+            className="border-2 border-gray-300 dark:text-white text-black rounded-lg py-2 px-4"
+            value={rules.minimumAgeForCheckIn.toString()}
+            onChangeText={(text) =>
+              setRules((prev) => ({
+                ...prev,
+                minimumAgeForCheckIn: parseInt(text) || 18,
+              }))
+            }
+            keyboardType="numeric"
+            placeholder="18"
+          />
+        </View>
+
+        <View className="h-0.5 bg-gray-200 my-1 rounded-full" />
+
+        <View className="flex-row justify-between items-center">
+          <Text className="text-lg dark:text-white text-black">
+            Pets Allowed
+          </Text>
+          <Switch
+            value={rules.petsAllowed}
+            onValueChange={(value) =>
+              setRules((prev) => ({ ...prev, petsAllowed: value }))
+            }
+          />
+        </View>
+
+        <View className="flex-row justify-between items-center">
+          <Text className="text-lg dark:text-white text-black">
+            Extra Mattress Available
+          </Text>
+          <Switch
+            value={rules.extraMattressOnAvailability}
+            onValueChange={(value) =>
+              setRules((prev) => ({
+                ...prev,
+                extraMattressOnAvailability: value,
+              }))
+            }
+          />
+        </View>
+
+        <View className="flex-row justify-between items-center">
+          <Text className="text-lg dark:text-white text-black">
+            Parking Available
+          </Text>
+          <Switch
+            value={rules.parking}
+            onValueChange={(value) =>
+              setRules((prev) => ({ ...prev, parking: value }))
+            }
+          />
+        </View>
+
+        <View className="flex-row justify-between items-center">
+          <Text className="text-lg dark:text-white text-black">
+            Swimming Pool
+          </Text>
+          <Switch
+            value={rules.swimmingPool}
+            onValueChange={(value) =>
+              setRules((prev) => ({ ...prev, swimmingPool: value }))
+            }
+          />
+        </View>
+
+        {rules.swimmingPool && (
+          <View className="flex-row justify-between items-center">
+            <Text className="text-lg dark:text-white text-black">
+              Pool Timings
+            </Text>
+            <TextInput
+              className="border-2 border-gray-300 rounded-lg p-2"
+              value={rules.swimmingPoolTimings}
+              onChangeText={(text) =>
+                setRules((prev) => ({ ...prev, swimmingPoolTimings: text }))
+              }
+              placeholder="6:00 AM - 8:00 PM"
+            />
+          </View>
+        )}
+
+        <View className="flex-row justify-between items-center">
+          <Text className="text-lg dark:text-white text-black">
+            Restaurant Available
+          </Text>
+          <Switch
+            value={rules.ownRestaurant}
+            onValueChange={(value) =>
+              setRules((prev) => ({ ...prev, ownRestaurant: value }))
+            }
+          />
+        </View>
+
+        <View className="flex-row justify-between items-center">
+          <Text className="text-lg dark:text-white text-black">
+            Guest Info Required
+          </Text>
+          <Switch
+            value={rules.guestInfoNeeded}
+            onValueChange={(value) =>
+              setRules((prev) => ({ ...prev, guestInfoNeeded: value }))
+            }
+          />
+        </View>
+
+        <View className="flex-row justify-between items-center">
+          <Text className="text-lg dark:text-white text-black">
+            Smoking Allowed
+          </Text>
+          <Switch
+            value={rules.smokingAllowed}
+            onValueChange={(value) =>
+              setRules((prev) => ({ ...prev, smokingAllowed: value }))
+            }
+          />
+        </View>
+
+        <View className="flex-row justify-between items-center">
+          <Text className="text-lg dark:text-white text-black">
+            Alcohol Allowed
+          </Text>
+          <Switch
+            value={rules.alcoholAllowed}
+            onValueChange={(value) =>
+              setRules((prev) => ({ ...prev, alcoholAllowed: value }))
+            }
+          />
+        </View>
+
+        <View className="flex-row justify-between items-center">
+          <Text className="text-lg dark:text-white text-black">
+            Events Allowed
+          </Text>
+          <Switch
+            value={rules.eventsAllowed}
+            onValueChange={(value) =>
+              setRules((prev) => ({ ...prev, eventsAllowed: value }))
+            }
+          />
+        </View>
+
+        <TouchableOpacity
+          className="bg-blue-500 p-3 my-4 rounded-lg text-center"
+          onPress={handleSubmit}
+          disabled={loading}
+        >
+          <Text className="text-white text-center">
+            {loading ? "Updating..." : "Update Rules"}
+          </Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
-};
-
-export default HotelRulesPage;
+}

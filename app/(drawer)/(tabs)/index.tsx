@@ -1,17 +1,11 @@
 import { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, TextInput, StyleSheet, ScrollView, Image, Dimensions } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Group } from '@/types';
-import currentUser from '@/hooks/getCurrentUser';
-import JoinGroup from '@/components/JoinGroup';
-import GroupManagement from '@/components/GroupManagement';
-import api from '@/lib/api';
-import { getCurrentGroup, setCurrentGroup } from '@/hooks/getCurrentGroup';
-import { router } from 'expo-router';
+import { View, Text, StyleSheet, ScrollView, Image, Dimensions } from 'react-native';
 import { HotelData } from '@/lib/constants';
 import { useColorScheme } from '@/lib/useColorScheme';
 import Feather from '@expo/vector-icons/Feather';
 import { getCurrentHotel, setCurrentHotel } from '@/hooks/getCurrentHotel';
+import { useUserStorage } from '@/hooks/useUserStorage';
+import { router } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
@@ -25,6 +19,12 @@ export default function HomeScreen() {
 
   const loadCurrentHotel = async () => {
     const hotelId = await getCurrentHotel();
+    const { getUserData } = useUserStorage();
+    const userData = await getUserData();
+    const hasOnboardingCompleted = userData?.isOnboarded;
+    if (!hasOnboardingCompleted) {
+      router.push('/onboarding');
+    }
     if (hotelId) {
       const hotel = HotelData.find(h => h.hotelId === hotelId);
       if (hotel) {

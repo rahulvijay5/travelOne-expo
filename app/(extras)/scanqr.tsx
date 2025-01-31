@@ -1,8 +1,6 @@
-import { View, Alert, Platform, Linking } from "react-native";
+import { View, Alert, Platform, Linking, Pressable, TextInput } from "react-native";
 import { useState, useEffect } from "react";
-
-import { CameraView, Camera } from "expo-camera";
-
+import { CameraView, Camera } from "expo-camera"
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { Button } from "@/components/ui/button";
@@ -100,7 +98,7 @@ export default function ScanQRScreen() {
   const handleBarCodeScanned = async ({ data }: { data: string }) => {
     setScanning(false);
     // Extract hotel code from the QR data (assuming data is like 'hotelCode=1234')
-    const code = data.split('=')[1]; // Simple split to extract the hotelCode
+    const code = data.split("=")[1]; // Simple split to extract the hotelCode
     await processCode(code);
   };
 
@@ -176,14 +174,16 @@ export default function ScanQRScreen() {
           Camera access is required to scan QR codes.
         </Text>
         <Button onPress={getCameraPermissions} className="bg-lime-500 p-2">
-          <Text className="dark:text-white text-black">Grant Camera Permission</Text>
+          <Text className="dark:text-white text-black">
+            Grant Camera Permission
+          </Text>
         </Button>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1">
+    <View className="flex-1 justify-center">
       {scanning ? (
         <View className="flex-1">
           <CameraView
@@ -193,39 +193,53 @@ export default function ScanQRScreen() {
             }}
             style={{ flex: 1 }}
           />
-          <Button
+          <Pressable
             onPress={() => setScanning(false)}
-            className="absolute bottom-10 left-0 right-0 mx-4"
+            className="absolute bottom-10 left-0 bg-lime-500 p-4 font-bold text-xl text-white rounded-lg right-0 mx-4"
           >
-            <Text className="">Cancel Scanning</Text>
-          </Button>
+            <Text className="text-center">Cancel Scanning</Text>
+          </Pressable>
         </View>
       ) : (
-        <View className="flex-1 p-4 pt-10 gap-4">
-          <Text className="text-3xl font-bold text-center mb-4 dark:text-white text-black">
-            Scan Hotel QR Code
-          </Text>
+        <View className="flex-1 p-4 gap-4  justify-center">
+          <View className="flex  gap-4">
+            <Text className="text-2xl font-bold text-center  dark:text-white text-black">
+              Scan Hotel QR Code
+            </Text>
 
-          <Button onPress={showOptions} className="bg-lime-500 p-2 w-1/2 self-center rounded-md py-4 ">
-            <Text className="text-lg font-bold">Scan QR Code</Text>
-          </Button>
+            <Pressable
+              onPress={showOptions}
+              className="bg-lime-500 p-2 w-1/2 self-center rounded-md py-4 "
+            >
+              <Text className="text-lg text-center font-bold">
+                Scan QR Code
+              </Text>
+            </Pressable>
+          </View>
 
-          <View className="my-8">
-            <Text className="text-center mb-4 dark:text-white text-black">--- OR ---</Text>
-            <Text className="mb-2 dark:text-white text-black">Enter Code Manually:</Text>
-            <Input
+          <View className="gap-4 flex-1">
+            <Text className="text-center dark:text-white text-black">
+              --- OR ---
+            </Text>
+            <Text className=" dark:text-white font-bold text-2xl text-center text-black">
+              Enter Code Manually
+            </Text>
+            <TextInput
               value={manualCode}
               onChangeText={setManualCode}
               placeholder="Enter hotel code"
-              keyboardType="number-pad"
-              className="mb-4 mt-2 p-4 border-2 border-gray-300 rounded-md dark:text-white text-blac text-lg"
+              className="p-4 border-2 border-gray-300 w-1/2 self-center rounded-md dark:text-white text-black text-lg"
             />
-            <Button onPress={handleManualSubmit} disabled={!manualCode.trim()} className="bg-lime-500 p-2 w-1/2 self-center rounded-md py-4 ">
-              <Text className="text-lg font-bold">Submit Code</Text>
+            <Button
+              onPress={handleManualSubmit}
+              disabled={!manualCode.trim()}
+              className="bg-lime-500 p-2 w-1/2 self-center rounded-md py-4 "
+            >
+              <Text className="text-lg text-center font-bold">Submit Code</Text>
             </Button>
           </View>
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 }

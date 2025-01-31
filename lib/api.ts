@@ -2,6 +2,7 @@ import { useUserStorage } from "@/hooks/useUserStorage";
 import { HotelFormData, User, HotelRules } from "@/types";
 import { useAuth } from "@clerk/clerk-expo";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from "expo-router";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -22,26 +23,49 @@ const getHeaders = (token?: string) => ({
 const handleResponse = async (res: Response) => {
   if (!res.ok) {
     // Log the response status and type to debug
-    console.error("API Response Error: ", res.status, res.statusText, res.headers);
-    const text = await res.text();
-    console.error("Error Response Text: ", text);  // Log the HTML response for debugging
-
-    // Handle 404 error
-    if (res.status === 404) {
-      console.log("User not found");
-      return null;  // You can return null or an empty object depending on the use case
+    console.error("API Response Error: ", res.status, res.statusText);
+    
+    try {
+      // Try to parse as JSON first
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        const errorData = await res.json();
+        if (res.status === 404 && errorData.message === "User not found") {
+          return { error: "User not found" };
+        }
+        throw new Error(errorData.message || `API error: ${res.status}`);
+      }
+      
+      // If not JSON, try to get text
+      const text = await res.text();
+      console.error("Error Response Text: ", text);
+      throw new Error(`API error: ${res.status} - ${res.statusText}`);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error(`API error: ${res.status} - ${res.statusText}`);
     }
-
-    throw new Error(`API error: ${res.status} - ${res.statusText}`);
   }
 
-  // If the response is not JSON, handle it here
-  const contentType = res.headers.get("content-type");
-  if (contentType && contentType.includes("application/json")) {
-    return res.json();  // Parse the JSON response if the type is JSON
-  } else {
-    console.error("Invalid content type:", contentType);
-    throw new Error("Invalid response format");
+  try {
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      return res.json();
+    }
+    // For endpoints that don't return JSON
+    const text = await res.text();
+    if (!text) return null;
+    try {
+      // Try to parse as JSON anyway in case content-type is wrong
+      return JSON.parse(text);
+    } catch {
+      // If can't parse as JSON, return as is
+      return text;
+    }
+  } catch (error) {
+    console.error("Error parsing response:", error);
+    throw new Error("Failed to parse response");
   }
 };
 
@@ -146,6 +170,29 @@ const api = {
     } catch (error) {
       console.error('Error creating hotel:', error);
       return { ok: false, error: error instanceof Error ? error.message : 'Failed to create hotel' };
+    }
+  },
+
+  getOwnedHotels: async (ownerId: string, token?: string) => {
+    try {
+      console.log("Getting owned hotels for ownerId:", ownerId);
+      console.log("API URL:", API_URL);
+      const res = await fetch(`${API_URL}/api/hotels/owner/${ownerId}`, {
+        method: "GET",
+        headers: getHeaders(token),
+      });
+
+      console.log("Response:", res);
+      if (!res.ok) {
+        throw new Error('Failed to get owned hotels');
+      }
+
+      // Parse the response body
+      const responseData = await res.json();
+      return { ok: true, data: responseData };
+    } catch (error) {
+      console.error('Error getting owned hotels:', error);
+      return { ok: false, error: error instanceof Error ? error.message : 'Failed to get owned hotels' };
     }
   },
 
@@ -282,6 +329,8 @@ const api = {
 
   updateHotelRules: async (hotelId: string, rules: HotelRules, token: string) => {
     try {
+      console.log("Updating hotel rules for hotelId:", hotelId);
+      console.log("Rules:", rules);
       const response = await fetch(`${API_URL}/api/hotels/${hotelId}/rules`, {
         method: 'PUT',
         headers: {
@@ -290,6 +339,7 @@ const api = {
         },
         body: JSON.stringify(rules),
       });
+      console.log("Response:", response);
 
       if (!response.ok) {
         throw new Error('Failed to update hotel rules');
@@ -343,6 +393,7 @@ const api = {
           folderName,
         }),
       });
+      console.log("Response:", response);
   
       if (!response.ok) {
         const errorData = await response.json();
@@ -353,6 +404,67 @@ const api = {
       return data.imageUrls;
     } catch (error) {
       console.error('Error uploading images:', error);
+      throw error;
+    }
+  },
+
+  searchUserByPhone: async (phoneNumber: string, token?: string) => {
+    try {
+      console.log("Searching user by phone number:", phoneNumber);
+      const res = await fetch(`${API_URL}/api/users/search?query=${phoneNumber}`, {
+        method: "GET",
+        headers: getHeaders(token),
+      });
+
+      return handleResponse(res);
+    } catch (error) {
+      console.error("Error searching user:", error);
+      throw error;
+    }
+  },
+
+  addManagerToHotel: async (hotelId: string, managerId: string, token?: string) => {
+    try {
+      console.log("Adding manager to hotel:", { hotelId, managerId });
+      const res = await fetch(`${API_URL}/api/hotels/${hotelId}/managers`, {
+        method: "POST",
+        headers: getHeaders(token),
+        body: JSON.stringify({ managerId }),
+      });
+
+      return handleResponse(res);
+    } catch (error) {
+      console.error("Error adding manager to hotel:", error);
+      throw error;
+    }
+  },
+
+  removeManagerFromHotel: async (hotelId: string, managerId: string, token?: string) => {
+    try {
+      console.log("Removing manager from hotel:", { hotelId, managerId });
+      const res = await fetch(`${API_URL}/api/hotels/${hotelId}/managers/${managerId}`, {
+        method: "DELETE",
+        headers: getHeaders(token),
+      });
+
+      return handleResponse(res);
+    } catch (error) {
+      console.error("Error removing manager from hotel:", error);
+      throw error;
+    }
+  },
+
+  getHotelManagers: async (hotelId: string, token?: string) => {
+    try {
+      console.log("Getting hotel managers for hotelId:", hotelId);
+      const res = await fetch(`${API_URL}/api/hotels/${hotelId}/managers`, {
+        method: "GET",
+        headers: getHeaders(token),
+      });
+
+      return handleResponse(res);
+    } catch (error) {
+      console.error("Error getting hotel managers:", error);
       throw error;
     }
   },

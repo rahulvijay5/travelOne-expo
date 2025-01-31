@@ -1,4 +1,4 @@
-import { View } from 'react-native'
+import { Pressable, View } from 'react-native'
 import { Button } from '@/components/ui/button'
 import { Text } from '@/components/ui/text'
 import React, { useEffect, useState } from 'react'
@@ -22,11 +22,11 @@ const NewHotelButton = () => {
   if (!isOwner) return null;
 
   return (
-    <Button onPress={() => router.push("/(extras)/newhotel")} className="mt-16">
-      <Text className="text-lg font-bold mb-4 dark:text-white">
+    <Pressable onPress={() => router.push("/(extras)/newhotel")} className=" bg-blue-500 w-full p-3 rounded-lg">
+      <Text className="text-lg font-bold text-white text-center">
         New Hotel
       </Text>
-    </Button>
+    </Pressable>
   );
 };
 

@@ -8,7 +8,7 @@ import { DrawerContentScrollView } from "@react-navigation/drawer";
 import Feather from "@expo/vector-icons/Feather";
 import { Redirect, router, Tabs, usePathname } from "expo-router";
 import { useEffect } from "react";
-import { FlatList, View, Image } from "react-native";
+import { FlatList, View, Image, Pressable } from "react-native";
 import { SignedOut, useAuth, useClerk } from "@clerk/clerk-expo";
 import { Separator } from "@/components/ui/separator";
 import { useColorScheme } from "@/lib/useColorScheme";
@@ -73,7 +73,6 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
                 key={item.hotelId}
                 className="flex-row items-center justify-start mb-4 py-4 pl-4 bg-lime-100 dark:bg-lime-950 rounded-3xl"
                 onPress={() => {
-                  // Handle hotel selection
                   console.log("Selected hotel:", item.hotelId);
                 }}
               >

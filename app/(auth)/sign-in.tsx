@@ -16,6 +16,22 @@ export default function Page() {
 
   const [emailAddress, setEmailAddress] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [error, setError] = React.useState("");
+  const [tryAgain, setTryAgain] = React.useState(false);
+  const displayError = (error: string) => {
+    setError(error);
+    setTimeout(() => {
+      setError("");
+      setPassword("");
+      setEmailAddress("");
+    }, 5000);
+  }; 
+
+  const displayTryAgain = () => {
+    setTimeout(() => {
+      setTryAgain(false);
+    }, 5000);
+  };
 
   // Handle the submission of the sign-in form
   const onSignInPress = React.useCallback(async () => {
@@ -38,17 +54,18 @@ export default function Page() {
         // complete further steps.
         console.error(JSON.stringify(signInAttempt, null, 2));
       }
-    } catch (err) {
+    } catch (err: any) {
       // See https://clerk.com/docs/custom-flows/error-handling
       // for more info on error handling
-      console.error(JSON.stringify(err, null, 2));
+      // console.error(JSON.stringify(err, null, 2));
+      displayError(JSON.stringify(err.errors[0].message, null, 2));
     }
   }, [isLoaded, emailAddress, password]);
 
   return (
-    <SafeAreaView className="flex-1 p-4">
-      <View className="flex-1 gap-2">
-        <Text className="text-2xl font-semibold">Sign In</Text>
+    <SafeAreaView className="flex-1 ">
+      <View className="flex-1 gap-2 p-4 ">
+        <Text className="text-2xl font-semibold dark:text-white text-black">Sign In</Text>
         <TextInput
           autoCapitalize="none"
           value={emailAddress}
@@ -63,6 +80,8 @@ export default function Page() {
           onChangeText={(password) => setPassword(password)}
           className="border border-gray-300 dark:text-white p-4 rounded-md text-black"
         />
+          {error && <Text className="text-red-500 text-center">{error}</Text>}
+          {tryAgain && <Text className="text-red-500 text-center">Try again</Text>}
         <Pressable
           className="bg-blue-500 p-2 py-4 text-center rounded-md"
           onPress={onSignInPress}

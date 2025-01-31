@@ -36,7 +36,7 @@ export const useUserStorage = () => {
     }
   };
 
-  const getUserData = async (): Promise<UserData | null> => {
+ const getUserData = async (): Promise<UserData | null> => {
     try {
       const data = await SecureStore.getItemAsync(USER_STORAGE_KEY);
       
@@ -73,9 +73,17 @@ export const useUserStorage = () => {
     }
   };
 
+  const updateUserData = async (data: Partial<UserData>) => { 
+    const userData = await getUserData();
+    if (userData) {
+      await storeUserData({ ...userData, ...data });
+    }
+  };
+
   return {
     storeUserData,
     getUserData,
     clearUserData,
+    updateUserData,
   };
 }; 

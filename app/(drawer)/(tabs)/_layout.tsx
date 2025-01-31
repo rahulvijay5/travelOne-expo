@@ -62,7 +62,7 @@ export default function TabLayout() {
         options={{
           title: 'Auth',
           tabBarIcon: ({ color }) => <MaterialIcons name="people" size={24} color={color} />,
-          headerShown: true,
+          headerShown: false,
         }}
       />
     </Tabs>
