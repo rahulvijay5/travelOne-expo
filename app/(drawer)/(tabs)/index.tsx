@@ -1,37 +1,52 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, Dimensions } from 'react-native';
-import { HotelData } from '@/lib/constants';
+import { View, Text, StyleSheet, ScrollView, Image, Dimensions, Pressable } from 'react-native';
 import { useColorScheme } from '@/lib/useColorScheme';
 import Feather from '@expo/vector-icons/Feather';
-import { getCurrentHotel, setCurrentHotel } from '@/hooks/getCurrentHotel';
 import { useUserStorage } from '@/hooks/useUserStorage';
 import { router } from 'expo-router';
+import { Button } from '@/components/ui/button';
 
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
-  const [currentHotel, setCurrentHotelState] = useState(HotelData[0]);
+  const [currentHotel, setCurrentHotel] = useState<any>(null);
   const { isDarkColorScheme } = useColorScheme();
+  const { getUserData } = useUserStorage();
 
   useEffect(() => {
     loadCurrentHotel();
   }, []);
 
   const loadCurrentHotel = async () => {
-    const hotelId = await getCurrentHotel();
-    const { getUserData } = useUserStorage();
     const userData = await getUserData();
     const hasOnboardingCompleted = userData?.isOnboarded;
     if (!hasOnboardingCompleted) {
       router.push('/onboarding');
+      return;
     }
-    if (hotelId) {
-      const hotel = HotelData.find(h => h.hotelId === hotelId);
-      if (hotel) {
-        setCurrentHotelState(hotel);
+    
+    if (userData?.currentStay) {
+      try {
+        const hotelData = JSON.parse(userData.currentStay);
+        setCurrentHotel(hotelData);
+      } catch (error) {
+        console.error('Error parsing hotel data:', error);
       }
     }
   };
+
+  if (!currentHotel) {
+    return (
+      <View className="flex-1 items-center justify-center p-4">
+        <Text className="text-xl text-center dark:text-white text-black mb-4">
+          No active hotel stay found
+        </Text>
+        <Button onPress={() => router.push('/scanqr')} className="bg-lime-500 p-4 rounded-lg">
+          <Text className="text-lg font-bold">Scan Hotel QR Code</Text>
+        </Button>
+      </View>
+    );
+  }
 
   return (
     <ScrollView className="flex-1 bg-white dark:bg-black">
@@ -52,71 +67,98 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* Description */}
-      <View className="p-4">
-        <Text className="text-lg dark:text-white">
-          {currentHotel.description}
-        </Text>
-      </View>
-
-      {/* Amenities */}
-      <View className="p-4">
-        <Text className="text-xl font-bold mb-4 dark:text-white">
-          Amenities & Services
-        </Text>
-        <View className="flex-row flex-wrap gap-4">
-          {currentHotel.amenities.map((amenity, index) => (
-            <View
-              key={index}
-              className="bg-lime-100 dark:bg-lime-950 rounded-lg p-3 flex-row items-center"
-              style={{ width: (width - 32) / 2 - 8 }}
-            >
-              <Feather name="check-circle" size={20} color="#84cc16" />
-              <Text className="ml-2 flex-1 dark:text-white">{amenity}</Text>
-            </View>
-          ))}
+      {/* Hotel Details */}
+      <View className="p-4 space-y-6">
+        {/* Description */}
+        <View>
+          <Text className="text-lg font-bold mb-2 dark:text-white text-black">
+            About
+          </Text>
+          <Text className="text-gray-600 dark:text-gray-300">
+            {currentHotel.description}
+          </Text>
         </View>
-      </View>
 
-      {/* Rules */}
-      <View className="p-4">
-        <Text className="text-xl font-bold mb-4 dark:text-white">
-          Hotel Rules
-        </Text>
-        <View className="bg-gray-100 dark:bg-gray-900 rounded-lg p-4">
-          <View className="flex-row justify-between mb-2">
-            <Text className="dark:text-white">Check-in Time</Text>
-            <Text className="dark:text-white">{currentHotel.rules.checkInTime}</Text>
-          </View>
-          <View className="flex-row justify-between mb-2">
-            <Text className="dark:text-white">Check-out Time</Text>
-            <Text className="dark:text-white">{currentHotel.rules.checkOutTime}</Text>
-          </View>
-          <View className="flex-row justify-between mb-2">
-            <Text className="dark:text-white">Pets Allowed</Text>
-            <Text className="dark:text-white">{currentHotel.rules.petsAllowed ? 'Yes' : 'No'}</Text>
-          </View>
-          <View className="flex-row justify-between mb-2">
-            <Text className="dark:text-white">Max People/Room</Text>
-            <Text className="dark:text-white">{currentHotel.rules.maxPeopleInOneRoom}</Text>
+        {/* Contact & Address */}
+        <View>
+          <Text className="text-lg font-bold mb-2 dark:text-white text-black">
+            Contact & Location
+          </Text>
+          <View className="space-y-2">
+            <Text className="text-gray-600 dark:text-gray-300">
+              📞 {currentHotel.contactNumber}
+            </Text>
+            <Text className="text-gray-600 dark:text-gray-300">
+              📍 {currentHotel.address}
+            </Text>
           </View>
         </View>
-      </View>
 
-      {/* Contact */}
-      <View className="p-4 mb-8">
-        <Text className="text-xl font-bold mb-4 dark:text-white">
-          Contact Information
-        </Text>
-        <View className="bg-gray-100 dark:bg-gray-900 rounded-lg p-4">
-          <View className="flex-row items-center mb-2">
-            <Feather name="phone" size={20} color={isDarkColorScheme ? "white" : "black"} />
-            <Text className="ml-2 dark:text-white">{currentHotel.contactNumber}</Text>
+        {/* Rules */}
+        <View>
+          <Text className="text-lg font-bold mb-2 dark:text-white text-black">
+            Hotel Rules
+          </Text>
+          <View className="space-y-2">
+            <Text className="text-gray-600 dark:text-gray-300">
+              🕐 Check-in: {currentHotel.rules.checkInTime}
+            </Text>
+            <Text className="text-gray-600 dark:text-gray-300">
+              🕐 Check-out: {currentHotel.rules.checkOutTime}
+            </Text>
+            <Text className="text-gray-600 dark:text-gray-300">
+              👥 Max people per room: {currentHotel.rules.maxPeopleInOneRoom}
+            </Text>
+            <Text className="text-gray-600 dark:text-gray-300">
+              🔞 Minimum age: {currentHotel.rules.minimumAgeForCheckIn}+
+            </Text>
+            {currentHotel.rules.petsAllowed && (
+              <Text className="text-gray-600 dark:text-gray-300">
+                🐾 Pets allowed
+              </Text>
+            )}
+            {currentHotel.rules.smokingAllowed && (
+              <Text className="text-gray-600 dark:text-gray-300">
+                🚬 Smoking allowed
+              </Text>
+            )}
           </View>
-          <View className="flex-row items-center">
-            <Feather name="mail" size={20} color={isDarkColorScheme ? "white" : "black"} />
-            <Text className="ml-2 dark:text-white">{currentHotel.owner.email}</Text>
+        </View>
+
+        {/* Amenities */}
+        <View>
+          <Text className="text-lg font-bold mb-2 dark:text-white text-black">
+            Amenities
+          </Text>
+          <View className="flex-row flex-wrap">
+            {currentHotel.amenities.map((amenity: string, index: number) => (
+              <View
+                key={index}
+                className="bg-gray-100 dark:bg-gray-800 rounded-full px-4 py-2 m-1"
+              >
+                <Text className="text-gray-800 dark:text-gray-200">
+                  {amenity}
+                </Text>
+              </View>
+            ))}
           </View>
+        </View>
+
+        {/* Hotel Images */}
+        <View>
+          <Text className="text-lg font-bold mb-2 dark:text-white text-black">
+            Gallery
+          </Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {currentHotel.hotelImages.map((image: string, index: number) => (
+              <Image
+                key={index}
+                source={{ uri: image }}
+                style={{ width: width * 0.8, height: width * 0.6, marginRight: 10 }}
+                className="rounded-lg"
+              />
+            ))}
+          </ScrollView>
         </View>
       </View>
     </ScrollView>

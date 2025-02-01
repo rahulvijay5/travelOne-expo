@@ -468,6 +468,35 @@ const api = {
       throw error;
     }
   },
+
+  getHotelById: async (hotelId: string, token?: string) => {
+    try {
+      console.log("Getting hotel details for hotelId:", hotelId);
+      const res = await fetch(`${API_URL}/api/hotels/${hotelId}`, {
+        method: "GET",
+        headers: getHeaders(token),
+      });
+
+      return handleResponse(res);
+    } catch (error) {
+      console.error("Error getting hotel details:", error);
+      throw error;
+    }
+  },
+
+  getHotelByCode: async (code: string) => {
+    try {
+      const res = await fetch(`${API_URL}/api/hotel/code`, {
+        method: "POST",
+        body: JSON.stringify({ code }),
+      });
+
+      return handleResponse(res);
+    } catch (error) {
+      console.error("Error getting hotel by code:", error);
+      throw error;
+    }
+  },
 };
 
 export default api;

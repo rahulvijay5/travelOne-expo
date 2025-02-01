@@ -60,10 +60,10 @@ const OwnedHotels = () => {
     }
   }, [ownerId]);
 
-  const handleManagePeople = (hotelId: string) => {
+  const handleManagePeople = (hotelId: string, hotelName: string) => {
     router.push({
-      pathname: "/managePeople",
-      params: { hotelId },
+      pathname: "/managePeople",  
+      params: { hotelId, hotelName },
     });
   };
 
@@ -133,7 +133,7 @@ const OwnedHotels = () => {
               </Button>
               <Button
                 className=" p-3 bg-blue-500 flex-grow"
-                onPress={() => handleManagePeople(hotel.id)}
+                onPress={() => handleManagePeople(hotel.id, hotel.hotelName)}
               >
                 <Text className="text-white font-bold text-lg">Manage People</Text>
               </Button>

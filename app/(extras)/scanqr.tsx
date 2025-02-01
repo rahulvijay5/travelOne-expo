@@ -10,23 +10,22 @@ import { setCurrentHotel } from "@/hooks/getCurrentHotel";
 import { HotelData } from "@/lib/constants";
 import { useAuth } from "@clerk/clerk-expo";
 import { SafeAreaView } from "react-native-safe-area-context";
+import api from "@/lib/api";
+import { useUserStorage } from "@/hooks/useUserStorage";
 
 export default function ScanQRScreen() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [scanning, setScanning] = useState(false);
+  const [scanning, setScanning] = useState(true); // Start with camera open
   const [manualCode, setManualCode] = useState("");
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, getToken } = useAuth();
+  const { storeUserData } = useUserStorage();
 
   const getCameraPermissions = async () => {
     try {
-      const { status: existingStatus } =
-        await Camera.getCameraPermissionsAsync();
+      const { status: existingStatus } = await Camera.getCameraPermissionsAsync();
 
       // If permission was previously denied, show an alert explaining why we need it
       if (existingStatus === "denied") {
-        //remove this line latter, for testing only
-        setHasPermission(true);
-
         Alert.alert(
           "Camera Permission Required",
           "We need camera access to scan QR codes. Would you like to enable it?",
@@ -62,6 +61,7 @@ export default function ScanQRScreen() {
                   );
                 } else {
                   setHasPermission(true);
+                  setScanning(true); // Start scanning when permission is granted
                 }
               },
             },
@@ -73,8 +73,9 @@ export default function ScanQRScreen() {
       // If not previously denied or no existing permission, request it
       const { status } = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === "granted");
-
-      if (status !== "granted") {
+      if (status === "granted") {
+        setScanning(true); // Start scanning when permission is granted
+      } else {
         Alert.alert(
           "Permission Denied",
           "Camera access is required to scan QR codes.",
@@ -111,8 +112,8 @@ export default function ScanQRScreen() {
     });
 
     if (!result.canceled) {
-      // process the image to extract QR code
-      // For now, we'll just show an alert that this feature is coming soon
+      // TODO: Process QR code from image
+      // For now, we'll just show an alert
       Alert.alert(
         "Coming Soon",
         "QR code scanning from gallery will be available soon!"
@@ -121,13 +122,22 @@ export default function ScanQRScreen() {
   };
 
   const processCode = async (code: string) => {
-    const hotel = HotelData.find((h) => h.code.toString() === code);
-    if (hotel) {
-      await setCurrentHotel(hotel.hotelId);
-      Alert.alert("Success", `Found hotel: ${hotel.hotelName}`);
-      router.back();
-    } else {
-      Alert.alert("Error", "Invalid hotel code. Please try again.");
+    try {
+      const response = await api.getHotelByCode(code);
+      
+      if (response.error) {
+        Alert.alert("Error", "Invalid hotel code. Please try again.");
+        return;
+      }
+
+      // Store hotel details in user storage as currentStay
+      await storeUserData({ currentStay: JSON.stringify(response) });
+      
+      // Navigate to home page
+      router.replace("/");
+    } catch (error) {
+      console.error("Error processing code:", error);
+      Alert.alert("Error", "Failed to process hotel code. Please try again.");
     }
   };
 
@@ -135,28 +145,6 @@ export default function ScanQRScreen() {
     if (manualCode.trim()) {
       await processCode(manualCode.trim());
     }
-  };
-
-  const showOptions = () => {
-    Alert.alert(
-      "Scan QR Code",
-      "Choose a method to scan the hotel code",
-      [
-        {
-          text: "Use Camera",
-          onPress: () => setScanning(true),
-        },
-        {
-          text: "Choose from Gallery",
-          onPress: pickImage,
-        },
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-      ],
-      { cancelable: true }
-    );
   };
 
   if (hasPermission === null) {
@@ -193,35 +181,25 @@ export default function ScanQRScreen() {
             }}
             style={{ flex: 1 }}
           />
-          <Pressable
-            onPress={() => setScanning(false)}
-            className="absolute bottom-10 left-0 bg-lime-500 p-4 font-bold text-xl text-white rounded-lg right-0 mx-4"
-          >
-            <Text className="text-center">Cancel Scanning</Text>
-          </Pressable>
-        </View>
-      ) : (
-        <View className="flex-1 p-4 gap-4  justify-center">
-          <View className="flex  gap-4">
-            <Text className="text-2xl font-bold text-center  dark:text-white text-black">
-              Scan Hotel QR Code
-            </Text>
-
+          <View className="absolute bottom-10 left-0 right-0 flex-row justify-between px-4">
             <Pressable
-              onPress={showOptions}
-              className="bg-lime-500 p-2 w-1/2 self-center rounded-md py-4 "
+              onPress={() => setScanning(false)}
+              className="bg-lime-500 p-4 rounded-lg flex-1 mr-2"
             >
-              <Text className="text-lg text-center font-bold">
-                Scan QR Code
-              </Text>
+              <Text className="text-center">Cancel Scanning</Text>
+            </Pressable>
+            <Pressable
+              onPress={pickImage}
+              className="bg-lime-500 p-4 rounded-lg flex-1 ml-2"
+            >
+              <Text className="text-center">Choose from Gallery</Text>
             </Pressable>
           </View>
-
-          <View className="gap-4 flex-1">
-            <Text className="text-center dark:text-white text-black">
-              --- OR ---
-            </Text>
-            <Text className=" dark:text-white font-bold text-2xl text-center text-black">
+        </View>
+      ) : (
+        <View className="flex-1 p-4 gap-4 justify-center">
+          <View className="flex gap-4">
+            <Text className="text-2xl font-bold text-center dark:text-white text-black">
               Enter Code Manually
             </Text>
             <TextInput
@@ -233,9 +211,23 @@ export default function ScanQRScreen() {
             <Button
               onPress={handleManualSubmit}
               disabled={!manualCode.trim()}
-              className="bg-lime-500 p-2 w-1/2 self-center rounded-md py-4 "
+              className="bg-lime-500 p-2 w-1/2 self-center rounded-md py-4"
             >
               <Text className="text-lg text-center font-bold">Submit Code</Text>
+            </Button>
+          </View>
+
+          <View className="gap-4">
+            <Text className="text-center dark:text-white text-black">
+              --- OR ---
+            </Text>
+            <Button
+              onPress={() => setScanning(true)}
+              className="bg-lime-500 p-2 w-1/2 self-center rounded-md py-4"
+            >
+              <Text className="text-lg text-center font-bold">
+                Scan QR Code
+              </Text>
             </Button>
           </View>
         </View>

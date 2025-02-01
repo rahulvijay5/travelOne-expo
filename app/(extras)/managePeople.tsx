@@ -1,4 +1,4 @@
-import { View, ActivityIndicator, Share } from 'react-native'
+import { View, ActivityIndicator, Share, Alert } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useLocalSearchParams } from 'expo-router';
 import { Text } from '@/components/ui/text';
@@ -18,9 +18,16 @@ interface Manager {
   role: string;
 }
 
+interface Hotel {
+  id: string;
+  name: string;
+  // Add other hotel properties as needed
+}
+
 const ManagePeople = () => {
   const params = useLocalSearchParams();
   const hotelId = params.hotelId as string;
+  const hotelName = params.hotelName as string;
   const { getToken } = useAuth();
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -31,12 +38,13 @@ const ManagePeople = () => {
   const [managers, setManagers] = useState<Manager[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+
   useEffect(() => {
     if (!hotelId) return;
-    loadManagers();
+    loadHotelAndManagers();
   }, [hotelId]);
 
-  const loadManagers = async () => {
+  const loadHotelAndManagers = async () => {
     try {
       const token = await getToken();
       if (!token) {
@@ -44,13 +52,14 @@ const ManagePeople = () => {
         return;
       }
 
+      // Load managers
       console.log("Loading managers for hotel:", hotelId);
-      const response = await api.getHotelManagers(hotelId, token);
-      console.log("Managers response:", response);
-      setManagers(response);
+      const managersResponse = await api.getHotelManagers(hotelId, token);
+      console.log("Managers response:", managersResponse);
+      setManagers(managersResponse);
       setIsLoading(false);
     } catch (error) {
-      console.error("Error loading managers:", error);
+      console.error("Error loading hotel and managers:", error);
       setIsLoading(false);
     }
   };
@@ -78,7 +87,16 @@ const ManagePeople = () => {
       console.log("Search response:", response);
       
       if (response && response.length > 0) {
-        setSearchResult(response[0]);
+        // Filter out users who are already managers of this hotel
+        const potentialManager = response[0];
+        const isAlreadyManager = managers.some(manager => manager.id === potentialManager.id);
+        
+        if (isAlreadyManager) {
+          setSearchError('This user is already a manager of this hotel');
+          return;
+        }
+        
+        setSearchResult(potentialManager);
       } else {
         setSearchError(`No user exists with this phone number, type correct phone number or invite them to ${APP_NAME} first!`);
       }
@@ -93,47 +111,91 @@ const ManagePeople = () => {
   const handleAddManager = async () => {
     if (!searchResult) return;
 
-    try {
-      const token = await getToken();
-      if (!token) {
-        console.error("No auth token available");
-        setSearchError('Authentication error');
-        return;
-      }
+    // Show confirmation dialog
+    Alert.alert(
+      "Add Manager",
+      `Are you sure you want to add ${searchResult.name} as a manager to ${hotelName}?`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Add",
+          onPress: async () => {
+            try {
+              const token = await getToken();
+              if (!token) {
+                console.error("No auth token available");
+                setSearchError('Authentication error');
+                return;
+              }
 
-      console.log("Adding manager:", searchResult.id, "to hotel:", hotelId);
-      await api.addManagerToHotel(hotelId, searchResult.id, token);
-      console.log("Manager added successfully");
-      
-      // Refresh managers list
-      await loadManagers();
-      
-      // Clear search
-      setSearchQuery('');
-      setSearchResult(null);
-    } catch (error) {
-      console.error("Error adding manager:", error);
-      setSearchError('Error adding manager to hotel');
-    }
+              console.log("Adding manager:", searchResult.id, "to hotel:", hotelId);
+              await api.addManagerToHotel(hotelId, searchResult.id, token);
+              console.log("Manager added successfully");
+              
+              // Refresh managers list
+              await loadHotelAndManagers();
+              
+              // Clear search
+              setSearchQuery('');
+              setSearchResult(null);
+            } catch (error: any) {
+              console.error("Error adding manager:", error);
+              
+              // Handle specific error cases
+              if (error.message === "User is already a manager or owner") {
+                setSearchError('This user is already a manager or owner of another hotel');
+              } else if (error.message === "User not found") {
+                setSearchError('User not found');
+              } else {
+                setSearchError('Error adding manager to hotel');
+              }
+            }
+          }
+        }
+      ]
+    );
   };
 
-  const handleRemoveManager = async (managerId: string) => {
-    try {
-      const token = await getToken();
-      if (!token) {
-        console.error("No auth token available");
-        return;
-      }
+  const handleRemoveManager = async (manager: Manager) => {
+    if (!hotelName) return;
 
-      console.log("Removing manager:", managerId, "from hotel:", hotelId);
-      await api.removeManagerFromHotel(hotelId, managerId, token);
-      console.log("Manager removed successfully");
-      
-      // Refresh managers list
-      await loadManagers();
-    } catch (error) {
-      console.error("Error removing manager:", error);
-    }
+    // Show confirmation dialog
+    Alert.alert(
+      "Remove Manager",
+      `Are you sure you want to remove ${manager.name} as a manager from ${hotelName}?`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Remove",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const token = await getToken();
+              if (!token) {
+                console.error("No auth token available");
+                return;
+              }
+
+              console.log("Removing manager:", manager.id, "from hotel:", hotelId);
+              await api.removeManagerFromHotel(hotelId, manager.id, token);
+              console.log("Manager removed successfully");
+              
+              // Refresh managers list
+              await loadHotelAndManagers();
+            } catch (error) {
+              console.error("Error removing manager:", error);
+              Alert.alert("Error", "Failed to remove manager");
+            }
+          }
+        }
+      ]
+    );
   };
 
   const handleShare = async () => {
@@ -169,7 +231,7 @@ const ManagePeople = () => {
         <Text className="text-xl font-semibold mb-2 dark:text-white text-black">Search Manager</Text>
         <View className="flex-row gap-2 h-14 p-1 items-center justify-between border-2 dark:border-gray-800 border-gray-300 rounded-lg">
           <Input
-            className="flex-1 dark:text-white text-black rounded-lg p-2"
+            className="flex-1 dark:text-white border-0 text-black rounded-lg p-2"
             placeholder="Enter phone number"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -191,13 +253,15 @@ const ManagePeople = () => {
         {searchError ? (
           <View className="mt-2">
             <Text className="text-red-500">{searchError}</Text>
-            <Button
-              onPress={handleShare}
-              variant="outline"
-              className="mt-2 p-2 bg-blue-500 rounded-lg"
-            >
-              <Text className="font-bold text-lg text-white">Share App</Text>
-            </Button>
+            {searchError.includes('invite') && (
+              <Button
+                onPress={handleShare}
+                variant="outline"
+                className="mt-2 p-2 bg-blue-500 rounded-lg"
+              >
+                <Text className="font-bold text-lg text-white">Share App</Text>
+              </Button>
+            )}
           </View>
         ) : null}
 
@@ -227,7 +291,7 @@ const ManagePeople = () => {
             {managers.map((manager) => (
               <View
                 key={manager.id}
-                className="flex-row justify-between items-center bg-gray-200 dark:bg-gray-800 p-4 rounded-lg border dark:border-gray-300 border-gray-800"
+                className="flex-row justify-between items-center bg-gray-200 dark:bg-gray-800 p-4 rounded-lg border dark:border-gray-300 border-gray-800 my-1"
               >
                 <View>
                   <Text className="font-semibold text-lg dark:text-white text-black">{manager.name}</Text>
@@ -235,7 +299,7 @@ const ManagePeople = () => {
                 </View>
                 <Button
                   variant="destructive"
-                  onPress={() => handleRemoveManager(manager.id)}
+                  onPress={() => handleRemoveManager(manager)}
                   className="p-2 dark:bg-red-900 bg-red-400 rounded-lg px-4"
                 >
                   <Text className="text-white font-bold text-lg">Remove</Text>
