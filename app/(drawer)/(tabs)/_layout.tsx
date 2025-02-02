@@ -1,13 +1,13 @@
-import { Tabs } from 'expo-router/tabs';
-import { MaterialIcons } from '@expo/vector-icons';
-import currentUser from '@/hooks/getCurrentUser';
+import { Tabs } from "expo-router/tabs";
+import { MaterialIcons } from "@expo/vector-icons";
+import currentUser from "@/hooks/getCurrentUser";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { TouchableOpacity, View } from "react-native";
 import { Link, router } from "expo-router";
 import Feather from "@expo/vector-icons/Feather";
-import { Text } from '@/components/ui/text';
-import { Button } from '@/components/ui/button';
+import { Text } from "@/components/ui/text";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@clerk/clerk-expo";
 
 export default function TabLayout() {
@@ -26,7 +26,6 @@ export default function TabLayout() {
           backgroundColor: isDarkColorScheme ? "black" : "white",
         },
         tabBarActiveTintColor: "#84cc16",
-        
       }}
     >
       <Tabs.Screen
@@ -39,20 +38,14 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="todos"
-        options={{
-          title: 'Todos',
-          tabBarIcon: ({ color }) => <MaterialIcons name="check-circle" size={24} color={color} />,
-          headerShown: false,
-        }}
-      />
 
       <Tabs.Screen
-        name="users"
+        name="bookings"
         options={{
-          title: 'Users',
-          tabBarIcon: ({ color }) => <MaterialIcons name="people" size={24} color={color} />,
+          title: "Bookings",
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="book" size={24} color={color} />
+          ),
           headerShown: false,
         }}
       />
@@ -60,8 +53,10 @@ export default function TabLayout() {
       <Tabs.Screen
         name="auth"
         options={{
-          title: 'Auth',
-          tabBarIcon: ({ color }) => <MaterialIcons name="people" size={24} color={color} />,
+          title: "Auth",
+          tabBarIcon: ({ color }) => (
+            <MaterialIcons name="people" size={24} color={color} />
+          ),
           headerShown: false,
         }}
       />

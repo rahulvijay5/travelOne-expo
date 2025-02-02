@@ -130,7 +130,7 @@ export default function Layout() {
           headerTitle(props) {
             return (
               <Text className="text-2xl font-bold dark:text-white text-black">
-                Grand Shine
+                HotelOne
               </Text>
             );
           },

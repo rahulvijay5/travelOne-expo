@@ -69,7 +69,10 @@ const onboarding = () => {
             phone: dbUser.phoneNumber,
             clerkId: dbUser.clerkId,
             isOnboarded: true,
-            currentStay: "",
+            currentStay: {
+              hotelId: dbUser.hotelId,
+              hotelCode: dbUser.hotelCode
+            },
             role: dbUser.role,
           });
           router.replace("/");
@@ -155,7 +158,10 @@ const onboarding = () => {
         phone,
         clerkId: user.user.id,
         isOnboarded: true,
-        currentStay: "",
+        currentStay: {
+          hotelId: "",
+          hotelCode: ""
+        },
         role: "CUSTOMER",
       });
 
@@ -184,7 +190,7 @@ const onboarding = () => {
 
   return (
     <SafeAreaView className="flex-1 p-4 gap-2">
-      <Text>Onboarding</Text>
+      <Text className="text-2xl font-semibold dark:text-white text-black text-center my-2">Onboarding</Text>
       <Input
         placeholder="Enter your name"
         value={name}

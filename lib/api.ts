@@ -24,7 +24,7 @@ const handleResponse = async (res: Response) => {
   if (!res.ok) {
     // Log the response status and type to debug
     console.error("API Response Error: ", res.status, res.statusText);
-    
+
     try {
       // Try to parse as JSON first
       const contentType = res.headers.get("content-type");
@@ -477,6 +477,8 @@ const api = {
         headers: getHeaders(token),
       });
 
+      console.log("res in getHotelById", res);
+
       return handleResponse(res);
     } catch (error) {
       console.error("Error getting hotel details:", error);
@@ -486,15 +488,26 @@ const api = {
 
   getHotelByCode: async (code: string) => {
     try {
-      const res = await fetch(`${API_URL}/api/hotel/code`, {
-        method: "POST",
-        body: JSON.stringify({ code }),
-      });
+      const res = await fetch(`${API_URL}/api/hotels/code/${code}`);
+      console.log("Response status:", res.status);
+      
+      if (res.status === 404) {
+        return { status: 404, error: "Hotel not found" };
+      }
+      
+      if (res.status === 400) {
+        return { status: 400, error: "Invalid hotel code" };
+      }
+      
+      if (!res.ok) {
+        return { status: res.status, error: "Failed to fetch hotel details" };
+      }
 
-      return handleResponse(res);
+      const data = await res.json();
+      return { status: 200, data };
     } catch (error) {
       console.error("Error getting hotel by code:", error);
-      throw error;
+      return { status: 500, error: "Internal server error" };
     }
   },
 };

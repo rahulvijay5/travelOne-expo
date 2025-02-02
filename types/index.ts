@@ -13,7 +13,10 @@ export interface UserData {
   phone: string;
   clerkId: string;
   isOnboarded: boolean;
-  currentStay: string;
+  currentStay: {
+    hotelId: string;
+    hotelCode: string;
+  } | null;
   role: string;
   lastUpdated: string;
 }
@@ -42,7 +45,13 @@ export interface RoomForm {
   images: string[];
 }
 
+export interface HotelManager {
+  name: string;
+}
+
 export interface HotelRules {
+  id: string;
+  hotelId: string;
   petsAllowed: boolean;
   maxPeopleInOneRoom: number;
   extraMattressOnAvailability: boolean;
@@ -57,6 +66,23 @@ export interface HotelRules {
   alcoholAllowed: boolean;
   eventsAllowed: boolean;
   minimumAgeForCheckIn: number;
+}
+
+export interface HotelDetails {
+  id: string;
+  hotelName: string;
+  description: string;
+  location: string;
+  address: string;
+  totalRooms: number;
+  code: string;
+  contactNumber: string;
+  amenities: string[];
+  hotelImages: string[];
+  createdAt: string;
+  updatedAt: string;
+  managers: HotelManager[];
+  rules: HotelRules;
 }
 
 export interface Group {

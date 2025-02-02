@@ -51,6 +51,10 @@ const Auth = () => {
       } catch (error) {
         console.error("Error checking/updating role:", error);
       }
+      finally {
+        //not sure this will work or not
+        router.replace("/auth");
+      }
     };
 
     handleCheckRole();

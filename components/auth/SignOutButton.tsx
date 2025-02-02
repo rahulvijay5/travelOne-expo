@@ -19,7 +19,7 @@ const SignOutButton = () => {
     }
   };
   return (
-    <Button onPress={handleSignOut} className="bg-red-500 border p-4 rounded-lg">
+    <Button onPress={handleSignOut} className="dark:bg-red-500 bg-red-300 border p-4 rounded-lg">
       <Text className="dark:text-white text-black font-semibold">Sign Out</Text>
     </Button>
   );
