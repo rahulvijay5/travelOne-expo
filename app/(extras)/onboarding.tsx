@@ -71,7 +71,8 @@ const onboarding = () => {
             isOnboarded: true,
             currentStay: {
               hotelId: dbUser.hotelId,
-              hotelCode: dbUser.hotelCode
+              hotelCode: dbUser.hotelCode,
+              hotelName: dbUser.hotelName
             },
             role: dbUser.role,
           });
@@ -160,7 +161,8 @@ const onboarding = () => {
         isOnboarded: true,
         currentStay: {
           hotelId: "",
-          hotelCode: ""
+          hotelCode: "",
+          hotelName: ""
         },
         role: "CUSTOMER",
       });

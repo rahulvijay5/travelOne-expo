@@ -1,5 +1,5 @@
 import { useUserStorage } from "@/hooks/useUserStorage";
-import { HotelFormData, User, HotelRules } from "@/types";
+import { HotelFormData, User, HotelRules, BookingData } from "@/types";
 import { useAuth } from "@clerk/clerk-expo";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from "expo-router";
@@ -491,23 +491,95 @@ const api = {
       const res = await fetch(`${API_URL}/api/hotels/code/${code}`);
       console.log("Response status:", res.status);
       
-      if (res.status === 404) {
-        return { status: 404, error: "Hotel not found" };
-      }
-      
-      if (res.status === 400) {
-        return { status: 400, error: "Invalid hotel code" };
-      }
-      
       if (!res.ok) {
+        if (res.status === 404) {
+          return { status: 404, error: "Hotel not found" };
+        }
+        if (res.status === 400) {
+          return { status: 400, error: "Invalid hotel code" };
+        }
         return { status: res.status, error: "Failed to fetch hotel details" };
       }
 
+      // Parse response data
       const data = await res.json();
+      
+      // Validate required fields
+      if (!data.id || !data.code || !data.hotelName) {
+        console.error("Invalid hotel data received:", data);
+        return { status: 500, error: "Invalid hotel data received" };
+      }
+
       return { status: 200, data };
     } catch (error) {
       console.error("Error getting hotel by code:", error);
       return { status: 500, error: "Internal server error" };
+    }
+  },
+
+  // Room related functions
+  getHotelRoomsByStatus: async (hotelId: string, roomStatus: string = "AVAILABLE") => {
+    try {
+      const res = await fetch(`${API_URL}/api/rooms/hotel/${hotelId}/${roomStatus}`);
+      return handleResponse(res);
+    } catch (error) {
+      console.error("Error getting hotel rooms:", error);
+      throw error;
+    }
+  },
+
+  // Booking related functions
+  createBooking: async (bookingData: BookingData, token?: string) => {
+    try {
+      const res = await fetch(`${API_URL}/api/bookings`, {
+        method: "POST",
+        headers: getHeaders(token),
+        body: JSON.stringify(bookingData),
+      });
+      return handleResponse(res);
+    } catch (error) {
+    console.error("Error creating booking:", error);
+      throw error;
+    }
+  },
+
+  getBookingById: async (bookingId: string, token?: string) => {
+    try {
+      const res = await fetch(`${API_URL}/api/bookings/${bookingId}`, {
+        method: "GET",
+        headers: getHeaders(token),
+      });
+      return handleResponse(res);
+    } catch (error) {
+      console.error("Error getting booking:", error);
+      throw error;
+    }
+  },
+
+  // Function to save booking data to local storage
+  saveBookingToStorage: async (bookingData: any) => {
+    try {
+      const existingBookings = await AsyncStorage.getItem('userBookings');
+      let bookings = existingBookings ? JSON.parse(existingBookings) : [];
+      
+      // Add new booking to the list
+      bookings = [bookingData, ...bookings];
+      
+      await AsyncStorage.setItem('userBookings', JSON.stringify(bookings));
+    } catch (error) {
+      console.error('Error saving booking to storage:', error);
+      throw error;
+    }
+  },
+
+  // Function to get bookings from storage
+  getBookingsFromStorage: async () => {
+    try {
+      const bookings = await AsyncStorage.getItem('userBookings');
+      return bookings ? JSON.parse(bookings) : [];
+    } catch (error) {
+      console.error('Error getting bookings from storage:', error);
+      throw error;
     }
   },
 };

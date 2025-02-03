@@ -123,33 +123,60 @@ export default function ScanQRScreen() {
 
   const processCode = async (code: string) => {
     try {
+      setScanning(false); // Stop scanning while processing
+
       const response = await api.getHotelByCode(code);
       console.log("API Response:", response);
 
       if (response.status === 200 && response.data) {
-        // Store both hotel ID/code and complete details
-        await storeUserData({
-          currentStay: {
-            hotelId: response.data.id,
-            hotelCode: response.data.code
-          }
-        });
+        try {
+          // First store the complete hotel details
+          await AsyncStorage.setItem('@current_hotel_details', JSON.stringify(response.data));
 
-        // Store complete hotel details in AsyncStorage
-        await AsyncStorage.setItem('@current_hotel_details', JSON.stringify(response.data));
-        
-        router.replace("/");
-      } else if (response.status === 404) {
-        Alert.alert("No Hotel Found", "There is no hotel with this code. Please try again.");
-      } else if (response.status === 400) {
-        Alert.alert("Invalid Hotel Code", "The hotel code you scanned is invalid. Please try again.");
+          // Then update user data with current stay info
+          await storeUserData({
+            currentStay: {
+              hotelId: response.data.id,
+              hotelCode: response.data.code,
+              hotelName: response.data.hotelName
+            }
+          });
+
+          // Navigate to home page
+          router.replace("/");
+        } catch (storageError) {
+          console.error("Error storing hotel data:", storageError);
+          Alert.alert(
+            "Storage Error",
+            "Failed to save hotel information. Please try again."
+          );
+          setScanning(true); // Re-enable scanning on error
+        }
       } else {
-        Alert.alert("Error", "Failed to fetch hotel details. Please try again.");
+        let errorMessage = "An unknown error occurred. Please try again.";
+        
+        switch (response.status) {
+          case 404:
+            errorMessage = "No hotel found with this code. Please verify and try again.";
+            break;
+          case 400:
+            errorMessage = "Invalid hotel code format. Please try again.";
+            break;
+          case 500:
+            errorMessage = "Server error. Please try again later.";
+            break;
+        }
+
+        Alert.alert("Error", errorMessage);
+        setScanning(true); // Re-enable scanning after error
       }
     } catch (error) {
       console.error("Error processing code:", error);
-      setScanning(false);
-      Alert.alert("Error", "Failed to process hotel code. Please try again.");
+      Alert.alert(
+        "Error",
+        "Failed to process hotel code. Please check your internet connection and try again."
+      );
+      setScanning(true); // Re-enable scanning after error
     }
   };
 
@@ -195,7 +222,7 @@ export default function ScanQRScreen() {
                 barcodeScannerSettings={{
                   barcodeTypes: ["qr", "pdf417"],
                 }}
-                style={{ flex: 1, height: "100%" }}
+                style={{ flex: 1, height: "100%"}}
               />
             ) : (<Button onPress={() => setScanning(true)} 
             className="bg-lime-500 bottom-4 h-100 absolute p-2 w-1/2 self-center rounded-md py-4">
@@ -220,27 +247,29 @@ export default function ScanQRScreen() {
         {/* </View>
       ) : (
         <View className="flex-1 p-4 gap-4 justify-center"> */}
-          <View className="flex gap-4 h-2/5 ">
+          <View className="flex gap-2 mb-16 rounded-t-lg">
          
           <Text className="text-center dark:text-white text-black">
               --- OR ---
             </Text>
-            <Text className="text-2xl font-bold text-center dark:text-white text-black">
-              Enter Code Manually
+            <Text className="text-xl font-bold text-center dark:text-white text-black">
+              Enter Hotel Code
             </Text>
+            <View className="flex flex-row items-center justify-between gap-2 px-8">
             <TextInput
               value={manualCode}
               onChangeText={setManualCode}
               placeholder="Enter hotel code"
-              className="p-4 border-2 font-bold text-2xl border-gray-300 w-4/5 text-center self-center rounded-md dark:text-white text-black"
+              className="p-4 border-2 font-bold text-xl border-gray-300 w-3/5 text-center self-center rounded-md dark:text-white text-black"
             />
             <Button
               onPress={handleManualSubmit}
               disabled={!manualCode.trim()}
-              className="bg-lime-500 p-2 w-1/2 self-center rounded-md py-4"
+              className="bg-lime-500 p-2 flex-grow self-center rounded-md py-4"
             >
               <Text className="text-lg text-center font-bold">Submit Code</Text>
             </Button>
+            </View>
           </View>
 
           {/* <View className="gap-4">

@@ -88,6 +88,33 @@ const ExtrasLayout = () => {
             headerTitle: "Your Owned Hotels",
           }}
         />
+        <Stack.Screen
+          name="createBooking"
+          options={{
+            headerShown: false,
+            headerBackButtonDisplayMode: "minimal",
+            headerTitle: "Book Room",
+          }}
+        />
+        <Stack.Screen
+          name="createBookingByManager"
+          options={{
+            headerShown: true,
+            headerBackButtonDisplayMode: "minimal",
+            headerLeft: () => (
+              <Button onPress={() => router.back()}>
+                <Text className="text-black dark:text-white"> Go Back</Text>
+              </Button>
+            ),
+            headerTitle: "Create Booking",
+          }}
+        />
+        <Stack.Screen
+          name="thankyou"
+          options={{
+            headerShown: false,
+          }}
+        />
       </Stack>
     </SafeAreaProvider>
   );

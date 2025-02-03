@@ -16,6 +16,7 @@ export interface UserData {
   currentStay: {
     hotelId: string;
     hotelCode: string;
+    hotelName: string;
   } | null;
   role: string;
   lastUpdated: string;
@@ -43,6 +44,22 @@ export interface RoomForm {
   features: string[];
   customFeature: string;
   images: string[];
+}
+
+export interface BookingData {
+  hotelId: string;
+  roomId: string;
+  customerId: string;
+  checkIn: string;
+  checkOut: string;
+  guests: number;
+  status: "PENDING" | "CONFIRMED" | "CANCELLED" | "MAINTENANCE";
+  payment: {
+    totalAmount: number;
+    paidAmount: number;
+    status: "PENDING";
+    transactionId: string;
+  };
 }
 
 export interface HotelManager {
@@ -107,4 +124,33 @@ export interface Todo {
   updatedAt: string;
   creator: User;
   group: Group;
+}
+
+export interface Room {
+  id: string;
+  hotelId: string;
+  roomNumber: string;
+  type: string;
+  price: number;
+  maxOccupancy: number;
+  available: boolean;
+  features: string[];
+  images: string[];
+}
+
+export interface Booking {
+  id: string;
+  hotelId: string;
+  roomId: string;
+  customerId: string;
+  checkIn: string;
+  checkOut: string;
+  guests: number;
+  status: "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
+  payment: {
+    totalAmount: number;
+    paidAmount: number;
+    status: "PENDING" | "COMPLETED" | "FAILED";
+    transactionId: string;
+  };
 }

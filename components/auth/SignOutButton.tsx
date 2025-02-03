@@ -4,6 +4,7 @@ import { useClerk, useUser } from "@clerk/clerk-expo";
 import { useUserStorage } from "@/hooks/useUserStorage";
 import { router } from "expo-router";
 import { Button } from "../ui/button";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const SignOutButton = () => {
   const { signOut } = useClerk();
@@ -12,6 +13,7 @@ const SignOutButton = () => {
   const handleSignOut = async () => {
     try {
       await clearUserData();
+      await AsyncStorage.removeItem('@current_hotel_details');
       await signOut(); // Sign out from Clerk
       router.replace("/(auth)/sign-in");
     } catch (error) {

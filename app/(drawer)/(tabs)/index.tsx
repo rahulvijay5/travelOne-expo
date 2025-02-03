@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, ScrollView, Image, Dimensions, Pressable } from 'react-native';
+import { View, Text, ScrollView, Image, Dimensions, Pressable, ActivityIndicator } from 'react-native';
 import { useColorScheme } from '@/lib/useColorScheme';
 import { useUserStorage } from '@/hooks/useUserStorage';
 import { router } from 'expo-router';
@@ -12,36 +12,89 @@ const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const [currentHotel, setCurrentHotel] = useState<HotelDetails | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { isDarkColorScheme } = useColorScheme();
-  const { getUserData } = useUserStorage();
+  const { getUserData, storeUserData } = useUserStorage();
 
   useEffect(() => {
     loadCurrentHotel();
   }, []);
 
   const loadCurrentHotel = async () => {
-    const userData = await getUserData();
-    const hasOnboardingCompleted = userData?.isOnboarded;
-    if (!hasOnboardingCompleted) {
-      router.push('/onboarding');
-      return;
-    }
-    
-    if (userData?.currentStay) {
-      try {
-        const hotelDetails = await AsyncStorage.getItem('@current_hotel_details');
-        if (hotelDetails) {
-          setCurrentHotel(JSON.parse(hotelDetails));
-        }
-      } catch (error) {
-        console.error('Error loading hotel details:', error);
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const userData = await getUserData();
+      
+      // Check onboarding first
+      const hasOnboardingCompleted = userData?.isOnboarded;
+      if (!hasOnboardingCompleted) {
+        router.push('/onboarding');
+        return;
       }
+      
+      // If no current stay, we can show the scan button
+      if (!userData?.currentStay) {
+        setIsLoading(false);
+        return;
+      }
+
+      // Try to load hotel details
+      const hotelDetails = await AsyncStorage.getItem('@current_hotel_details');
+      if (!hotelDetails) {
+        // setError('Hotel details not found. Please scan the QR code again.');
+        // Clear the currentStay since we don't have the details
+        await storeUserData({ currentStay: null });
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const parsedHotel = JSON.parse(hotelDetails);
+        // Validate essential hotel data
+        if (!parsedHotel.id || !parsedHotel.hotelName) {
+          throw new Error('Invalid hotel data');
+        }
+        setCurrentHotel(parsedHotel);
+      } catch (parseError) {
+        console.error('Error parsing hotel data:', parseError);
+        setError('Invalid hotel data. Please scan the QR code again.');
+        await storeUserData({ currentStay: null });
+        await AsyncStorage.removeItem('@current_hotel_details');
+      }
+    } catch (error) {
+      console.error('Error loading hotel details:', error);
+      setError('Failed to load hotel details. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  if (!currentHotel) {
+  if (isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center">
+        <ActivityIndicator size="large" color={isDarkColorScheme ? "#84cc16" : "#65a30d"} />
+        <Text className="mt-4 text-lg dark:text-white text-black">Loading hotel details...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
     return (
       <View className="flex-1 items-center justify-center p-4 gap-4">
+        <Text className="text-red-500 text-center mb-4">{error}</Text>
+        <Button onPress={() => router.push('/scanqr')} className="dark:bg-lime-500 bg-lime-300 h-56 w-56 rounded-full shadow-md shadow-black/50">
+          <Text className="text-2xl font-bold">Scan QR Code</Text>
+        </Button>
+      </View>
+    );
+  }
+
+  if (!currentHotel) {
+    return (
+      <View className="flex-1 items-center justify-center p-4 gap-20">
         <Button onPress={() => router.push('/scanqr')} className="dark:bg-lime-500 bg-lime-300 h-56 w-56 rounded-full shadow-md shadow-black/50">
           <Text className="text-2xl font-bold">Scan QR Code</Text>
         </Button>

@@ -103,6 +103,8 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
 
 export default function Layout() {
   const { isDarkColorScheme } = useColorScheme();
+  const { getUserData } = useUserStorage();
+  const userData = getUserData();
 
   const { isSignedIn } = useAuth();
 
@@ -122,7 +124,7 @@ export default function Layout() {
           drawerActiveTintColor: "#84cc16",
           drawerType: "front",
           drawerIcon() {
-            return <Feather name="list" size={24} color={"white"} />;
+            return <Feather name="list" size={24} color={isDarkColorScheme ? "white" : "black"} />;
           },
           headerStyle: {
             backgroundColor: isDarkColorScheme ? "black" : "white",
@@ -130,6 +132,7 @@ export default function Layout() {
           headerTitle(props) {
             return (
               <Text className="text-2xl font-bold dark:text-white text-black">
+                {/* {userData ? userData?.currentStay?.hotelName : "HotelOne"} */}
                 HotelOne
               </Text>
             );
