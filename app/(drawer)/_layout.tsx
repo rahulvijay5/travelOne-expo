@@ -91,11 +91,14 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
         </View>
 
        <SignOutButton/>
-        <Button onPress={() => router.push("/(extras)/onboarding")} className="mt-16">
-          <Text className="text-lg font-bold mb-4 dark:text-white">
+        <View className="flex-row items-center justify-between gap-2 mt-16">
+        <Button onPress={() => router.push("/(extras)/onboarding")} className="border-2 border-lime-600 dark:border-white/50 rounded-lg">
+          <Text className="text-lg font-bold dark:text-white">
             Onboarding
           </Text>
         </Button>
+          <ThemeToggle />
+        </View>
       </View>
     </DrawerContentScrollView>
   );
@@ -146,7 +149,6 @@ export default function Layout() {
               >
                 <Feather name="camera" size={24} color="#84cc16" />
               </Button>
-              <ThemeToggle />
             </View>
           ),
           headerShadowVisible: false,

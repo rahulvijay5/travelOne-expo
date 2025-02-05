@@ -1,7 +1,15 @@
+export type UserRole = "SUPERADMIN" | "OWNER" | "MANAGER" | "CUSTOMER";
+
+export type RoomStatus = "BOOKED" | "AVAILABLE" | "MAINTANENCE";
+
+export type BookingStatus = "CONFIRMED" | "CANCELLED" | "PENDING" | "COMPLETED";
+
+export type PaymentStatus = "PENDING" | "PAID" | "REFUNDED" | "FAILED";
+
 export interface User {
   id: number;
   phoneNumber: string;
-  role: "SUPERADMIN" | "OWNER" | "MANAGER" | "CUSTOMER";
+  role: UserRole;
   createdAt: string;
   updatedAt: string;
 }
@@ -46,23 +54,7 @@ export interface RoomForm {
   images: string[];
 }
 
-export interface BookingData {
-  hotelId: string;
-  roomId: string;
-  customerId: string;
-  checkIn: string;
-  checkOut: string;
-  guests: number;
-  status: "PENDING" | "CONFIRMED" | "CANCELLED" | "MAINTENANCE";
-  payment: {
-    totalAmount: number;
-    paidAmount: number;
-    status: "PENDING";
-    transactionId: string;
-  };
-}
-
-export interface HotelManager {
+export interface HotelManagerName {
   name: string;
 }
 
@@ -98,32 +90,8 @@ export interface HotelDetails {
   hotelImages: string[];
   createdAt: string;
   updatedAt: string;
-  managers: HotelManager[];
+  managers: HotelManagerName[];
   rules: HotelRules;
-}
-
-export interface Group {
-  id: number;
-  name: string;
-  ownerId: number;
-  createdAt: string;
-  updatedAt: string;
-  owner: User;
-  managers: User[];
-  members: User[];
-  todos: Todo[];
-}
-
-export interface Todo {
-  id: number;
-  title: string;
-  status: boolean;
-  groupId: number;
-  creatorId: number;
-  createdAt: string;
-  updatedAt: string;
-  creator: User;
-  group: Group;
 }
 
 export interface Room {
@@ -146,11 +114,28 @@ export interface Booking {
   checkIn: string;
   checkOut: string;
   guests: number;
-  status: "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
+  status: BookingStatus;
   payment: {
     totalAmount: number;
     paidAmount: number;
-    status: "PENDING" | "COMPLETED" | "FAILED";
+    status: PaymentStatus;
     transactionId: string;
   };
 }
+
+export interface BookingData {
+  hotelId: string;
+  roomId: string;
+  customerId: string;
+  checkIn: string;
+  checkOut: string;
+  guests: number;
+  status: BookingStatus;
+  payment: {
+    totalAmount: number;
+    paidAmount: number;
+    status: PaymentStatus;
+    transactionId: string;
+  };
+}
+

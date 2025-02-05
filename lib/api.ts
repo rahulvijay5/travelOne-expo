@@ -415,7 +415,9 @@ const api = {
         method: "GET",
         headers: getHeaders(token),
       });
-
+      if(res.status === 404) {
+        return { error: "User not found" };
+      }
       return handleResponse(res);
     } catch (error) {
       console.error("Error searching user:", error);
@@ -536,7 +538,8 @@ const api = {
         headers: getHeaders(token),
         body: JSON.stringify(bookingData),
       });
-      return handleResponse(res);
+      const response = await res.json();
+      return response;
     } catch (error) {
     console.error("Error creating booking:", error);
       throw error;

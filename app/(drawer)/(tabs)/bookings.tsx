@@ -24,6 +24,8 @@ import {
 } from "lucide-react-native";
 import { useTheme } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import DatePicker from "@/components/DatePicker";
+import RoomCard from "@/components/RoomCard";
 
 const Bookings = () => {
   const { getUserData } = useUserStorage();
@@ -151,12 +153,9 @@ const Bookings = () => {
   if (userRole === "OWNER" || userRole === "MANAGER") {
     return (
       <ScrollView className="flex-1 p-4">
-        <Text className="text-2xl font-bold mb-4 dark:text-white">
+        <View className="flex flex-row gap-2 mb-4 w-full justify-between items-center">
+        <Text className="text-2xl font-bold dark:text-white">
           Hotel Bookings
-        </Text>
-        {/* TODO: Implement hotel bookings management view */}
-        <Text className="text-lg dark:text-white">
-          Coming soon: Manage hotel bookings
         </Text>
         <Button
           onPress={() =>
@@ -164,10 +163,16 @@ const Bookings = () => {
               pathname: "/(extras)/createBookingByManager",
             } as any)
           }
-          className="mt-4 bg-blue-500"
+          className=" bg-blue-500"
         >
           <Text className="text-white text-lg">Create New Booking</Text>
         </Button>
+        </View>
+        {/* TODO: Implement hotel bookings management view */}
+        <Text className="text-lg dark:text-white">
+          Coming soon: View all Bookings
+        </Text>
+        
       </ScrollView>
     );
   }
@@ -319,37 +324,25 @@ const Bookings = () => {
         </View>
 
         <View className="flex-row justify-between items-center gap-2 bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
-          <View className="flex-1 justify-start">
-            <Text className="dark:text-white text-lg font-semibold mb-2">Check-in</Text>
-            <DateTimePicker
-              value={filters.checkIn}
-              mode="date"
-              onChange={(_: any, date?: Date) => {
-                if (date) {
-                  setFilters(prev => ({ ...prev, checkIn: date }));
-                  // If check-out is before new check-in, update it
-                  if (filters.checkOut < date) {
-                    setFilters(prev => ({ 
-                      ...prev, 
-                      checkOut: new Date(date.getTime() + 86400000)
-                    }));
-                  }
-                }
-              }}
-              minimumDate={new Date()}
-            />
-          </View>
-          <View className="flex-1">
-            <Text className="dark:text-white text-lg font-semibold mb-2">Check-out</Text>
-            <DateTimePicker
-              value={filters.checkOut}
-              mode="date"
-              onChange={(_: any, date?: Date) => {
-                if (date) setFilters(prev => ({ ...prev, checkOut: date }));
-              }}
-              minimumDate={new Date(filters.checkIn.getTime() + 86400000)}
-            />
-          </View>
+          <DatePicker
+            label="Check-in"
+            value={filters.checkIn}
+            onChange={(date) => {
+              setFilters(prev => ({ 
+                ...prev, 
+                checkIn: date,
+                // If check-out is before new check-in, update it
+                checkOut: prev.checkOut < date ? new Date(date.getTime() + 86400000) : prev.checkOut
+              }));
+            }}
+            minimumDate={new Date()}
+          />
+          <DatePicker
+            label="Check-out"
+            value={filters.checkOut}
+            onChange={(date) => setFilters(prev => ({ ...prev, checkOut: date }))}
+            minimumDate={new Date(filters.checkIn.getTime() + 86400000)}
+          />
         </View>
       </View>
 
@@ -360,54 +353,59 @@ const Bookings = () => {
         </Text>
       ) : (
         filteredRooms.map((room) => (
-          <View
+            <RoomCard
             key={room.id}
-            className="mb-4 bg-white border border-gray-600 shadow-lg shadow-black dark:shadow-gray-300 dark:bg-gray-800 rounded-lg overflow-hidden "
-          >
-            {room.images[0] && (
-              <Image
-                source={{ uri: room.images[0] }}
-                className="w-full h-48"
-                resizeMode="cover"
-              />
-            )}
-            <View className="p-4">
-              <View className="flex-row justify-between items-center">
-                <Text className="text-xl font-bold dark:text-white">
-                  {room.type}
-                </Text>
-                <Text className="text-gray-600 text-lg dark:text-gray-300">
-                  Room {room.roomNumber}
-                </Text>
-              </View>
-              <View className="flex-row justify-between items-center">
-                <Text className="text-gray-600 dark:text-gray-300">
-                  Max Occupancy: {room.maxOccupancy}
-                </Text>
-                <Text className="text-lg font-semibold dark:text-white">
-                  ₹{room.price}/night
-                </Text>
-              </View>
+            room={room}
+            onBookNow={(roomId, price) => handleCreateBooking(roomId, price)}
+          />
+        //   <View
+        //     key={room.id}
+        //     className="mb-4 bg-white border border-gray-600 shadow-lg shadow-black dark:shadow-gray-300 dark:bg-gray-800 rounded-lg overflow-hidden "
+        //   >
+        //     {room.images[0] && (
+        //       <Image
+        //         source={{ uri: room.images[0] }}
+        //         className="w-full h-48"
+        //         resizeMode="cover"
+        //       />
+        //     )}
+        //     <View className="p-4">
+        //       <View className="flex-row justify-between items-center">
+        //         <Text className="text-xl font-bold dark:text-white">
+        //           {room.type}
+        //         </Text>
+        //         <Text className="text-gray-600 text-lg dark:text-gray-300">
+        //           Room {room.roomNumber}
+        //         </Text>
+        //       </View>
+        //       <View className="flex-row justify-between items-center">
+        //         <Text className="text-gray-600 dark:text-gray-300">
+        //           Max Occupancy: {room.maxOccupancy}
+        //         </Text>
+        //         <Text className="text-lg font-semibold dark:text-white">
+        //           ₹{room.price}/night
+        //         </Text>
+        //       </View>
 
-              <View className="flex-row flex-wrap mt-2">
-                {room.features.map((feature) => (
-                  <View
-                    key={feature}
-                    className="bg-gray-200 dark:bg-gray-700 rounded-full px-2 py-1 mr-2 mb-2"
-                  >
-                    <Text className="text-sm dark:text-white">{feature}</Text>
-                  </View>
-                ))}
-              </View>
+        //       <View className="flex-row flex-wrap mt-2">
+        //         {room.features.map((feature) => (
+        //           <View
+        //             key={feature}
+        //             className="bg-gray-200 dark:bg-gray-700 rounded-full px-2 py-1 mr-2 mb-2"
+        //           >
+        //             <Text className="text-sm dark:text-white">{feature}</Text>
+        //           </View>
+        //         ))}
+        //       </View>
 
-              <Button
-                onPress={() => handleCreateBooking(room.id, room.price)}
-                className="mt-3 bg-blue-500 p-2 rounded-lg"
-              >
-                <Text className="text-white text-lg">Book Now</Text>
-              </Button>
-            </View>
-          </View>
+        //       <Button
+        //         onPress={() => handleCreateBooking(room.id, room.price)}
+        //         className="mt-3 bg-blue-500 p-2 rounded-lg"
+        //       >
+        //         <Text className="text-white text-lg">Book Now</Text>
+        //       </Button>
+        //     </View>
+        //   </View>
         ))
       )}
     </ScrollView>

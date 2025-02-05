@@ -20,7 +20,7 @@ const ThankYou = () => {
     let mounted = true;
     let pollInterval: NodeJS.Timeout;
     let pollCount = 0;
-    const MAX_POLLS = 40; // Maximum number of polling attempts (30 seconds)
+    const MAX_POLLS = 20; // Maximum number of polling attempts (30 seconds)
 
     const checkBookingStatus = async () => {
       console.log("checking booking status");
@@ -58,6 +58,9 @@ const ThankYou = () => {
           clearInterval(pollInterval);
         } else if (response.status === 'PENDING') {
           // For owners/managers, we don't need to wait for confirmation
+
+          //practically no use because if they are creating a booking then response is Confirmed by default.
+          //also booking will not be fetched as in their storage we are not storing current booking Id
           if (userData?.role === 'OWNER' || userData?.role === 'MANAGER') {
             setMessage('Booking created successfully!');
             setLoading(false);
@@ -90,8 +93,10 @@ const ThankYou = () => {
       }
     };
 
-    // Start polling
-    pollInterval = setInterval(checkBookingStatus, 3000);
+    // Start polling after 15 seconds
+    setTimeout(() => {
+      pollInterval = setInterval(checkBookingStatus, 4000);
+    }, 15000);
 
     // Initial check
     checkBookingStatus();

@@ -3,6 +3,7 @@ import { router, Slot, Stack } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
+import { ChevronLeft } from "lucide-react-native";
 
 const ExtrasLayout = () => {
   return (
@@ -58,11 +59,6 @@ const ExtrasLayout = () => {
             headerShown: true,
             headerTitle: "Scan QR Code",
             headerBackVisible: true,
-            headerLeft: () => (
-              <Button onPress={() => router.back()}>
-                <Text className="text-black dark:text-white"> Go Back</Text>
-              </Button>
-            ),
             headerBackButtonDisplayMode: "minimal",
           }}
         />
@@ -79,12 +75,8 @@ const ExtrasLayout = () => {
           name="ownedHotels"
           options={{
             headerShown: true,
+            headerBackVisible: true,
             headerBackButtonDisplayMode: "minimal",
-            headerLeft: () => (
-              <Button onPress={() => router.back()}>
-                <Text className="text-black dark:text-white"> Go Back</Text>
-              </Button>
-            ),
             headerTitle: "Your Owned Hotels",
           }}
         />
@@ -101,12 +93,19 @@ const ExtrasLayout = () => {
           options={{
             headerShown: true,
             headerBackButtonDisplayMode: "minimal",
+            // headerBackVisible: true,
             headerLeft: () => (
               <Button onPress={() => router.back()}>
-                <Text className="text-black dark:text-white"> Go Back</Text>
+                <Text className="text-black dark:text-white"><ChevronLeft size={24} /></Text>
               </Button>
             ),
             headerTitle: "Create Booking",
+          }}
+        />
+        <Stack.Screen
+          name="managerConfirmBooking"
+          options={{
+            headerShown: false,
           }}
         />
         <Stack.Screen
