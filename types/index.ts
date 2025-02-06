@@ -1,6 +1,6 @@
 export type UserRole = "SUPERADMIN" | "OWNER" | "MANAGER" | "CUSTOMER";
 
-export type RoomStatus = "BOOKED" | "AVAILABLE" | "MAINTANENCE";
+export type RoomStatus = "BOOKED" | "AVAILABLE" | "MAINTENANCE";
 
 export type BookingStatus = "CONFIRMED" | "CANCELLED" | "PENDING" | "COMPLETED";
 
@@ -139,3 +139,35 @@ export interface BookingData {
   };
 }
 
+export type BookingDataInDb = {
+  id: string;
+  hotelId: string;
+  roomId: string;
+  customerId: string;
+  checkIn: string;
+  checkOut: string;
+  guests: number;
+  status: BookingStatus;
+  bookingTime: string;
+  updatedAt: string;
+  room: {
+    id: string;
+    roomNumber: string;
+    type: string;
+    roomStatus: RoomStatus;
+    price: number;
+  };
+  customer: {
+    id: string;
+    name: string;
+    email: string;
+    phoneNumber: string;
+  };
+  payment: {
+    id: string;
+    status: PaymentStatus;
+    totalAmount: number;
+    paidAmount: number;
+    transactionId?: string;
+  };
+};

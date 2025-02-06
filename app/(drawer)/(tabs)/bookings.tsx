@@ -12,13 +12,15 @@ import { Button } from "@/components/ui/button";
 import { useUserStorage } from "@/hooks/useUserStorage";
 import { useAuth } from "@clerk/clerk-expo";
 import api from "@/lib/api";
-import { Room } from "@/types";
+import { Room, BookingDataInDb } from "@/types";
 import { router } from "expo-router";
 import { Picker } from "@react-native-picker/picker";
 import {
   ArrowDown,
   ArrowDown01Icon,
   ArrowUp,
+  Calendar,
+  List,
   Minus,
   Plus,
 } from "lucide-react-native";
@@ -26,6 +28,9 @@ import { useTheme } from "@react-navigation/native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import DatePicker from "@/components/DatePicker";
 import RoomCard from "@/components/RoomCard";
+import BookingManagementView from "@/components/bookings/BookingManagementView";
+import BookingListView from "@/components/bookings/BookingListView";
+import BookingModal from "@/components/bookings/BookingModal";
 
 const Bookings = () => {
   const { getUserData } = useUserStorage();
@@ -43,7 +48,13 @@ const Bookings = () => {
     checkOut: new Date(Date.now() + 86400000), // Tomorrow
   });
 
+  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
+
   const [showFilters, setShowFilters] = useState(false);
+
+  // Add state for modal and selected booking
+  const [selectedBooking, setSelectedBooking] = useState<BookingDataInDb | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   // Fetch user data and initialize
   useEffect(() => {
@@ -76,7 +87,7 @@ const Bookings = () => {
     };
 
     initialize();
-    console.log("currentHotelId", currentHotelId);
+    // console.log("currentHotelId", currentHotelId);
   }, []);
 
   // Fetch rooms when hotelId is available
@@ -116,7 +127,7 @@ const Bookings = () => {
   };
 
   const handleClearFilters = () => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       type: "",
       maxOccupancy: prev.maxOccupancy,
       features: [] as string[],
@@ -151,29 +162,61 @@ const Bookings = () => {
 
   // For owners/managers
   if (userRole === "OWNER" || userRole === "MANAGER") {
-    return (
-      <ScrollView className="flex-1 p-4">
-        <View className="flex flex-row gap-2 mb-4 w-full justify-between items-center">
-        <Text className="text-2xl font-bold dark:text-white">
-          Hotel Bookings
-        </Text>
-        <Button
-          onPress={() =>
-            router.push({
-              pathname: "/(extras)/createBookingByManager",
-            } as any)
-          }
-          className=" bg-blue-500"
-        >
-          <Text className="text-white text-lg">Create New Booking</Text>
-        </Button>
+    return currentHotelId ? (
+      <View className="flex-1">
+        <View className="p-4">
+          <View className="flex flex-row gap-2 mb-4 w-full justify-between items-center">
+            <Text className="text-2xl font-bold dark:text-white">
+              Bookings
+            </Text>
+            <View className="flex-row gap-2">
+              <Button
+                onPress={() =>
+                  router.push({
+                    pathname: "/(extras)/createBookingByManager",
+                  } as any)
+                }
+                className="bg-blue-500"
+              >
+                <Text className="text-white text-lg">Create New Booking</Text>
+              </Button>
+              <Button
+                onPress={() => setViewMode(prev => prev === 'calendar' ? 'list' : 'calendar')}
+                className="bg-blue-500"
+              >
+                <Text className="text-white text-lg">
+                  {viewMode === 'calendar' ? 
+                    <List size={20} color="white"/> : 
+                    <Calendar size={20} color="white"/>
+                  }
+                </Text>
+              </Button>
+            </View>
+          </View>
         </View>
-        {/* TODO: Implement hotel bookings management view */}
-        <Text className="text-lg dark:text-white">
-          Coming soon: View all Bookings
+        <View className="flex-1">
+          {viewMode === 'calendar' ? (
+            <BookingManagementView hotelId={currentHotelId} />
+          ) : (
+            <BookingListView 
+              hotelId={currentHotelId}
+              setSelectedBooking={setSelectedBooking}
+              setShowModal={setShowModal}
+            />
+          )}
+        </View>
+        <BookingModal 
+          booking={selectedBooking}
+          visible={showModal}
+          onClose={() => setShowModal(false)}
+        />
+      </View>
+    ) : (
+      <View className="flex-1 justify-center items-center">
+        <Text className="text-2xl font-bold dark:text-white">
+          No hotel selected
         </Text>
-        
-      </ScrollView>
+      </View>
     );
   }
 
@@ -208,8 +251,10 @@ const Bookings = () => {
 
         {/* Filters */}
         {showFilters && (
-          <View className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg flex gap-4 
-          ">
+          <View
+            className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg flex gap-4 
+          "
+          >
             <View className="">
               <View className="flex-row justify-between items-center">
                 <Text className="dark:text-white text-lg font-semibold">
@@ -328,11 +373,14 @@ const Bookings = () => {
             label="Check-in"
             value={filters.checkIn}
             onChange={(date) => {
-              setFilters(prev => ({ 
-                ...prev, 
+              setFilters((prev) => ({
+                ...prev,
                 checkIn: date,
                 // If check-out is before new check-in, update it
-                checkOut: prev.checkOut < date ? new Date(date.getTime() + 86400000) : prev.checkOut
+                checkOut:
+                  prev.checkOut < date
+                    ? new Date(date.getTime() + 86400000)
+                    : prev.checkOut,
               }));
             }}
             minimumDate={new Date()}
@@ -340,7 +388,9 @@ const Bookings = () => {
           <DatePicker
             label="Check-out"
             value={filters.checkOut}
-            onChange={(date) => setFilters(prev => ({ ...prev, checkOut: date }))}
+            onChange={(date) =>
+              setFilters((prev) => ({ ...prev, checkOut: date }))
+            }
             minimumDate={new Date(filters.checkIn.getTime() + 86400000)}
           />
         </View>
@@ -353,59 +403,11 @@ const Bookings = () => {
         </Text>
       ) : (
         filteredRooms.map((room) => (
-            <RoomCard
+          <RoomCard
             key={room.id}
             room={room}
             onBookNow={(roomId, price) => handleCreateBooking(roomId, price)}
           />
-        //   <View
-        //     key={room.id}
-        //     className="mb-4 bg-white border border-gray-600 shadow-lg shadow-black dark:shadow-gray-300 dark:bg-gray-800 rounded-lg overflow-hidden "
-        //   >
-        //     {room.images[0] && (
-        //       <Image
-        //         source={{ uri: room.images[0] }}
-        //         className="w-full h-48"
-        //         resizeMode="cover"
-        //       />
-        //     )}
-        //     <View className="p-4">
-        //       <View className="flex-row justify-between items-center">
-        //         <Text className="text-xl font-bold dark:text-white">
-        //           {room.type}
-        //         </Text>
-        //         <Text className="text-gray-600 text-lg dark:text-gray-300">
-        //           Room {room.roomNumber}
-        //         </Text>
-        //       </View>
-        //       <View className="flex-row justify-between items-center">
-        //         <Text className="text-gray-600 dark:text-gray-300">
-        //           Max Occupancy: {room.maxOccupancy}
-        //         </Text>
-        //         <Text className="text-lg font-semibold dark:text-white">
-        //           ₹{room.price}/night
-        //         </Text>
-        //       </View>
-
-        //       <View className="flex-row flex-wrap mt-2">
-        //         {room.features.map((feature) => (
-        //           <View
-        //             key={feature}
-        //             className="bg-gray-200 dark:bg-gray-700 rounded-full px-2 py-1 mr-2 mb-2"
-        //           >
-        //             <Text className="text-sm dark:text-white">{feature}</Text>
-        //           </View>
-        //         ))}
-        //       </View>
-
-        //       <Button
-        //         onPress={() => handleCreateBooking(room.id, room.price)}
-        //         className="mt-3 bg-blue-500 p-2 rounded-lg"
-        //       >
-        //         <Text className="text-white text-lg">Book Now</Text>
-        //       </Button>
-        //     </View>
-        //   </View>
         ))
       )}
     </ScrollView>

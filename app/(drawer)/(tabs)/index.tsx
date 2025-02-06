@@ -16,6 +16,7 @@ export default function HomeScreen() {
   const [error, setError] = useState<string | null>(null);
   const { isDarkColorScheme } = useColorScheme();
   const { getUserData, storeUserData } = useUserStorage();
+  const [UserIsManager, setUserIsManager] = useState(false);
 
   useEffect(() => {
     loadCurrentHotel();
@@ -27,6 +28,11 @@ export default function HomeScreen() {
       setError(null);
 
       const userData = await getUserData();
+      const user = userData;
+
+      if (user?.role === 'MANAGER' || user?.role === 'OWNER') {
+        setUserIsManager(true);
+      }
       
       // Check onboarding first
       const hasOnboardingCompleted = userData?.isOnboarded;
@@ -162,7 +168,7 @@ export default function HomeScreen() {
 
         <View className="flex justify-center items-center">
           <Button onPress={() => router.push('/bookings')} className="dark:bg-lime-500 bg-lime-300 w-full rounded-2xl shadow-sm py-4 px-2 shadow-black/50">
-            <Text className="text-2xl font-bold">Book a Room Now</Text>
+            <Text className="text-2xl font-bold">{UserIsManager ? 'Manage Bookings' : 'Book a Room Now'}</Text>
           </Button>
         </View>
 

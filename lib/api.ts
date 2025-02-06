@@ -1,5 +1,5 @@
 import { useUserStorage } from "@/hooks/useUserStorage";
-import { HotelFormData, User, HotelRules, BookingData } from "@/types";
+import { HotelFormData, User, HotelRules, BookingData, BookingStatus, RoomStatus, BookingDataInDb } from "@/types";
 import { useAuth } from "@clerk/clerk-expo";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from "expo-router";
@@ -69,6 +69,110 @@ const handleResponse = async (res: Response) => {
   }
 };
 
+// Function to store hotel bookings in storage
+async function storeHotelBookings(hotelId: string, bookings: BookingDataInDb[]) {
+  try {
+    console.log(`Storing hotel bookings for hotel ID: ${hotelId}`);
+    
+    // Get current date minus 7 days
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    console.log(`Filtering bookings older than: ${sevenDaysAgo.toISOString()}`);
+
+    // Filter out bookings older than 7 days
+    const recentBookings = bookings.filter(booking => {
+      const bookingDate = new Date(booking.checkIn);
+      const isRecent = bookingDate >= sevenDaysAgo;
+      console.log(`Booking ID: ${booking.id}, Check-in Date: ${bookingDate.toISOString()}, Is Recent: ${isRecent}`);
+      return isRecent;
+    });
+
+    console.log(`Recent bookings count: ${recentBookings.length}`);
+
+    // Store with timestamp
+    const storageData = {
+      lastUpdated: new Date().toISOString(),
+      bookings: recentBookings
+    };
+
+    await AsyncStorage.setItem(`@hotel_bookings_${hotelId}`, JSON.stringify(storageData));
+    console.log(`Successfully stored hotel bookings for hotel ID: ${hotelId}`);
+  } catch (error) {
+    console.error('Error storing hotel bookings:', error);
+  }
+}
+
+// Function to get hotel bookings from storage
+async function getHotelBookingsFromStorage(hotelId: string): Promise<BookingDataInDb[] | null> {
+  try {
+    console.log(`Retrieving hotel bookings from storage for hotel ID: ${hotelId}`);
+    const data = await AsyncStorage.getItem(`@hotel_bookings_${hotelId}`);
+    
+    if (data) {
+      const parsedData = JSON.parse(data);
+      console.log(`Retrieved data: ${JSON.stringify(parsedData)}`);
+      
+      // Check if data is older than 7 days
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      console.log(`Filtering out bookings older than: ${sevenDaysAgo.toISOString()}`);
+      
+      // Filter out old bookings
+      const recentBookings = parsedData.bookings.filter((booking: BookingDataInDb) => {
+        const bookingDate = new Date(booking.checkIn);
+        const isRecent = bookingDate >= sevenDaysAgo;
+        console.log(`Booking ID: ${booking.id}, Check-in Date: ${bookingDate.toISOString()}, Is Recent: ${isRecent}`);
+        return isRecent;
+      });
+
+      // If bookings were filtered out, update storage
+      if (recentBookings.length !== parsedData.bookings.length) {
+        console.log(`Updating storage with recent bookings for hotel ID: ${hotelId}`);
+        await storeHotelBookings(hotelId, recentBookings);
+      }
+
+      console.log(`Returning recent bookings count: ${recentBookings.length}`);
+      return recentBookings;
+    }
+    console.log(`No data found for hotel ID: ${hotelId}`);
+    return null;
+  } catch (error) {
+    console.error('Error getting hotel bookings from storage:', error);
+    return null;
+  }
+}
+
+// Function to check if bookings data has changed
+function hasBookingsDataChanged(oldBookings: BookingDataInDb[], newBookings: BookingDataInDb[]): boolean {
+  console.log(`Checking if bookings data has changed...`);
+  if (oldBookings.length !== newBookings.length) {
+    console.log(`Booking counts differ - Old: ${oldBookings.length}, New: ${newBookings.length}`);
+    return true;
+  }
+  
+  const bookingMap = new Map(oldBookings.map(b => [b.id, b]));
+  
+  const hasChanged = newBookings.some(newBooking => {
+    const oldBooking = bookingMap.get(newBooking.id);
+    if (!oldBooking) {
+      console.log(`New booking found: ${newBooking.id}`);
+      return true;
+    }
+    
+    const isChanged = oldBooking.status !== newBooking.status ||
+                      oldBooking.checkIn !== newBooking.checkIn ||
+                      oldBooking.checkOut !== newBooking.checkOut ||
+                      oldBooking.guests !== newBooking.guests;
+    
+    if (isChanged) {
+      console.log(`Booking ID: ${newBooking.id} has changed.`);
+    }
+    
+    return isChanged;
+  });
+
+  return hasChanged;
+}
 
 const api = {
   // User Management
@@ -182,7 +286,7 @@ const api = {
         headers: getHeaders(token),
       });
 
-      console.log("Response:", res);
+      console.log("Response in getOwnedHotels:", res);
       if (!res.ok) {
         throw new Error('Failed to get owned hotels');
       }
@@ -273,7 +377,7 @@ const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId: memberId.toString() }),
     });
-    console.log("Response:", await res.json());
+    console.log("Response in addMember:", await res.json());
     return res.json();
   },
 
@@ -339,7 +443,7 @@ const api = {
         },
         body: JSON.stringify(rules),
       });
-      console.log("Response:", response);
+      console.log("Response in updateHotelRules:", response);
 
       if (!response.ok) {
         throw new Error('Failed to update hotel rules');
@@ -519,6 +623,22 @@ const api = {
     }
   },
 
+  getHotelRooms: async (hotelId: string, token?: string) => {
+    try {
+      const res = await fetch(`${API_URL}/api/rooms/hotel/${hotelId}`, {
+        method: "GET",
+        headers: getHeaders(token),
+      });
+      console.log("res in getHotelRooms", res);
+      if(res.status === 404) {
+        return { error: "Rooms not found" };
+      }
+      return res.json();
+    } catch (error) {
+      console.error("Error getting hotel rooms:", error);
+      throw error;
+    }
+  },
   // Room related functions
   getHotelRoomsByStatus: async (hotelId: string, roomStatus: string = "AVAILABLE") => {
     try {
@@ -582,6 +702,76 @@ const api = {
       return bookings ? JSON.parse(bookings) : [];
     } catch (error) {
       console.error('Error getting bookings from storage:', error);
+      throw error;
+    }
+  },
+
+  // Modified getFilteredHotelBookings to use storage
+  getFilteredHotelBookings: async (
+    hotelId: string,
+    filters: {
+      status?: BookingStatus;
+      timeRange?: 'today' | 'yesterday' | 'thisWeek' | 'thisMonth' | 'custom';
+      startDate?: Date;
+      endDate?: Date;
+      roomStatus?: RoomStatus;
+      sortBy?: 'checkIn' | 'checkOut' | 'bookingTime';
+      sortOrder?: 'asc' | 'desc';
+      page?: number;
+      limit?: number;
+      search?: string;
+    },
+    token?: string
+  ) => {
+    try {
+      console.log(`Fetching filtered hotel bookings for hotel ID: ${hotelId} with filters:`, filters);
+
+      // First try to get data from storage
+      const storedBookings = await getHotelBookingsFromStorage(hotelId);
+      console.log(`Stored bookings retrieved:`, storedBookings);
+      let bookingsToReturn = storedBookings || [];
+
+      // Construct query parameters for API call
+      const queryParams = new URLSearchParams();
+      if (filters.status) queryParams.append('status', filters.status);
+      if (filters.timeRange) queryParams.append('timeRange', filters.timeRange);
+      if (filters.startDate) queryParams.append('startDate', filters.startDate.toISOString().split('T')[0]);
+      if (filters.endDate) queryParams.append('endDate', filters.endDate.toISOString().split('T')[0]);
+      if (filters.roomStatus) queryParams.append('roomStatus', filters.roomStatus);
+      if (filters.sortBy) queryParams.append('sortBy', filters.sortBy);
+      if (filters.sortOrder) queryParams.append('sortOrder', filters.sortOrder);
+      if (filters.page) queryParams.append('page', filters.page.toString());
+      if (filters.limit) queryParams.append('limit', filters.limit.toString());
+      if (filters.search) queryParams.append('search', filters.search);
+
+      // Make API call in background
+      const url = `${API_URL}/api/bookings/hotel/${hotelId}/filter?${queryParams.toString()}`;
+      console.log(`Making API call to: ${url}`);
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: getHeaders(token),
+      });
+
+      const apiResponse = await handleResponse(res);
+      const newBookings = apiResponse.data;
+      console.log(`API response received:`, apiResponse);
+
+      // If we got new data and it's different from stored data
+      if (newBookings && (!storedBookings || hasBookingsDataChanged(storedBookings, newBookings))) {
+        console.log(`New bookings received, updating storage...`);
+        // Update storage
+        await storeHotelBookings(hotelId, newBookings);
+        bookingsToReturn = newBookings;
+      } else {
+        console.log(`No new bookings or data is unchanged.`);
+      }
+
+      return {
+        data: bookingsToReturn,
+        isFromCache: bookingsToReturn === storedBookings
+      };
+    } catch (error) {
+      console.error('Error getting filtered hotel bookings:', error);
       throw error;
     }
   },
