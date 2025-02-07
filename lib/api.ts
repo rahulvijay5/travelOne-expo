@@ -1,5 +1,5 @@
 import { useUserStorage } from "@/hooks/useUserStorage";
-import { HotelFormData, User, HotelRules, BookingData, BookingStatus, RoomStatus, BookingDataInDb } from "@/types";
+import { HotelFormData, User, HotelRules, BookingData, BookingStatus, RoomStatus, BookingDataInDb, HotelRulesChange } from "@/types";
 import { useAuth } from "@clerk/clerk-expo";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from "expo-router";
@@ -431,7 +431,7 @@ const api = {
     return res.json();
   },
 
-  updateHotelRules: async (hotelId: string, rules: HotelRules, token: string) => {
+  updateHotelRules: async (hotelId: string, rules: HotelRulesChange, token: string) => {
     try {
       console.log("Updating hotel rules for hotelId:", hotelId);
       console.log("Rules:", rules);
@@ -650,6 +650,19 @@ const api = {
     }
   },
 
+  getManagingHotels: async (managerId: string, token?: string) => {
+    try {
+      const res = await fetch(`${API_URL}/api/users/currentManagingHotels/${managerId}`, {
+        method: "GET",
+        headers: getHeaders(token),
+      });
+      return handleResponse(res);
+    } catch (error) {
+      console.error("Error getting managing hotels:", error);
+      throw error;
+    }
+  },
+
   // Booking related functions
   createBooking: async (bookingData: BookingData, token?: string) => {
     try {
@@ -671,7 +684,7 @@ const api = {
       const res = await fetch(`${API_URL}/api/bookings/${bookingId}`, {
         method: "GET",
         headers: getHeaders(token),
-      });
+    });
       return handleResponse(res);
     } catch (error) {
       console.error("Error getting booking:", error);

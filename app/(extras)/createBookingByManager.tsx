@@ -74,9 +74,9 @@ const CreateBookingByManager = () => {
             // fetchRooms(hotelId);
           } else {
             setError("Please select a hotel first. Redirecting...");
-            setTimeout(() => {
+            setTimeout(() => {  
               router.push("/scanqr");
-            }, 3000);
+            }, 2500);
           }
         }
       } catch (error) {
@@ -147,6 +147,13 @@ const CreateBookingByManager = () => {
       const token = await getToken();
       if (!token) {
         throw new Error("Not authenticated");
+      }
+      if(!currentHotelId){
+        setError("No hotel selected. Please select a hotel first.");
+        setTimeout(() => {
+          router.push("/scanqr");
+        }, 2500);
+        return;
       }
 
       let customerResponse = await api.searchUserByPhone(customerPhone, token);

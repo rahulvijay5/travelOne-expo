@@ -23,8 +23,7 @@ export default function Page() {
     setTimeout(() => {
       setError("");
       setPassword("");
-      setEmailAddress("");
-    }, 5000);
+    }, 3000);
   }; 
 
   const displayTryAgain = () => {

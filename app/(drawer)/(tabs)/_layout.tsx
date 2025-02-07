@@ -16,48 +16,39 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerStyle: {
-          backgroundColor: isDarkColorScheme ? "black" : "white",
-        },
-        headerTitleStyle: {
-          color: isDarkColorScheme ? "white" : "black",
-        },
+        tabBarActiveTintColor: "#84cc16",
+        tabBarInactiveTintColor: isDarkColorScheme ? "white" : "black",
         tabBarStyle: {
           backgroundColor: isDarkColorScheme ? "black" : "white",
         },
-        tabBarActiveTintColor: "#84cc16",
+        headerShown: false,
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: "Home",
-          headerShown: false,
           tabBarIcon: ({ color }) => (
             <Feather name="home" size={24} color={color} />
           ),
         }}
       />
-
       <Tabs.Screen
         name="bookings"
         options={{
           title: "Bookings",
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="book" size={24} color={color} />
+            <Feather name="book" size={24} color={color} />
           ),
-          headerShown: false,
         }}
       />
-
       <Tabs.Screen
-        name="auth"
+        name="profile"
         options={{
-          title: "Auth",
+          title: "Profile",
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="people" size={24} color={color} />
+            <Feather name="user" size={24} color={color} />
           ),
-          headerShown: false,
         }}
       />
     </Tabs>

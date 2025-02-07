@@ -97,7 +97,7 @@ export default function ScanQRScreen() {
 
   const handleBarCodeScanned = async ({ data }: { data: string }) => {
     console.log("data", data);
-    setScanning(false);
+    // setScanning(false);
     // Extract hotel code from the QR data (right nowassuming data is like 'https://hotelone.in/hotelCode=abcd')
     const code = data.split("=")[1]; // Simple split to extract the hotelCode
     console.log("code", code);
@@ -124,7 +124,7 @@ export default function ScanQRScreen() {
 
   const processCode = async (code: string) => {
     try {
-      setScanning(false);
+      // setScanning(false);
 
       const response = await api.getHotelByCode(code);
       console.log("API Response:", response);
@@ -178,7 +178,7 @@ export default function ScanQRScreen() {
         }
       } else {
         let errorMessage = "An unknown error occurred. Please try again.";
-
+        setScanning(false);
         switch (response.status) {
           case 404:
             errorMessage =

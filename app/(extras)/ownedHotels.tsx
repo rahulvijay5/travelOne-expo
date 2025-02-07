@@ -7,9 +7,11 @@ import { useAuth } from "@clerk/clerk-expo";
 import { HotelFormData, UserData } from "@/types";
 import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
+import { ArrowUpRightFromCircle } from "lucide-react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const OwnedHotels = () => {
-  const { getUserData } = useUserStorage();
+  const { getUserData, storeUserData } = useUserStorage();
   const { getToken } = useAuth();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [ownerId, setOwnerId] = useState<string | null>(null);
@@ -62,7 +64,7 @@ const OwnedHotels = () => {
 
   const handleManagePeople = (hotelId: string, hotelName: string) => {
     router.push({
-      pathname: "/managePeople",  
+      pathname: "/managePeople",
       params: { hotelId, hotelName },
     });
   };
@@ -106,21 +108,73 @@ const OwnedHotels = () => {
             />
 
             <View className="flex gap-1">
-              <Text className="text-3xl mt-2 mb-1 font-bold dark:text-white text-black">
-                {hotel.hotelName}
-              </Text>
+              <View className="flex items-center justify-between flex-row">
+                <Text className="text-2xl mt-2 mb-1 font-bold flex-grow dark:text-white text-black">
+                  {hotel.hotelName}
+                </Text>
+                <Button
+                  onPress={async () => {
+                    try {
+                      const token = await getToken();
+                      if (token) {
+                        // Get complete hotel details including rules
+                        const hotelDetails = await api.getHotelById(hotel.id, token);
+                        if (hotelDetails) {
+                          // Get rooms data
+                          const rooms = await api.getHotelRooms(hotel.id, token);
+                          if (rooms && !rooms.error) {
+                            await AsyncStorage.setItem(
+                              "@current_hotel_rooms",
+                              JSON.stringify({
+                                hotelId: hotel.id,
+                                rooms: rooms.data || rooms
+                              })
+                            );
+                          }
+
+                          // Store hotel details
+                          await AsyncStorage.setItem(
+                            "@current_hotel_details",
+                            JSON.stringify(hotelDetails)
+                          );
+
+                          // Update current stay in user data
+                          await storeUserData({
+                            currentStay: {
+                              hotelId: hotel.id,
+                              hotelCode: hotel.code,
+                              hotelName: hotel.hotelName,
+                            },
+                          });
+
+                          // Navigate to home
+                          router.push({
+                            pathname: "/",
+                            params: { hotelId: hotel.id },
+                          });
+                        }
+                      }
+                    } catch (error) {
+                      console.error("Error switching hotel:", error);
+                    }
+                  }}
+                >
+                  <ArrowUpRightFromCircle size={20} color="gray" />
+                </Button>
+              </View>
+
               <View className="flex-row justify-between items-end">
-                <Text className="text-lg text-gray-500">Hotel Code:</Text>
+                <Text className=" text-gray-500">Hotel Code:</Text>
                 <Text className="font-bold dark:text-white text-black text-lg">
                   {hotel.code}
                 </Text>
               </View>
               <View className="flex-row justify-between items-end">
-                <Text className="text-lg text-gray-500">Address:</Text>
-                <Text className="text-lg text-gray-500">{hotel.address}</Text>
+                <Text className=" text-gray-500">Address:</Text>
+                <Text className=" text-gray-500">{hotel.address}</Text>
               </View>
               <View className="flex-row justify-between items-end">
-                <Text className="text-lg text-gray-500">Description:</Text>
+                <Text className=" text-gray-500">Description:</Text>
                 <Text className=" text-gray-500">{hotel.description}</Text>
               </View>
             </View>
@@ -129,13 +183,17 @@ const OwnedHotels = () => {
                 className="p-3 bg-blue-500 flex-grow"
                 onPress={() => navigateToHotelRules(hotel.id)}
               >
-                <Text className="text-white font-bold text-lg">Manage Rules</Text>
+                <Text className="text-white font-bold text-lg">
+                  Manage Rules
+                </Text>
               </Button>
               <Button
                 className=" p-3 bg-blue-500 flex-grow"
                 onPress={() => handleManagePeople(hotel.id, hotel.hotelName)}
               >
-                <Text className="text-white font-bold text-lg">Manage People</Text>
+                <Text className="text-white font-bold text-lg">
+                  Manage People
+                </Text>
               </Button>
             </View>
           </View>

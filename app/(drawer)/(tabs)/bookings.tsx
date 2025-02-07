@@ -4,7 +4,7 @@ import {
   ScrollView,
   TextInput,
   ActivityIndicator,
-  Image,
+
   Pressable,
 } from "react-native";
 import { Text } from "@/components/ui/text";
@@ -17,7 +17,6 @@ import { router } from "expo-router";
 import { Picker } from "@react-native-picker/picker";
 import {
   ArrowDown,
-  ArrowDown01Icon,
   ArrowUp,
   Calendar,
   List,
@@ -25,12 +24,12 @@ import {
   Plus,
 } from "lucide-react-native";
 import { useTheme } from "@react-navigation/native";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import DatePicker from "@/components/DatePicker";
 import RoomCard from "@/components/RoomCard";
 import BookingManagementView from "@/components/bookings/BookingManagementView";
 import BookingListView from "@/components/bookings/BookingListView";
 import BookingModal from "@/components/bookings/BookingModal";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Bookings = () => {
   const { getUserData } = useUserStorage();
@@ -48,12 +47,13 @@ const Bookings = () => {
     checkOut: new Date(Date.now() + 86400000), // Tomorrow
   });
 
-  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
+  const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
 
   const [showFilters, setShowFilters] = useState(false);
 
   // Add state for modal and selected booking
-  const [selectedBooking, setSelectedBooking] = useState<BookingDataInDb | null>(null);
+  const [selectedBooking, setSelectedBooking] =
+    useState<BookingDataInDb | null>(null);
   const [showModal, setShowModal] = useState(false);
 
   // Fetch user data and initialize
@@ -70,10 +70,13 @@ const Bookings = () => {
             // Fetch their hotels and use the first one
             const token = await getToken();
             if (token) {
-              const hotels = await api.getOwnedHotels(userData.userId, token);
-              if (hotels?.data?.length > 0) {
-                setCurrentHotelId(hotels.data[0].id);
-              }
+            //   const hotels = await api.getOwnedHotels(userData.userId, token);
+            //   if (hotels?.data?.length > 0) {
+            //     setCurrentHotelId(hotels.data[0].id);
+            //   }
+            const hotelDetailsStr = await AsyncStorage.getItem("@current_hotel_details");
+              const currentHotelDetails = hotelDetailsStr ? JSON.parse(hotelDetailsStr) : null;
+              setCurrentHotelId(currentHotelDetails?.id || null);
             }
           } else {
             setCurrentHotelId(userData.currentStay?.hotelId || null);
@@ -166,9 +169,7 @@ const Bookings = () => {
       <View className="flex-1">
         <View className="p-4">
           <View className="flex flex-row gap-2 mb-4 w-full justify-between items-center">
-            <Text className="text-2xl font-bold dark:text-white">
-              Bookings
-            </Text>
+            <Text className="text-2xl font-bold dark:text-white">Bookings</Text>
             <View className="flex-row gap-2">
               <Button
                 onPress={() =>
@@ -181,31 +182,36 @@ const Bookings = () => {
                 <Text className="text-white text-lg">Create New Booking</Text>
               </Button>
               <Button
-                onPress={() => setViewMode(prev => prev === 'calendar' ? 'list' : 'calendar')}
+                onPress={() =>
+                  setViewMode((prev) =>
+                    prev === "calendar" ? "list" : "calendar"
+                  )
+                }
                 className="bg-blue-500"
               >
                 <Text className="text-white text-lg">
-                  {viewMode === 'calendar' ? 
-                    <List size={20} color="white"/> : 
-                    <Calendar size={20} color="white"/>
-                  }
+                  {viewMode === "calendar" ? (
+                    <List size={20} color="white" />
+                  ) : (
+                    <Calendar size={20} color="white" />
+                  )}
                 </Text>
               </Button>
             </View>
           </View>
         </View>
         <View className="flex-1">
-          {viewMode === 'calendar' ? (
+          {viewMode === "calendar" ? (
             <BookingManagementView hotelId={currentHotelId} />
           ) : (
-            <BookingListView 
+            <BookingListView
               hotelId={currentHotelId}
               setSelectedBooking={setSelectedBooking}
               setShowModal={setShowModal}
             />
           )}
         </View>
-        <BookingModal 
+        <BookingModal
           booking={selectedBooking}
           visible={showModal}
           onClose={() => setShowModal(false)}
@@ -221,7 +227,7 @@ const Bookings = () => {
   }
 
   // For guests
-  return (
+  return currentHotelId ? (
     <ScrollView className="flex-1 p-4">
       <View className="flex gap-2 mb-4">
         <View className="flex-row justify-between items-center">
@@ -411,6 +417,12 @@ const Bookings = () => {
         ))
       )}
     </ScrollView>
+  ) : (
+    <View className="flex-1 justify-center items-center">
+      <Text className="text-2xl font-bold dark:text-white">
+        No hotel selected
+      </Text>
+    </View>
   );
 };
 

@@ -12,7 +12,7 @@ import { useLocalSearchParams, router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/clerk-expo";
 import api from "@/lib/api";
-import { HotelRules } from "@/types";
+import { HotelRules, HotelRulesChange } from "@/types";
 import { Separator } from "@/components/ui/separator";
 
 export default function HotelRulesPage({
@@ -24,7 +24,7 @@ export default function HotelRulesPage({
   const { getToken } = useAuth();
   const [loading, setLoading] = useState(false);
 
-  const [rules, setRules] = useState<HotelRules>({
+  const [rules, setRules] = useState<HotelRulesChange>({
     petsAllowed: false,
     maxPeopleInOneRoom: 2,
     extraMattressOnAvailability: false,
@@ -264,6 +264,8 @@ export default function HotelRulesPage({
             }
           />
         </View>
+
+        <Text className="text-xs text-center dark:text-orange-200 text-orange-700">Hotel Rules will be applied to New Hotel Bookings Only</Text>
 
         <TouchableOpacity
           className="bg-blue-500 p-3 my-4 rounded-lg text-center"

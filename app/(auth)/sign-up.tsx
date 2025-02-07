@@ -1,33 +1,33 @@
 import * as React from "react";
-import { TextInput, View, Pressable } from "react-native";
+import { TextInput, View, Pressable, useColorScheme } from "react-native";
 import { Text } from "@/components/ui/text";
 import { useSignUp } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/button";
+import { Feather } from "@expo/vector-icons";
+import { useState } from "react";
 
 
 export default function SignUpScreen() {
   const { isLoaded, signUp, setActive } = useSignUp();
   const router = useRouter();
 
-  const [emailAddress, setEmailAddress] = React.useState("");
-  const [password, setPassword] = React.useState("");
-  const [pendingVerification, setPendingVerification] = React.useState(false);
-  const [code, setCode] = React.useState("");
-
-  const [error, setError] = React.useState("");
-  const [tryAgain, setTryAgain] = React.useState(false);
+  const [emailAddress, setEmailAddress] = useState("");
+  const [password, setPassword] = useState("");
+  const [pendingVerification, setPendingVerification] = useState(false);
+  const [code, setCode] = useState("");
+  const isDarkColorScheme  = useColorScheme();
+  const [error, setError] = useState("");
+  const [tryAgain, setTryAgain] = useState(false);
   const displayError = (error: string) => {
     setError(error);
     setTimeout(() => {
       setError("");
       setPassword("");
-      setEmailAddress("");
-      setTryAgain(true);
-      displayTryAgain();
-    }, 5000);
-  };
+    }, 3000);
+  }; 
+
   const displayTryAgain = () => {
     setTimeout(() => {
       setTryAgain(false);
@@ -130,6 +130,26 @@ export default function SignUpScreen() {
         />
         {error && <Text className="text-red-500 text-center">{error}</Text>}
         {tryAgain && <Text className="dark:text-lime-300 text-lime-800 font-extrabold text-center">Try again</Text>}
+        <View className="flex-row items-center justify-center gap-1 mt-2">
+          <Feather name="info" size={14} color={isDarkColorScheme ? "#fff" : "#000"} />
+          <Text className="text-sm text-center dark:text-white text-black">
+            By signing up, you agree to our{" "}
+            <Text 
+              className="text-lime-600 dark:text-lime-500"
+              onPress={() => router.push("/terms")}
+            >
+              Terms & Conditions
+            </Text>
+            {" "}and{" "}
+            <Text 
+              className="text-lime-600 dark:text-lime-500"
+              onPress={() => router.push("/privacy")}
+            >
+              Privacy Policy
+            </Text>
+          </Text>
+        </View>
+        
         <Button
           className="bg-blue-500 p-4 py-4 text-center rounded-md"
           onPress={onSignUpPress}

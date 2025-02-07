@@ -75,7 +75,6 @@ const ExtrasLayout = () => {
           name="ownedHotels"
           options={{
             headerShown: true,
-            headerBackVisible: true,
             headerBackButtonDisplayMode: "minimal",
             headerTitle: "Your Owned Hotels",
           }}
@@ -110,6 +109,18 @@ const ExtrasLayout = () => {
         />
         <Stack.Screen
           name="thankyou"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="terms"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="privacy"
           options={{
             headerShown: false,
           }}

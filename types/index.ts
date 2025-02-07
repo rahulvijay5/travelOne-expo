@@ -58,9 +58,7 @@ export interface HotelManagerName {
   name: string;
 }
 
-export interface HotelRules {
-  id: string;
-  hotelId: string;
+export interface HotelRulesChange {
   petsAllowed: boolean;
   maxPeopleInOneRoom: number;
   extraMattressOnAvailability: boolean;
@@ -75,6 +73,11 @@ export interface HotelRules {
   alcoholAllowed: boolean;
   eventsAllowed: boolean;
   minimumAgeForCheckIn: number;
+}
+
+export interface HotelRules extends HotelRulesChange {
+  id: string;
+  hotelId: string;
 }
 
 export interface HotelDetails {

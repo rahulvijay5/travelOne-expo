@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import { View, Text, ScrollView, Image, Dimensions, Pressable, ActivityIndicator } from 'react-native';
 import { useColorScheme } from '@/lib/useColorScheme';
 import { useUserStorage } from '@/hooks/useUserStorage';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Button } from '@/components/ui/button';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { HotelDetails } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '@clerk/clerk-expo';
+import api from '@/lib/api';
 
 const { width } = Dimensions.get('window');
 
@@ -17,10 +19,20 @@ export default function HomeScreen() {
   const { isDarkColorScheme } = useColorScheme();
   const { getUserData, storeUserData } = useUserStorage();
   const [UserIsManager, setUserIsManager] = useState(false);
+  const { getToken } = useAuth();
+  const params = useLocalSearchParams();
+  console.log("Params:", params);
 
   useEffect(() => {
     loadCurrentHotel();
-  }, []);
+  }, []); // Run on initial load
+
+  // Separate effect for handling param changes
+  useEffect(() => {
+    if (params?.hotelId) {
+      loadCurrentHotel();
+    }
+  }, [params?.hotelId]);
 
   const loadCurrentHotel = async () => {
     try {
@@ -40,18 +52,53 @@ export default function HomeScreen() {
         router.push('/onboarding');
         return;
       }
+
+      // If we have a hotelId in params, load that specific hotel
+      const hotelIdParam = params?.hotelId as string | undefined;
+      if (hotelIdParam) {
+        const token = await getToken();
+        if (token) {
+          const hotelDetails = await api.getHotelById(hotelIdParam, token);
+          if (hotelDetails) {
+            // Get rooms data if user is owner or manager
+            if (user?.role === 'OWNER' || user?.role === 'MANAGER') {
+              const rooms = await api.getHotelRooms(hotelIdParam, token);
+              if (rooms && !rooms.error) {
+                await AsyncStorage.setItem(
+                  "@current_hotel_rooms",
+                  JSON.stringify({
+                    hotelId: hotelIdParam,
+                    rooms: rooms.data || rooms
+                  })
+                );
+              }
+            }
+
+            await AsyncStorage.setItem('@current_hotel_details', JSON.stringify(hotelDetails));
+            await storeUserData({
+              currentStay: {
+                hotelId: hotelDetails.id,
+                hotelCode: hotelDetails.code,
+                hotelName: hotelDetails.hotelName,
+              },
+            });
+            setCurrentHotel(hotelDetails);
+            setIsLoading(false);
+            return;
+          }
+        }
+      }
       
-      // If no current stay, we can show the scan button
+      // If no hotelId in params or failed to load specific hotel,
+      // try to load from current stay
       if (!userData?.currentStay) {
         setIsLoading(false);
         return;
       }
 
-      // Try to load hotel details
+      // Try to load hotel details from storage
       const hotelDetails = await AsyncStorage.getItem('@current_hotel_details');
       if (!hotelDetails) {
-        // setError('Hotel details not found. Please scan the QR code again.');
-        // Clear the currentStay since we don't have the details
         await storeUserData({ currentStay: null });
         setIsLoading(false);
         return;
@@ -59,10 +106,23 @@ export default function HomeScreen() {
 
       try {
         const parsedHotel = JSON.parse(hotelDetails);
-        // Validate essential hotel data
         if (!parsedHotel.id || !parsedHotel.hotelName) {
           throw new Error('Invalid hotel data');
         }
+
+        // If we have a parsedHotel but it doesn't have rules, fetch them
+        if (!parsedHotel.rules && (user?.role === 'OWNER' || user?.role === 'MANAGER')) {
+          const token = await getToken();
+          if (token) {
+            const completeHotelDetails = await api.getHotelById(parsedHotel.id, token);
+            if (completeHotelDetails) {
+              await AsyncStorage.setItem('@current_hotel_details', JSON.stringify(completeHotelDetails));
+              setCurrentHotel(completeHotelDetails);
+              return;
+            }
+          }
+        }
+
         setCurrentHotel(parsedHotel);
       } catch (parseError) {
         console.error('Error parsing hotel data:', parseError);
