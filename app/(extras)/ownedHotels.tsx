@@ -4,11 +4,9 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useUserStorage } from "@/hooks/useUserStorage";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/clerk-expo";
-import { HotelFormData, UserData } from "@/types";
+import { UserData } from "@/types";
 import api from "@/lib/api";
-import { Button } from "@/components/ui/button";
 import { ArrowUpRightFromCircle } from "lucide-react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { processCode } from "@/lib/actions/processCode";
 
 const OwnedHotels = () => {
@@ -116,7 +114,7 @@ const OwnedHotels = () => {
             />
 
             <View className="flex gap-1">
-              <View className="flex items-center justify-between flex-row">
+              <View className="flex items-center justify-between flex-row mt-2">
                 <Text className="text-2xl mt-2 mb-1 font-bold flex-grow dark:text-white text-black">
                   {hotel.hotelName}
                 </Text>

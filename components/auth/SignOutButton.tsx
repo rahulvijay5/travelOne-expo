@@ -45,9 +45,9 @@ const SignOutButton = ({
     <View className="flex justify-center items-center">
       <Pressable
         onPress={handleSignOut}
-        className="dark:bg-red-500 bg-red-300 w-fit border border-red-500 p-3 rounded-lg"
+        className="dark:bg-red-800 bg-red-500 w-fit shadow-sm shadow-red-500/50  p-3 rounded-lg"
       >
-        <Text className="dark:text-white text-center text-black font-semibold">
+        <Text className="text-white text-center font-semibold">
           Sign Out
         </Text>
       </Pressable>

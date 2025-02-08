@@ -1,3 +1,7 @@
+import { useAuth } from '@clerk/clerk-expo';
+import { useLocalSearchParams } from 'expo-router';
+import React, { useState, useEffect } from 'react';
+
 export type UserRole = "SUPERADMIN" | "OWNER" | "MANAGER" | "CUSTOMER";
 
 export type RoomStatus = "BOOKED" | "AVAILABLE" | "MAINTENANCE";
@@ -52,6 +56,26 @@ export interface RoomForm {
   features: string[];
   customFeature: string;
   images: string[];
+}
+
+export interface UpdateRoomForm {
+  type: string;
+  roomNumber: string;
+  price: string;
+  maxOccupancy: string;
+  available: boolean;
+  features: string[];
+}
+
+export interface RoomDetailsByID {
+  id: string;
+  roomNumber: string;
+  type: string;
+  price: number;
+  maxOccupancy: number;
+  features: string[];
+  images: string[];
+  roomStatus: string;
 }
 
 export interface CreateRoomForm {

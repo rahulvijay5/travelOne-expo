@@ -1,15 +1,18 @@
 import { View, Text, Pressable, TouchableOpacity } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useLocalSearchParams, router } from "expo-router";
-import { PlusCircleIcon } from "lucide-react-native";
+import { PlusCircleIcon, RefreshCcw } from "lucide-react-native";
 import api from "@/lib/api";
 import { useAuth } from "@clerk/clerk-expo";
 import { Room } from "@/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Button } from "@/components/ui/button";
+
 const manageRooms = () => {
   const { hotelId } = useLocalSearchParams<{ hotelId: string }>();
   const [rooms, setRooms] = useState<Room[]>([]);
+  const { getToken } = useAuth();
+  const [reload, setReload] = useState<boolean>(false);
 
   const navigateToHotelRooms = (hotelId: string) => {
     router.push({
@@ -42,29 +45,71 @@ const manageRooms = () => {
             console.log("Loaded rooms:", sortedRooms);
             setRooms(sortedRooms);
           }
+        } else {
+          const token = await getToken();
+          if (!token) {
+            router.push("/not-authenticated");
+            return;
+          }
+          const roomsFromDb = await api.getHotelRooms(hotelId, token!);
+          console.log("Rooms from db:", roomsFromDb);
+          if (roomsFromDb && !roomsFromDb.error) {
+            setRooms(roomsFromDb);
+            await AsyncStorage.setItem(
+              "@current_hotel_rooms",
+              JSON.stringify({
+                hotelId: hotelId,
+                rooms: roomsFromDb,
+              })
+            );
+          }
         }
       } catch (error) {
         console.error("Error loading rooms:", error);
       }
     };
     loadRooms();
-  }, [hotelId]);
+  }, [hotelId, reload]);
+
+  if(rooms.length === 0){
+    return (
+      <View className="flex-1 items-center justify-center">
+        <Text className="text-xl font-semibold dark:text-white">No rooms found</Text>
+        <TouchableOpacity
+          className="flex flex-row items-center gap-2 bg-blue-500 p-2 px-4 my-4 rounded-md"
+          onPress={() => navigateToHotelRooms(hotelId)}
+        >
+          <Text className="text-lg text-white">Add Rooms</Text>
+          <PlusCircleIcon color="white" className="w-4 h-4" />
+        </TouchableOpacity>
+        
+      </View>
+    );
+  }
 
   return (
     <View className="p-2 flex gap-2">
       <View className="flex flex-row justify-between items-center">
         <Text className="text-2xl font-bold dark:text-white">Manage Rooms</Text>
+        <View className="flex flex-row items-center gap-2">
         <TouchableOpacity
-          className="flex flex-row items-center gap-2 bg-blue-500 p-2 px-4 rounded-md"
+          className="flex flex-row items-center gap-2 bg-blue-500 p-2 px-4 my-4 rounded-md"
           onPress={() => navigateToHotelRooms(hotelId)}
         >
-          <Text className="text-lg text-white">Add Room</Text>
+          <Text className="text-lg text-white">Add Rooms</Text>
           <PlusCircleIcon color="white" className="w-4 h-4" />
         </TouchableOpacity>
+        <TouchableOpacity
+          className="flex flex-row items-center gap-2 bg-blue-500 p-2 px-4 my-4 rounded-md"
+          onPress={() => setReload(!reload)}
+        >
+
+          <RefreshCcw color="white" className="w-4 h-4" />
+        </TouchableOpacity>
+        </View>
       </View>
       <View className="flex flex-row flex-wrap justify-center gap-2 mt-4">
-        
-      {rooms.map((room) => (
+        {rooms.map((room) => (
           <Pressable
             onPress={() => navigateToRoomView(room.id)}
             key={room.id}
@@ -72,7 +117,6 @@ const manageRooms = () => {
           >
             <Text>{room.roomNumber}</Text>
           </Pressable>
-          
         ))}
       </View>
     </View>

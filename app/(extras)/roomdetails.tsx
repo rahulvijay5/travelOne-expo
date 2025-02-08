@@ -211,13 +211,6 @@ const RoomDetails = () => {
         // Update rooms in AsyncStorage
         await AsyncStorage.removeItem("@temp_rooms");
 
-        // const currentRoomsStr = await AsyncStorage.getItem(
-        //   "@current_hotel_rooms"
-        // );
-        // const currentRooms = currentRoomsStr
-        //   ? JSON.parse(currentRoomsStr)
-        //   : { hotelId: null, rooms: [] };
-
         const rooms = await api.getHotelRooms(hotelId as string, token);
         if (rooms && !rooms.error) {
           await AsyncStorage.setItem(

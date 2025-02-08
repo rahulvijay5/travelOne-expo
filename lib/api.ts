@@ -1,5 +1,5 @@
 import { useUserStorage } from "@/hooks/useUserStorage";
-import { HotelFormData, User, HotelRules, BookingData, BookingStatus, RoomStatus, BookingDataInDb, HotelRulesChange, RoomForm, CreateRoomForm } from "@/types";
+import { HotelFormData, User, HotelRules, BookingData, BookingStatus, RoomStatus, BookingDataInDb, HotelRulesChange, RoomForm, CreateRoomForm, UpdateRoomForm } from "@/types";
 import { useAuth } from "@clerk/clerk-expo";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from "expo-router";
@@ -666,6 +666,41 @@ const api = {
       return handleResponse(res);
     } catch (error) {
       console.error("Error getting room details:", error);
+      throw error;
+    }
+  },
+
+  updateRoom: async (roomId: string, roomData: UpdateRoomForm, token?: string) => {
+    try {
+      const res = await fetch(`${API_URL}/api/rooms/${roomId}`, {
+        method: "PUT",
+        headers: getHeaders(token),
+        body: JSON.stringify(roomData),
+      });
+      
+      if (res.status === 200) {
+        return { success: true, data: await handleResponse(res) };
+      }
+      return { success: false, error: "Failed to update room" };
+    } catch (error) {
+      console.error("Error updating room:", error);
+      throw error;
+    }
+  },
+
+  deleteRoom: async (roomId: string, token?: string) => {
+    try {
+      const res = await fetch(`${API_URL}/api/rooms/${roomId}`, {
+        method: "DELETE",
+        headers: getHeaders(token),
+      });
+      
+      if (res.status === 204) {
+        return { success: true };
+      }
+      return { success: false, error: "Failed to delete room" };
+    } catch (error) {
+      console.error("Error deleting room:", error);
       throw error;
     }
   },
