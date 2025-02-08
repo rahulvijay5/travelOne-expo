@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, ScrollView, TextInput } from "react-native";
+import { View, ScrollView, TextInput, Pressable } from "react-native";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
 import { useAuth, useUser } from "@clerk/clerk-expo";
@@ -20,6 +20,7 @@ const NewHotel = () => {
   const [error, setError] = useState("");
   const [userData, setUserData] = useState<UserData | null>(null);
   const { getUserData } = useUserStorage();
+  const [showNextButton, setShowNextButton] = useState(false);
 
   const [formData, setFormData] = useState<HotelFormData>({
     hotelName: "",
@@ -123,7 +124,7 @@ const NewHotel = () => {
       // First upload the images
       let uploadedImageUrls: string[] = [];
       try {
-        uploadedImageUrls = await api.uploadImages(formData.hotelImages, "Hotel Images", token);
+        uploadedImageUrls = await api.uploadImages(formData.hotelImages, "HotelImages", token);
       } catch (uploadError) {
         console.error('Error uploading images:', uploadError);
         setError('Failed to upload images. Please try again.');
@@ -156,10 +157,14 @@ const NewHotel = () => {
       // Navigate to hotel rules page
       setTimeout(() => {
         router.push({
-          pathname: "/(extras)/hotelrules",
-          params: { id: response.data.id },
-        } as any);
-      }, 2000);
+          pathname: "/hotelrules",
+          params: { 
+            hotelId: response.data.id,
+            createNewHotel: "true"  // Convert boolean to string as URL params are strings
+          }
+        });
+        setShowNextButton(true);
+      }, 500);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to create hotel");
     } finally {
@@ -178,6 +183,11 @@ const NewHotel = () => {
         </Text>
         <View className="w-2/3 h-2 bg-gray-200 rounded-full">
           <View className="w-1/3 h-full bg-blue-500 rounded-full" />
+          {showNextButton && (
+            <Pressable onPress={() => router.push("/hotelrules")} className="bg-blue-500 my-8 w-fit">
+              <Text className="text-white">Next Step</Text>
+            </Pressable>
+          )}
         </View>
       </View>
     );
@@ -287,7 +297,7 @@ const NewHotel = () => {
             <Text className="text-base mb-2 dark:text-white">Amenities</Text>
             <View className="flex-row flex-wrap gap-2">
               {[...defaultAmenities, ...formData.amenities.filter(a => !defaultAmenities.includes(a as any))].map((amenity) => (
-                <Button
+                <Pressable
                   key={amenity}
                   onPress={() => handleAmenityToggle(amenity)}
                   className={`px-3 py-2 ${
@@ -305,7 +315,7 @@ const NewHotel = () => {
                   >
                     {amenity}
                   </Text>
-                </Button>
+                </Pressable>
               ))}
             </View>
           </View>
@@ -326,7 +336,7 @@ const NewHotel = () => {
                 }
               }}
             />
-            <Button 
+            <Pressable 
               onPress={() => {
                 if (formData.customAmenity?.trim()) {
                   handleAmenityToggle(formData.customAmenity.trim());
@@ -336,20 +346,30 @@ const NewHotel = () => {
               className="bg-blue-500 p-3"
             >
               <Text className="text-white">Add</Text>
-            </Button>
+            </Pressable>
           </View>
 
           {error ? <Text className="text-red-500 mt-4">{error}</Text> : null}
-
-          <Button
-            onPress={handleSubmit}
+          <View className="flex-row gap-2">
+          {!loading && <Pressable
+            onPress={() => router.back()}
             disabled={loading}
             className={`mt-6 bg-blue-500 ${loading ? "opacity-50" : ""}`}
           >
             <Text className="text-lg text-white">
+              {"Go Back"}
+            </Text>
+          </Pressable>}
+          <Pressable
+            onPress={handleSubmit}
+            disabled={loading}
+            className={`mt-6 bg-blue-500 flex-grow ${loading ? "opacity-50" : ""}`}
+          >
+            <Text className="text-lg text-white">
               {loading ? "Creating..." : "Create Hotel"}
             </Text>
-          </Button>
+          </Pressable>
+          </View>
         </View>
 
         <View className="h-8" />

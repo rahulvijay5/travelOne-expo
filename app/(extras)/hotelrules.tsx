@@ -1,28 +1,39 @@
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   ScrollView,
   TextInput,
   Switch,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocalSearchParams, router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/clerk-expo";
 import api from "@/lib/api";
-import { HotelRules, HotelRulesChange } from "@/types";
-import { Separator } from "@/components/ui/separator";
+import {  HotelRulesChange } from "@/types";
 
-export default function HotelRulesPage({
-  creatingNewHotel = false,
-}: {
-  creatingNewHotel: boolean;
-}) {
-  const { hotelId } = useLocalSearchParams();
+type HotelRulesPageParams = {
+  hotelId: string;
+  createNewHotel?: string;
+};
+
+export default function HotelRulesPage() {
   const { getToken } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const params = useLocalSearchParams<HotelRulesPageParams>();
+  const [hotelId, setHotelId] = useState<string | null>(null);
+  const [creatingNewHotel, setCreatingNewHotel] = useState(false);
+
+  useEffect(() => {
+    console.log("params in hotelrules", params);
+    if (params.hotelId) {
+      setHotelId(params.hotelId);
+    }
+    if (params.createNewHotel === "true") {
+      setCreatingNewHotel(true);
+    }
+  }, [params.hotelId, params.createNewHotel]);
 
   const [rules, setRules] = useState<HotelRulesChange>({
     petsAllowed: false,
@@ -43,21 +54,35 @@ export default function HotelRulesPage({
 
   const handleSubmit = async () => {
     try {
+      console.log("hotelId in hotelrules", hotelId);
+        if(rules.swimmingPool ==false){
+          rules.swimmingPoolTimings = ""
+      }
       setLoading(true);
       const token = await getToken();
       if (!token || !hotelId) {
         throw new Error("Missing required data");
       }
 
+      console.log("rules before sending to backend", rules);
       await api.updateHotelRules(hotelId as string, rules, token);
       if (creatingNewHotel) {
-        router.push({ pathname: "/roomdetails", params: { id: hotelId } });
+        router.push({ 
+          pathname: "/roomdetails", 
+          params: { 
+            hotelId,
+            createNewHotel: "true"
+          } 
+        });
       } else {
         router.back(); // Go back to hotel details page after successful update
       }
     } catch (error) {
       console.error("Error updating hotel rules:", error);
-      // Here you might want to show an error message to the user
+      setError("Error updating hotel rules, Try again later.");
+      setTimeout(() => {
+        setError("");
+      }, 4000);
     } finally {
       setLoading(false);
     }
@@ -65,9 +90,11 @@ export default function HotelRulesPage({
 
   return (
     <ScrollView className="flex-1">
-      <View className="w-full h-0.5 bg-gray-200 rounded-full">
-        <View className="w-2/3 h-full bg-blue-500 rounded-full" />
-      </View>
+      {creatingNewHotel && (
+        <View className="w-full h-0.5 bg-gray-200 rounded-full">
+          <View className="w-2/3 h-full bg-blue-500 rounded-full" />
+        </View>
+      )}
 
       <View className="flex-1 p-4 gap-2">
         <View className="flex-row justify-between items-center">
@@ -217,10 +244,15 @@ export default function HotelRulesPage({
           />
         </View>
 
-        <View className="flex-row justify-between items-center">
+        <View className="flex-row justify-between border-y-2 border-gray-100 py-2 items-center">
+          <View className="flex-col gap-1">
           <Text className="text-lg dark:text-white text-black">
-            Guest Info Required
+            Guest Documents Required
           </Text>
+          <Text className="text-xs dark:text-white text-black">
+            Like aadhar card, pan card, driving license, or something?
+          </Text>
+          </View>
           <Switch
             value={rules.guestInfoNeeded}
             onValueChange={(value) =>
@@ -266,9 +298,21 @@ export default function HotelRulesPage({
         </View>
 
         <Text className="text-xs text-center dark:text-orange-200 text-orange-700">Hotel Rules will be applied to New Hotel Bookings Only</Text>
-
+        {error && <Text className="text-sm text-center dark:text-orange-200 bg-red-500 text-white p-2 rounded-lg">{error}</Text>}
+        <View className="flex-row gap-2 my-4 ">
+          {!creatingNewHotel && (
+            <TouchableOpacity
+              className="bg-blue-500 p-3 rounded-lg text-center"
+              onPress={() => router.back()}
+              disabled={loading}
+        >
+          <Text className="text-white text-center">
+            {"Go Back"}
+          </Text>
+        </TouchableOpacity>
+        )}
         <TouchableOpacity
-          className="bg-blue-500 p-3 my-4 rounded-lg text-center"
+          className="bg-blue-500 p-3 flex-grow rounded-lg text-center"
           onPress={handleSubmit}
           disabled={loading}
         >
@@ -276,6 +320,7 @@ export default function HotelRulesPage({
             {loading ? "Updating..." : "Update Rules"}
           </Text>
         </TouchableOpacity>
+        </View>
       </View>
     </ScrollView>
   );

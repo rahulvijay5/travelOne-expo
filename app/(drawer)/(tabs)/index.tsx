@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, ScrollView, Image, Dimensions, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, Image, Dimensions, Pressable, ActivityIndicator, Linking } from 'react-native';
 import { useColorScheme } from '@/lib/useColorScheme';
 import { useUserStorage } from '@/hooks/useUserStorage';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -151,9 +151,9 @@ export default function HomeScreen() {
     return (
       <View className="flex-1 items-center justify-center p-4 gap-4">
         <Text className="text-red-500 text-center mb-4">{error}</Text>
-        <Button onPress={() => router.push('/scanqr')} className="dark:bg-lime-500 bg-lime-300 h-56 w-56 rounded-full shadow-md shadow-black/50">
+        <Pressable onPress={() => router.push('/scanqr')} className="dark:bg-lime-500 bg-lime-300 h-56 w-56 rounded-full shadow-md shadow-black/50">
           <Text className="text-2xl font-bold">Scan QR Code</Text>
-        </Button>
+        </Pressable>
       </View>
     );
   }
@@ -161,9 +161,9 @@ export default function HomeScreen() {
   if (!currentHotel) {
     return (
       <View className="flex-1 items-center justify-center p-4 gap-20">
-        <Button onPress={() => router.push('/scanqr')} className="dark:bg-lime-500 bg-lime-300 h-56 w-56 rounded-full shadow-md shadow-black/50">
+        <Pressable onPress={() => router.push('/scanqr')} className="dark:bg-lime-500 bg-lime-300 h-56 w-56 rounded-full shadow-md shadow-black/50">
           <Text className="text-2xl font-bold">Scan QR Code</Text>
-        </Button>
+        </Pressable>
         <Text className="text-xl text-center px-6 dark:text-white text-black mb-4">
           Seems like you don't have an active hotel stay. Scan a QR code to start your stay.
         </Text>
@@ -227,9 +227,9 @@ export default function HomeScreen() {
         </View>
 
         <View className="flex justify-center items-center">
-          <Button onPress={() => router.push('/bookings')} className="dark:bg-lime-500 bg-lime-300 w-full rounded-2xl shadow-sm py-4 px-2 shadow-black/50">
-            <Text className="text-2xl font-bold">{UserIsManager ? 'Manage Bookings' : 'Book a Room Now'}</Text>
-          </Button>
+          <Pressable onPress={() => router.push('/bookings')} className="dark:bg-lime-500 bg-lime-300 w-full rounded-2xl shadow-sm py-4 px-2 shadow-black/50">
+            <Text className="text-2xl text-center font-bold">{UserIsManager ? 'Manage Bookings' : 'Book a Room Now'}</Text>
+          </Pressable>
         </View>
 
         {/* Rules */}
@@ -240,32 +240,32 @@ export default function HomeScreen() {
           <View className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 flex gap-1">
             <View className="flex-row justify-between items-center">
               <Text className="text-gray-600 dark:text-gray-300">Check-in</Text>
-              <Text className="text-gray-800 dark:text-gray-100 font-medium">{currentHotel.rules.checkInTime}</Text>
+              <Text className="text-gray-800 dark:text-gray-100 font-medium">{currentHotel?.rules?.checkInTime}</Text>
             </View>
             <View className="flex-row justify-between items-center">
               <Text className="text-gray-600 dark:text-gray-300">Check-out</Text>
-              <Text className="text-gray-800 dark:text-gray-100 font-medium">{currentHotel.rules.checkOutTime}</Text>
+              <Text className="text-gray-800 dark:text-gray-100 font-medium">{currentHotel?.rules?.checkOutTime}</Text>
             </View>
             <View className="flex-row justify-between items-center">
               <Text className="text-gray-600 dark:text-gray-300">Max People/Room</Text>
-              <Text className="text-gray-800 dark:text-gray-100 font-medium">{currentHotel.rules.maxPeopleInOneRoom}</Text>
+              <Text className="text-gray-800 dark:text-gray-100 font-medium">{currentHotel?.rules?.maxPeopleInOneRoom}</Text>
             </View>
             <View className="flex-row justify-between items-center">
               <Text className="text-gray-600 dark:text-gray-300">Minimum Age</Text>
-              <Text className="text-gray-800 dark:text-gray-100 font-medium">{currentHotel.rules.minimumAgeForCheckIn}+</Text>
+              <Text className="text-gray-800 dark:text-gray-100 font-medium">{currentHotel?.rules?.minimumAgeForCheckIn}+</Text>
             </View>
             <View className="flex-row flex-wrap gap-2 mt-2">
-              {currentHotel.rules.petsAllowed && (
+              {currentHotel?.rules?.petsAllowed && (
                 <View className="bg-green-100 dark:bg-green-900 px-3 py-1 rounded-full">
                   <Text className="text-green-800 dark:text-green-100">Pets Allowed</Text>
                 </View>
               )}
-              {currentHotel.rules.parking && (
+              {currentHotel?.rules?.parking && (
                 <View className="bg-blue-100 dark:bg-blue-900 px-3 py-1 rounded-full">
                   <Text className="text-blue-800 dark:text-blue-100">Parking Available</Text>
                 </View>
               )}
-              {currentHotel.rules.swimmingPool && (
+              {currentHotel?.rules?.swimmingPool && (
                 <View className="bg-cyan-100 dark:bg-cyan-900 px-3 py-1 rounded-full">
                   <Text className="text-cyan-800 dark:text-cyan-100">Swimming Pool</Text>
                 </View>
@@ -280,16 +280,16 @@ export default function HomeScreen() {
             Contact & Location
           </Text>
           <View className="flex gap-2">
-            <View className="flex-row items-center">
+            <Pressable onPress={() => Linking.openURL(`tel:${currentHotel?.contactNumber}`)} className="flex-row items-center">
               <Ionicons name="call" size={20} color={isDarkColorScheme ? "#9ca3af" : "#4b5563"} />
               <Text className="text-gray-600 dark:text-gray-300 ml-2">
-                {currentHotel.contactNumber}
+                {currentHotel?.contactNumber}
               </Text>
-            </View>
+            </Pressable>
             <View className="flex-row items-center">
               <Ionicons name="location" size={20} color={isDarkColorScheme ? "#9ca3af" : "#4b5563"} />
               <Text className="text-gray-600 dark:text-gray-300 ml-2">
-                {currentHotel.address}
+                {currentHotel?.address}
               </Text>
             </View>
           </View>

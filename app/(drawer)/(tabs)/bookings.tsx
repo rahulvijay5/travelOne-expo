@@ -171,23 +171,23 @@ const Bookings = () => {
           <View className="flex flex-row gap-2 mb-4 w-full justify-between items-center">
             <Text className="text-2xl font-bold dark:text-white">Bookings</Text>
             <View className="flex-row gap-2">
-              <Button
+              <Pressable
                 onPress={() =>
                   router.push({
                     pathname: "/(extras)/createBookingByManager",
                   } as any)
                 }
-                className="bg-blue-500"
+                className="bg-blue-500 rounded-lg p-2"
               >
                 <Text className="text-white text-lg">Create New Booking</Text>
-              </Button>
-              <Button
+              </Pressable>
+              <Pressable
                 onPress={() =>
                   setViewMode((prev) =>
                     prev === "calendar" ? "list" : "calendar"
                   )
                 }
-                className="bg-blue-500"
+                className="bg-blue-500 rounded-lg p-2 flex items-center justify-center"
               >
                 <Text className="text-white text-lg">
                   {viewMode === "calendar" ? (
@@ -196,7 +196,7 @@ const Bookings = () => {
                     <Calendar size={20} color="white" />
                   )}
                 </Text>
-              </Button>
+              </Pressable>
             </View>
           </View>
         </View>
@@ -236,7 +236,7 @@ const Bookings = () => {
           </Text>
           {/* Filters */}
           {!showFilters ? (
-            <Button
+            <Pressable
               onPress={() => setShowFilters(!showFilters)}
               className="bg-gray-100 dark:bg-gray-800 rounded-lg px-4 py-2 flex-row justify-between items-center"
             >
@@ -244,14 +244,14 @@ const Bookings = () => {
                 Filters
               </Text>
               <ArrowDown size={24} color={theme.colors.text} />
-            </Button>
+            </Pressable>
           ) : (
-            <Button
+            <Pressable
               onPress={() => setShowFilters(!showFilters)}
               className="bg-gray-200 dark:bg-gray-700 rounded-full p-2"
             >
               <ArrowUp size={24} color={theme.colors.text} />
-            </Button>
+            </Pressable>
           )}
         </View>
 
@@ -267,14 +267,14 @@ const Bookings = () => {
                   Room Type
                 </Text>
                 <View className="flex-row items-center justify-end gap-2">
-                  <Button
+                  <Pressable
                     onPress={handleClearFilters}
                     className="bg-gray-200 dark:bg-gray-700 rounded-xl px-4 py-3"
                   >
                     <Text className="text-black dark:text-white">
                       Clear Filters
                     </Text>
-                  </Button>
+                  </Pressable>
                 </View>
               </View>
               <Picker
@@ -338,7 +338,7 @@ const Bookings = () => {
             Number of Guests
           </Text>
           <View className="flex-row items-center">
-            <Button
+            <Pressable
               disabled={parseInt(filters.maxOccupancy) === 1}
               onPress={() =>
                 setFilters((prev) => ({
@@ -349,7 +349,7 @@ const Bookings = () => {
               className="bg-gray-200 dark:bg-gray-700   rounded-full p-2"
             >
               <Minus size={24} color={theme.colors.text} />
-            </Button>
+            </Pressable>
             <TextInput
               className="border border-gray-300 text-center text-xl font-semibold dark:border-gray-600 rounded-full flex items-center justify-center w-12 h-12 dark:text-white"
               value={filters.maxOccupancy}
@@ -360,7 +360,7 @@ const Bookings = () => {
               placeholder="2"
               placeholderTextColor="#666"
             />
-            <Button
+            <Pressable
               onPress={() =>
                 setFilters((prev) => ({
                   ...prev,
@@ -370,7 +370,7 @@ const Bookings = () => {
               className="bg-gray-200 dark:bg-gray-700 rounded-full p-2"
             >
               <Plus size={24} color={theme.colors.text} />
-            </Button>
+            </Pressable>
           </View>
         </View>
 

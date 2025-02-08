@@ -30,9 +30,9 @@ export default function BookingModal({ booking, visible, onClose }: BookingModal
         <Pressable style={[styles.modalContainer, isDark && styles.modalContainerDark]} onPress={e => e.stopPropagation()}>
           <View style={styles.header}>
             <Text style={[styles.title, isDark && styles.titleDark]}>Booking Details</Text>
-            <Button onPress={onClose} style={styles.closeButton}>
+            <Pressable onPress={onClose} style={styles.closeButton}>
               <X size={24} color={isDark ? 'white' : 'black'} />
-            </Button>
+            </Pressable>
           </View>
 
           <ScrollView contentContainerStyle={styles.scrollView}>
@@ -96,9 +96,9 @@ export default function BookingModal({ booking, visible, onClose }: BookingModal
               )}
             </View>
 
-            <Button onPress={onClose} style={styles.viewDetailsButton}>
+            <Pressable onPress={onClose} style={styles.viewDetailsButton}>
               <Text style={styles.viewDetailsText}>View Full Details</Text>
-            </Button>
+            </Pressable>
           </ScrollView>
         </Pressable>
       </Pressable>

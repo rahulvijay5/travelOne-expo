@@ -1,4 +1,4 @@
-import { View, ActivityIndicator, Share, Alert } from 'react-native'
+import { View, ActivityIndicator, Share, Alert, Pressable } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useLocalSearchParams } from 'expo-router';
 import { Text } from '@/components/ui/text';
@@ -237,30 +237,29 @@ const ManagePeople = () => {
             onChangeText={setSearchQuery}
             keyboardType="phone-pad"
           />
-          <Button
+          <Pressable
             onPress={handleSearch}
             disabled={isSearching}
-            className="w-1/5 justify-center bg-blue-500 p-2"
+            className="w-1/5 justify-center bg-blue-500 p-2 rounded-lg"
           >
             {isSearching ? (
               <ActivityIndicator size="small" color="white" />
             ) : (
-              <Text className="text-white font-bold text-lg">Search</Text>
+              <Text className="text-white font-bold text-lg text-center">Search</Text>
             )}
-          </Button>
+          </Pressable>
         </View>
 
         {searchError ? (
           <View className="mt-2">
             <Text className="text-red-500">{searchError}</Text>
             {searchError.includes('invite') && (
-              <Button
+              <Pressable
                 onPress={handleShare}
-                variant="outline"
                 className="mt-2 p-2 bg-blue-500 rounded-lg"
               >
                 <Text className="font-bold text-lg text-white">Share App</Text>
-              </Button>
+              </Pressable>
             )}
           </View>
         ) : null}
@@ -269,12 +268,12 @@ const ManagePeople = () => {
           <View className="mt-4 bg-gray-100 dark:bg-gray-900 p-4 rounded-lg border dark:border-gray-300 border-gray-800">
             <Text className="font-semibold text-xl dark:text-white text-black">{searchResult.name}</Text>
             <Text className="text-muted-foreground text-right dark:text-white text-black">{searchResult.phoneNumber}</Text>
-            <Button
+            <Pressable
               onPress={handleAddManager}
               className="mt-2 p-2 dark:bg-blue-900 bg-blue-400 rounded-lg"
             >
               <Text className="text-white font-bold text-lg">Add as Manager</Text>
-            </Button>
+            </Pressable>
           </View>
         ) : null}
       </View>
@@ -297,13 +296,12 @@ const ManagePeople = () => {
                   <Text className="font-semibold text-lg dark:text-white text-black">{manager.name}</Text>
                   <Text className="text-muted-foreground text-sm dark:text-white text-black">{manager.phoneNumber}</Text>
                 </View>
-                <Button
-                  variant="destructive"
+                <Pressable
                   onPress={() => handleRemoveManager(manager)}
                   className="p-2 dark:bg-red-900 bg-red-400 rounded-lg px-4"
                 >
                   <Text className="text-white font-bold text-lg">Remove</Text>
-                </Button>
+                </Pressable>
               </View>
             ))}
           </View>

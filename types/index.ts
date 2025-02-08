@@ -54,6 +54,15 @@ export interface RoomForm {
   images: string[];
 }
 
+export interface CreateRoomForm {
+  type: string;
+  roomNumber: string;
+  price: number;
+  maxOccupancy: number;
+  features: string[];
+  images: string[];
+}
+
 export interface HotelManagerName {
   name: string;
 }
@@ -78,6 +87,7 @@ export interface HotelRulesChange {
 export interface HotelRules extends HotelRulesChange {
   id: string;
   hotelId: string;
+
 }
 
 export interface HotelDetails {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, ActivityIndicator, Image } from 'react-native';
+import { View, ScrollView, ActivityIndicator, Image, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
@@ -101,9 +101,9 @@ const CreateBooking = () => {
       <ScrollView className="flex-1 p-4">
         <View className="flex gap-4">
           <View className="flex-row justify-start items-center">
-            <Button onPress={() => router.back()}>
+            <Pressable onPress={() => router.back()}>
               <ChevronLeft size={24} color={colors.text} />
-            </Button>
+            </Pressable>
             <Text className="text-2xl font-bold dark:text-white">Confirm Booking</Text>
           </View>
 
@@ -178,25 +178,25 @@ const CreateBooking = () => {
             <Text className="text-lg font-bold dark:text-white mb-4">Payment Mode</Text>
             
             <View className="flex-row gap-4">
-              <Button
+              <Pressable
                 onPress={() => setPaymentMode('OFFLINE')}
                 className={`flex-1 ${paymentMode === 'OFFLINE' ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-700'}`}
               >
                 <Text className={paymentMode === 'OFFLINE' ? 'text-white' : 'text-gray-600 dark:text-gray-300'}>
                   Pay at Hotel
                 </Text>
-              </Button>
+              </Pressable>
               
-              <Button
+              <Pressable
                 disabled
                 className="flex-1 bg-gray-300 dark:bg-gray-700 opacity-50"
               >
                 <Text className="text-gray-600 dark:text-gray-300">Pay Online</Text>
-              </Button>
+              </Pressable>
             </View>
           </View>
 
-          <Button
+          <Pressable
             onPress={handleCreateBooking}
             className="bg-blue-500 p-4"
             disabled={loading}
@@ -208,7 +208,7 @@ const CreateBooking = () => {
                 Confirm Booking - Pay at Hotel
               </Text>
             )}
-          </Button>
+          </Pressable>
         </View>
       </ScrollView>
     </SafeAreaView>

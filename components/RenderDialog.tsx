@@ -1,4 +1,4 @@
-import { View, Text, Alert } from 'react-native'
+import { View, Text, Alert, Pressable } from 'react-native'
 import React from 'react'
 import { Button } from '@/components/ui/button'
 import {
@@ -26,9 +26,9 @@ const RenderDialog = (dialogTitle: string, dialogDescription: string, dialogButt
           {dialogButtonText && (
             <DialogFooter>
               <DialogClose asChild>
-                <Button onPress={handlePress}>
+                <Pressable onPress={handlePress}>
                 <Text>{dialogButtonText}</Text>
-              </Button>
+              </Pressable>
             </DialogClose>
           </DialogFooter>
           )}

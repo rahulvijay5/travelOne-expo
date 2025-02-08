@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Image } from "react-native";
+import { View, Text, ScrollView, Image, Alert, Pressable } from "react-native";
 import React, { useEffect, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { useUserStorage } from "@/hooks/useUserStorage";
@@ -9,6 +9,7 @@ import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { ArrowUpRightFromCircle } from "lucide-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { processCode } from "@/lib/actions/processCode";
 
 const OwnedHotels = () => {
   const { getUserData, storeUserData } = useUserStorage();
@@ -76,6 +77,13 @@ const OwnedHotels = () => {
     });
   };
 
+  const navigateToManageRooms = (hotelId: string) => {
+    router.push({
+      pathname: "/manageRooms",
+      params: { hotelId },
+    });
+  };
+
   if (loading) {
     return (
       <SafeAreaView>
@@ -101,7 +109,7 @@ const OwnedHotels = () => {
             <Image
               source={
                 hotel.hotelImages[0]
-                  ? { uri: hotel.hotelImages[0] }
+                  ? { uri: (hotel.hotelImages[0]) }
                   : { uri: "" }
               }
               className="bg-gray-200 dark:bg-gray-800 rounded-lg h-20"
@@ -112,90 +120,80 @@ const OwnedHotels = () => {
                 <Text className="text-2xl mt-2 mb-1 font-bold flex-grow dark:text-white text-black">
                   {hotel.hotelName}
                 </Text>
-                <Button
+                <Pressable
                   onPress={async () => {
                     try {
                       const token = await getToken();
                       if (token) {
-                        // Get complete hotel details including rules
-                        const hotelDetails = await api.getHotelById(hotel.id, token);
-                        if (hotelDetails) {
-                          // Get rooms data
-                          const rooms = await api.getHotelRooms(hotel.id, token);
-                          if (rooms && !rooms.error) {
-                            await AsyncStorage.setItem(
-                              "@current_hotel_rooms",
-                              JSON.stringify({
-                                hotelId: hotel.id,
-                                rooms: rooms.data || rooms
-                              })
-                            );
-                          }
+                        const result = await processCode({
+                          code: hotel.code,
+                          token,
+                          getToken,
+                          getUserData,
+                          storeUserData,
+                          forceRefetch: true // Always get fresh data when switching hotels
+                        });
 
-                          // Store hotel details
-                          await AsyncStorage.setItem(
-                            "@current_hotel_details",
-                            JSON.stringify(hotelDetails)
-                          );
-
-                          // Update current stay in user data
-                          await storeUserData({
-                            currentStay: {
-                              hotelId: hotel.id,
-                              hotelCode: hotel.code,
-                              hotelName: hotel.hotelName,
-                            },
-                          });
-
-                          // Navigate to home
+                        if (result.success) {
                           router.push({
                             pathname: "/",
                             params: { hotelId: hotel.id },
                           });
+                        } else {
+                          Alert.alert("Error", result.error);
                         }
                       }
                     } catch (error) {
                       console.error("Error switching hotel:", error);
+                      Alert.alert("Error", "Failed to switch hotel. Please try again.");
                     }
                   }}
                 >
                   <ArrowUpRightFromCircle size={20} color="gray" />
-                </Button>
+                </Pressable>
               </View>
 
               <View className="flex-row justify-between items-end">
                 <Text className=" text-gray-500">Hotel Code:</Text>
-                <Text className="font-bold dark:text-white text-black text-lg">
+                <Text className="font-bold dark:text-white text-black text-lg text-left">
                   {hotel.code}
                 </Text>
               </View>
-              <View className="flex-row justify-between items-end">
-                <Text className=" text-gray-500">Address:</Text>
-                <Text className=" text-gray-500">{hotel.address}</Text>
+              <View className="flex-row justify-between items-start">
+                <Text className=" text-gray-500 w-1/3">Address:</Text>
+                <Text className=" text-gray-500 w-2/3">{hotel.address}</Text>
               </View>
-              <View className="flex-row justify-between items-end">
-                <Text className=" text-gray-500">Description:</Text>
-                <Text className=" text-gray-500">{hotel.description}</Text>
-              </View>
+              {/* <View className="flex-row justify-between items-start w-full ">
+                <Text className=" text-gray-500 w-1/3">Description:</Text>
+                <Text className=" text-gray-500 w-2/3 text-justify line-clamp-3 truncate">{hotel.description}</Text>
+              </View> */}
             </View>
             <View className="flex-row justify-between mt-4 gap-2 items-center">
-              <Button
-                className="p-3 bg-blue-500 flex-grow"
+              <Pressable
+                className="p-2 bg-blue-500 flex-grow rounded-lg"
                 onPress={() => navigateToHotelRules(hotel.id)}
               >
-                <Text className="text-white font-bold text-lg">
+                <Text className="text-white font-bold text-lg text-center">
                   Manage Rules
                 </Text>
-              </Button>
-              <Button
-                className=" p-3 bg-blue-500 flex-grow"
+              </Pressable>
+              <Pressable
+                className=" p-2 bg-blue-500 flex-grow rounded-lg"
                 onPress={() => handleManagePeople(hotel.id, hotel.hotelName)}
               >
-                <Text className="text-white font-bold text-lg">
+                <Text className="text-white font-bold text-lg text-center">
                   Manage People
                 </Text>
-              </Button>
+              </Pressable>
             </View>
+            <Pressable
+                className=" p-2 bg-blue-500 mt-2 flex-grow rounded-lg"
+                onPress={() => navigateToManageRooms(hotel.id)}
+              >
+                <Text className="text-white font-bold text-lg text-center">
+                  Manage Rooms
+                </Text>
+              </Pressable>
           </View>
         ))
       )}

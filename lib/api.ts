@@ -1,5 +1,5 @@
 import { useUserStorage } from "@/hooks/useUserStorage";
-import { HotelFormData, User, HotelRules, BookingData, BookingStatus, RoomStatus, BookingDataInDb, HotelRulesChange } from "@/types";
+import { HotelFormData, User, HotelRules, BookingData, BookingStatus, RoomStatus, BookingDataInDb, HotelRulesChange, RoomForm, CreateRoomForm } from "@/types";
 import { useAuth } from "@clerk/clerk-expo";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from "expo-router";
@@ -301,14 +301,27 @@ const api = {
   },
 
   // SuperAdmin Routes
-  getAllGroups: async () => {
-    const headers = await getAuthHeader();
-    const res = await fetch(`${API_URL}/admin/groups`, {
-      headers
+  getAllRooms: async (hotelId: string, token?: string) => {
+    const res = await fetch(`${API_URL}/api/rooms/hotel/${hotelId}`, {
+      headers: getHeaders(token),
     });
     return handleResponse(res);
   },
 
+  createMultipleRooms: async (rooms: CreateRoomForm[], hotelId: string, token?: string) => {
+    console.log("rooms in createMultipleRooms", rooms);
+    const res = await fetch(`${API_URL}/api/rooms/multiple/${hotelId}`, {
+      method: "POST",
+      headers: getHeaders(token),
+      body: JSON.stringify({rooms:rooms}),
+    });
+    console.log("res in createMultipleRooms", res);
+    if(res.status === 201){
+      return res.json();
+    }else{
+      return { error: "Failed to create rooms" };
+    }
+  },
 
   deleteGroup: async (groupId: number) => {
     const res = await fetch(`${API_URL}/admin/groups/${groupId}`, {
@@ -639,6 +652,24 @@ const api = {
       throw error;
     }
   },
+
+  getRoomById: async (roomId: string, token?: string) => {
+    try {
+      const res = await fetch(`${API_URL}/api/rooms/${roomId}`, {
+        method: "GET",
+        headers: getHeaders(token),
+      });
+      
+      if (res.status === 404) {
+        return { error: "Room not found" };
+      }
+      return handleResponse(res);
+    } catch (error) {
+      console.error("Error getting room details:", error);
+      throw error;
+    }
+  },
+
   // Room related functions
   getHotelRoomsByStatus: async (hotelId: string, roomStatus: string = "AVAILABLE") => {
     try {

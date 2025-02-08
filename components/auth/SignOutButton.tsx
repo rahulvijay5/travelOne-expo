@@ -1,29 +1,57 @@
-import { View, Text, TouchableOpacity, Pressable } from "react-native";
+import { View, Text, TouchableOpacity, Pressable, useColorScheme } from "react-native";
 import React from "react";
 import { useClerk, useUser } from "@clerk/clerk-expo";
 import { useUserStorage } from "@/hooks/useUserStorage";
 import { router } from "expo-router";
 import { Button } from "../ui/button";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LogOutIcon } from "lucide-react-native";
 
-const SignOutButton = () => {
+const SignOutButton = ({
+  isLogoButton = false,
+}: {
+  isLogoButton?: boolean;
+}) => {
   const { signOut } = useClerk();
   const { clearUserData } = useUserStorage();
+  const colorScheme  = useColorScheme();
+  const isColorSchemeDark = colorScheme === "dark";
 
   const handleSignOut = async () => {
     try {
       await clearUserData();
-      await AsyncStorage.removeItem('@current_hotel_details');
+      await AsyncStorage.removeItem("@current_hotel_details");
       await signOut(); // Sign out from Clerk
       router.replace("/(auth)/sign-in");
     } catch (error) {
       console.error("Error signing out:", error);
     }
   };
+  if (isLogoButton) {
+    return (
+      <View className="flex justify-center items-center">
+        <Pressable
+          onPress={handleSignOut}
+          className="dark:bg-red-500 bg-red-300 w-fit  border-red-500 p-3 rounded-lg"
+        >
+          <Text className="dark:text-white text-center text-black font-semibold">
+            <LogOutIcon size={24} color={isColorSchemeDark ? "white" : "black"}/>
+          </Text>
+        </Pressable>
+      </View>
+    );
+  }
   return (
-    <Button onPress={handleSignOut} className="dark:bg-red-500 bg-red-300 border border-red-500 p-3 rounded-lg">
-      <Text className="dark:text-white text-black font-semibold">Sign Out</Text>
-    </Button>
+    <View className="flex justify-center items-center">
+      <Pressable
+        onPress={handleSignOut}
+        className="dark:bg-red-500 bg-red-300 w-fit border border-red-500 p-3 rounded-lg"
+      >
+        <Text className="dark:text-white text-center text-black font-semibold">
+          Sign Out
+        </Text>
+      </Pressable>
+    </View>
   );
 };
 

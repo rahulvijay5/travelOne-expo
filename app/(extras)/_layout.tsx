@@ -4,6 +4,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react-native";
+import { Pressable } from "react-native";
 
 const ExtrasLayout = () => {
   return (
@@ -80,6 +81,22 @@ const ExtrasLayout = () => {
           }}
         />
         <Stack.Screen
+          name="manageRooms"
+          options={{
+            headerShown: true,
+            headerBackButtonDisplayMode: "minimal",
+            headerTitle: "Manage Rooms",
+          }}
+        />
+        <Stack.Screen
+          name="roomPage"
+          options={{
+            headerShown: true,
+            headerBackButtonDisplayMode: "minimal",
+            headerTitle: "Room Page",
+          }}
+        />
+        <Stack.Screen
           name="createBooking"
           options={{
             headerShown: false,
@@ -94,9 +111,9 @@ const ExtrasLayout = () => {
             headerBackButtonDisplayMode: "minimal",
             // headerBackVisible: true,
             headerLeft: () => (
-              <Button onPress={() => router.back()}>
+              <Pressable onPress={() => router.back()}>
                 <Text className="text-black dark:text-white"><ChevronLeft size={24} /></Text>
-              </Button>
+              </Pressable>
             ),
             headerTitle: "Create Booking",
           }}
@@ -116,13 +133,14 @@ const ExtrasLayout = () => {
         <Stack.Screen
           name="terms"
           options={{
-            headerShown: false,
+            headerShown: true,
+            
           }}
         />
         <Stack.Screen
           name="privacy"
           options={{
-            headerShown: false,
+            headerShown: true,
           }}
         />
       </Stack>

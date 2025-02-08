@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Pressable } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@clerk/clerk-expo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -111,12 +111,12 @@ const ThankYou = () => {
     return (
       <View className="flex-1 justify-center items-center p-4">
         <Text className="text-red-500 text-lg mb-4">{error}</Text>
-        <Button 
+        <Pressable 
           onPress={() => router.back()}
           className="bg-blue-500"
         >
           <Text className="text-white">Go Back</Text>
-        </Button>
+        </Pressable>
       </View>
     );
   }

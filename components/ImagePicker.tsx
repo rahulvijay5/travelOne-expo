@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, Image, TouchableOpacity, ScrollView, Platform, Dimensions } from 'react-native';
+import { View, Image, TouchableOpacity, ScrollView, Platform, Dimensions, Pressable } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import * as ImagePicker from 'expo-image-picker';
@@ -10,6 +10,7 @@ interface ImagePickerProps {
   images: string[];
   onImagesSelected: (images: string[]) => void;
   maxImages?: number;
+  title?: string;
 }
 
 interface CarouselRenderItem {
@@ -20,7 +21,8 @@ interface CarouselRenderItem {
 const CustomImagePicker: React.FC<ImagePickerProps> = ({
   images,
   onImagesSelected,
-  maxImages = 5
+  maxImages = 5,
+  title = "Hotel"
 }) => {
   const width = Dimensions.get('window').width;
 
@@ -72,13 +74,13 @@ const CustomImagePicker: React.FC<ImagePickerProps> = ({
 
   if (images.length === 0) {
     return (
-      <Button
+      <Pressable
         onPress={pickImages}
-        className="flex-row items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg my-4 mx-4"
+        className="flex-row items-center justify-center h-20 p-4 border-2 border-dashed border-gray-300 rounded-lg my-4 mx-4"
       >
         <Ionicons name="images-outline" size={24} color="white" />
-        <Text className="dark:text-white text-black ml-2">Add Hotel Images (Max {maxImages})</Text>
-      </Button>
+        <Text className="dark:text-white text-black ml-2">Add {title} Images (Max {maxImages})</Text>
+      </Pressable>
     );
   }
 
@@ -101,15 +103,15 @@ const CustomImagePicker: React.FC<ImagePickerProps> = ({
 
       <View className="flex-row items-center justify-center">
         {images.length < maxImages && (
-          <Button
+          <Pressable
             onPress={pickImages}
-            className="flex-row items-center justify-center bg-black"
+            className="flex-row items-center justify-center bg-black rounded-lg p-2 px-4"
           >
             <Ionicons name="add" size={24} color="white" />
             <Text className="text-white ml-2">
               Add More Images ({images.length}/{maxImages})
             </Text>
-          </Button>
+          </Pressable>
         )}
       </View>
     </View>

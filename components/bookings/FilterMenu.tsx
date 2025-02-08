@@ -14,6 +14,7 @@ import { Text } from '@/components/ui/text';
 import { Filter } from 'lucide-react-native';
 import { BookingStatus, RoomStatus } from '@/types';
 import { useColorScheme } from 'nativewind';
+import { Pressable } from 'react-native';
 
 interface FilterMenuProps {
   onFilterChange: (filterType: string, value: string) => void;
@@ -31,9 +32,9 @@ export function FilterMenu({ onFilterChange, currentFilters }: FilterMenuProps) 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button className="bg-blue-500 p-2 rounded-lg">
+        <Pressable className="bg-blue-500 p-2 rounded-lg">
           <Filter size={20} color="white" />
-        </Button>
+        </Pressable>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-64">
         <DropdownMenuLabel>

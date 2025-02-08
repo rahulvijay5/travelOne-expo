@@ -100,12 +100,12 @@ export default function SignUpScreen() {
           onChangeText={(code) => setCode(code)}
           className="border border-gray-300 p-4 rounded-md dark:text-white text-black"
         />
-        <Button
+        <Pressable
           className="bg-blue-500 p-4 rounded-md"
           onPress={onVerifyPress}
         >
           <Text className="text-white">Verify</Text>
-        </Button>
+        </Pressable>
       </SafeAreaView>
     );
   }
@@ -150,12 +150,12 @@ export default function SignUpScreen() {
           </Text>
         </View>
         
-        <Button
+        <Pressable
           className="bg-blue-500 p-4 py-4 text-center rounded-md"
           onPress={onSignUpPress}
         >
           <Text className="text-white dark:text-white font-semibold text-lg">Continue</Text>
-        </Button>
+        </Pressable>
         <View className="flex-row justify-center gap-2 flex">
           <Text className="dark:text-white text-black">Already have an account?</Text>
           <Link href="/(auth)/sign-in">

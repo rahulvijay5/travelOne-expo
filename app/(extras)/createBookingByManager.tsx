@@ -5,6 +5,7 @@ import {
   TextInput,
   ActivityIndicator,
   Switch,
+  Pressable,
 } from "react-native";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
@@ -231,13 +232,13 @@ const CreateBookingByManager = () => {
                   placeholder="Enter customer's phone number"
                   placeholderTextColor="#666"
                 />
-                <Button
+                <Pressable
                   onPress={handleSearchCustomer}
                   className="bg-blue-500"
                   disabled={loading || !customerPhone}
                 >
                   <Text className="text-white">Search</Text>
-                </Button>
+                </Pressable>
               </View>
             </>
           ) : (
@@ -253,7 +254,7 @@ const CreateBookingByManager = () => {
                 Number of Guests
               </Text>
               <View className="flex-row items-center">
-                <Button
+                <Pressable
                   disabled={parseInt(guests) === 1}
                   onPress={() =>
                     setGuests((prev) => (parseInt(prev) - 1).toString())
@@ -261,7 +262,7 @@ const CreateBookingByManager = () => {
                   className="bg-gray-200 dark:bg-gray-700 rounded-full p-2"
                 >
                   <Minus size={24} color={theme.colors.text} />
-                </Button>
+                </Pressable>
                 <TextInput
                   className="border border-gray-300 text-center text-xl font-semibold dark:border-gray-600 rounded-full w-12 h-12 dark:text-white"
                   value={guests}
@@ -270,14 +271,14 @@ const CreateBookingByManager = () => {
                   placeholder="2"
                   placeholderTextColor="#666"
                 />
-                <Button
+                <Pressable
                   onPress={() =>
                     setGuests((prev) => (parseInt(prev) + 1).toString())
                   }
                   className="bg-gray-200 dark:bg-gray-700 rounded-full p-2"
                 >
                   <Plus size={24} color={theme.colors.text} />
-                </Button>
+                </Pressable>
               </View>
             </View>
           </View>

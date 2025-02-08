@@ -92,7 +92,7 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
             <Text className="text-lg font-bold mb-4 dark:text-white">
               {userRole === "MANAGER" ? "Managing Hotel" : "Current Stay"}
             </Text>
-            <Button
+            <Pressable
               className="flex-row items-center justify-start mb-4 py-4 pl-4 bg-lime-100 dark:bg-lime-950 rounded-lg border-2 dark:border-lime-100 border-lime-600"
               onPress={() => {
                 console.log("Selected hotel:", currentHotel.id);
@@ -117,7 +117,7 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
                   Location: {currentHotel.location || currentHotel.address}
                 </Text>
               </View>
-            </Button>
+            </Pressable>
           </>
         )}
 
@@ -128,7 +128,7 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
             <Text className="text-lg font-bold mb-4 dark:text-white">
               Management Options
             </Text>
-            <Button
+            <Pressable
               className="flex-row items-center justify-start mb-4 py-4 pl-4 bg-lime-100 dark:bg-lime-950 rounded-3xl"
               onPress={() => router.push("/createBookingByManager")}
             >
@@ -136,8 +136,8 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
               <Text className="ml-3 font-semibold dark:text-white text-lg">
                 Create New Booking
               </Text>
-            </Button>
-            <Button
+            </Pressable>
+            <Pressable
               className="flex-row items-center justify-start mb-4 py-4 pl-4 bg-lime-100 dark:bg-lime-950 rounded-3xl"
               onPress={() => router.push("/bookings")}
             >
@@ -145,7 +145,7 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
               <Text className="ml-3 font-semibold dark:text-white text-lg">
                 View All Bookings
               </Text>
-            </Button>
+            </Pressable>
           </>
         )}
 
@@ -156,7 +156,7 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
             <Text className="text-lg font-bold mb-4 dark:text-white">
               Owner Options
             </Text>
-            <Button
+            <Pressable
               className="flex-row items-center justify-start mb-4 py-4 pl-4 bg-lime-100 dark:bg-lime-950 rounded-3xl"
               onPress={() => router.push("/ownedHotels")}
             >
@@ -164,8 +164,8 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
               <Text className="ml-3 font-semibold dark:text-white text-lg">
                 My Hotels
               </Text>
-            </Button>
-            <Button
+            </Pressable>
+            <Pressable
               className="flex-row items-center justify-start mb-4 py-4 pl-4 bg-lime-100 dark:bg-lime-950 rounded-3xl"
               onPress={() => router.push("/newhotel")}
             >
@@ -173,7 +173,7 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
               <Text className="ml-3 font-semibold dark:text-white text-lg">
                 Create New Hotel
               </Text>
-            </Button>
+            </Pressable>
           </>
         )}
 
@@ -186,7 +186,7 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
             </Text>
             <View>
               {previousStays.map((item) => (
-                <Button
+                <Pressable
                   key={item.hotelId}
                   className="flex-row items-center justify-start mb-4 py-4 pl-4 bg-lime-100 dark:bg-lime-950 rounded-3xl"
                   onPress={() => {
@@ -202,7 +202,7 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
                       Code: {item.code}
                     </Text>
                   </View>
-                </Button>
+                </Pressable>
               ))}
             </View>
           </>
@@ -256,12 +256,12 @@ export default function Layout() {
           headerTitleStyle: { color: "#A9A9A9" },
           headerRight: () => (
             <View className="flex-row items-center justify-end gap-2">
-              <Button
+              <Pressable
                 onPress={handleScanPress}
                 className="flex-row items-center bg-lime-100 dark:bg-lime-950 p-2 rounded-full"
               >
                 <Feather name="camera" size={24} color="#84cc16" />
-              </Button>
+              </Pressable>
             </View>
           ),
           headerShadowVisible: false,

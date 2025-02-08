@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Image } from 'react-native';
+import { View, Image, Pressable } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import { Room } from '@/types';
@@ -49,12 +49,12 @@ const RoomCard = ({ room, onBookNow, hideImage = false }: RoomCardProps) => {
           ))}
         </View>
 
-        <Button
+        <Pressable
           onPress={() => onBookNow(room.id, room.price)}
           className="mt-3 bg-blue-500 p-2 rounded-lg"
         >
           <Text className="text-white text-lg">Book Now</Text>
-        </Button>
+        </Pressable>
       </View>
     </View>
   );

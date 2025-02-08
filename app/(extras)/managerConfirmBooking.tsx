@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, TextInput, ActivityIndicator } from 'react-native';
+import { View, ScrollView, TextInput, ActivityIndicator, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
@@ -102,9 +102,9 @@ const ManagerConfirmBooking = () => {
       <ScrollView className="flex-1 p-4">
         <View className="flex gap-4">
           <View className="flex-row justify-start items-center">
-            <Button onPress={() => router.back()}>
+            <Pressable onPress={() => router.back()}>
               <ChevronLeft size={24} color={colors.text} />
-            </Button>
+            </Pressable>
             <Text className="text-2xl font-bold dark:text-white">Confirm Booking</Text>
           </View>
 
@@ -217,7 +217,7 @@ const ManagerConfirmBooking = () => {
             </View>
           </View>
 
-          <Button
+          <Pressable
             onPress={handleCreateBooking}
             className="bg-blue-500 p-4"
             disabled={loading || parseFloat(paidAmount) === 0}
@@ -229,7 +229,7 @@ const ManagerConfirmBooking = () => {
                 Confirm Booking
               </Text>
             )}
-          </Button>
+          </Pressable>
         </View>
       </ScrollView>
     </SafeAreaView>

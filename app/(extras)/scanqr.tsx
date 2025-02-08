@@ -1,4 +1,4 @@
-import { View, Alert, Linking, TextInput } from "react-native";
+import { View, Alert, Linking, TextInput, Pressable } from "react-native";
 import { useState, useEffect } from "react";
 import { CameraView, Camera } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
@@ -10,13 +10,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import api from "@/lib/api";
 import { useUserStorage } from "@/hooks/useUserStorage";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { processCode } from "@/lib/actions/processCode";
 
 export default function ScanQRScreen() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanning, setScanning] = useState(true); // Start with camera open
   const [manualCode, setManualCode] = useState("");
   const { isSignedIn, getToken } = useAuth();
-  const { storeUserData } = useUserStorage();
+  const { storeUserData, getUserData } = useUserStorage();
 
   const getCameraPermissions = async () => {
     try {
@@ -97,11 +98,21 @@ export default function ScanQRScreen() {
 
   const handleBarCodeScanned = async ({ data }: { data: string }) => {
     console.log("data", data);
-    // setScanning(false);
-    // Extract hotel code from the QR data (right nowassuming data is like 'https://hotelone.in/hotelCode=abcd')
     const code = data.split("=")[1]; // Simple split to extract the hotelCode
     console.log("code", code);
-    await processCode(code);
+    const result = await processCode({
+      code,
+      getToken,
+      getUserData,
+      storeUserData
+    });
+
+    if (result.success) {
+      router.replace("/");
+    } else {
+      Alert.alert("Error", result.error);
+      setScanning(true);
+    }
   };
 
   const pickImage = async () => {
@@ -122,94 +133,22 @@ export default function ScanQRScreen() {
     }
   };
 
-  const processCode = async (code: string) => {
-    try {
-      // setScanning(false);
-
-      const response = await api.getHotelByCode(code);
-      console.log("API Response:", response);
-
-      if (response.status === 200 && response.data) {
-        try {
-          await AsyncStorage.setItem(
-            "@current_hotel_details",
-            JSON.stringify(response.data)
-          );
-
-          // Check if user is owner or manager
-          const { getUserData } = useUserStorage();
-          const userData = await getUserData();
-          const user = userData;
-
-          console.log("user in scanqr in processCode", user);
-          if (user?.role === "OWNER" || user?.role === "MANAGER") {
-            const token = await getToken();
-            if (token) {
-              const rooms = await api.getHotelRooms(response.data.id, token);
-              console.log("Rooms fetched:", rooms);
-              if (rooms && !rooms.error) {
-                await AsyncStorage.setItem(
-                  "@current_hotel_rooms",
-                  JSON.stringify({
-                    hotelId: response.data.id,
-                    rooms: rooms.data || rooms // handle both formats
-                  })
-                );
-              }
-            }
-          }
-
-          await storeUserData({
-            currentStay: {
-              hotelId: response.data.id,
-              hotelCode: response.data.code,
-              hotelName: response.data.hotelName,
-            },
-          });
-
-          router.replace("/");
-        } catch (storageError) {
-          console.error("Error storing data:", storageError);
-          Alert.alert(
-            "Storage Error",
-            "Failed to save information. Please try again."
-          );
-          setScanning(true);
-        }
-      } else {
-        let errorMessage = "An unknown error occurred. Please try again.";
-        setScanning(false);
-        switch (response.status) {
-          case 404:
-            errorMessage =
-              "No hotel found with this code. Please verify and try again.";
-            break;
-          case 400:
-            errorMessage = "Invalid hotel code format. Please try again.";
-            break;
-          case 500:
-            errorMessage = "Server error. Please try again later.";
-            break;
-        }
-
-        Alert.alert("Error", errorMessage);
-        setScanning(true); // Re-enable scanning after error
-      }
-    } catch (error) {
-      console.error("Error processing code:", error);
-      Alert.alert(
-        "Error",
-        "Failed to process hotel code. Please check your internet connection and try again."
-      );
-      setScanning(true); // Re-enable scanning after error
-    }
-  };
-
   const handleManualSubmit = async () => {
     const code = manualCode.toLowerCase().trim();
     console.log("code: ", code);
     if (code) {
-      await processCode(code);
+      const result = await processCode({
+        code,
+        getToken,
+        getUserData,
+        storeUserData
+      });
+
+      if (result.success) {
+        router.replace("/");
+      } else {
+        Alert.alert("Error", result.error);
+      }
     }
   };
 
@@ -227,11 +166,11 @@ export default function ScanQRScreen() {
         <Text className="text-center mb-4 dark:text-white text-black">
           Camera access is required to scan QR codes.
         </Text>
-        <Button onPress={getCameraPermissions} className="bg-lime-500 p-2">
+        <Pressable onPress={getCameraPermissions} className="bg-lime-500 p-2">
           <Text className="dark:text-white text-black">
             Grant Camera Permission
           </Text>
-        </Button>
+        </Pressable>
       </SafeAreaView>
     );
   }
@@ -250,12 +189,12 @@ export default function ScanQRScreen() {
               style={{ flex: 1, height: "100%" }}
             />
           ) : (
-            <Button
+            <Pressable
               onPress={() => setScanning(true)}
               className="bg-lime-500 bottom-4 h-100 absolute p-2 w-1/2 self-center rounded-md py-4"
             >
               <Text className="text-lg text-center font-bold">Try Again</Text>
-            </Button>
+            </Pressable>
           )}
 
           {/* <View className="absolute bottom-0 left-0 right-0 flex-row justify-between px-4">
@@ -290,13 +229,13 @@ export default function ScanQRScreen() {
               placeholder="Enter hotel code"
               className="p-4 border-2 font-bold text-xl border-gray-300 w-3/5 text-center self-center rounded-md dark:text-white text-black"
             />
-            <Button
+            <Pressable
               onPress={handleManualSubmit}
               disabled={!manualCode.trim()}
               className="bg-lime-500 p-2 flex-grow self-center rounded-md py-4"
             >
               <Text className="text-lg text-center font-bold">Submit Code</Text>
-            </Button>
+            </Pressable>
           </View>
         </View>
 
@@ -304,14 +243,14 @@ export default function ScanQRScreen() {
             <Text className="text-center dark:text-white text-black">
               --- OR ---
             </Text>
-            <Button
+            <Pressable
               onPress={() => setScanning(true)}
               className="bg-lime-500 p-2 w-1/2 self-center rounded-md py-4"
             >
               <Text className="text-lg text-center font-bold">
                 Scan QR Code
               </Text>
-            </Button>
+            </Pressable>
           </View> */}
       </View>
       {/* )} */}

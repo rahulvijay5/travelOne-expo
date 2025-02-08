@@ -7,7 +7,7 @@ import { useUserStorage } from "@/hooks/useUserStorage";
 import { router } from "expo-router";
 import * as React from "react";
 import { useState, useEffect } from "react";
-import { Alert } from "react-native";
+import { Alert, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import api from "@/lib/api";
@@ -208,27 +208,27 @@ const onboarding = () => {
         onChangeText={setPhone}
         className="dark:text-white text-black p-4 rounded-lg border-2 border-gray-300"
       />
-      <Button
+      <Pressable
         onPress={handleOnboardingSubmit}
         className="mt-4 border-2 border-gray-300 bg-yellow-200 flex items-center justify-center"
       >
         <Text className="text-lg font-bold p-4 flex items-center justify-center">
           Submit
         </Text>
-      </Button>
+      </Pressable>
 
-      <Button
+      <Pressable
         onPress={() => router.push("/(auth)/sign-in")}
         className="mt-4 border-2 border-gray-300 bg-yellow-200 flex items-center justify-center"
       >
         <Text className="text-lg font-bold p-4 ">SignIn</Text>
-      </Button>
-      <Button
+      </Pressable>
+      <Pressable
         onPress={() => signOut()}
         className="mt-4 border-2 border-gray-300 bg-yellow-200 flex items-center justify-center"
       >
         <Text className="text-lg font-bold p-4 ">SignOut</Text>
-      </Button>
+      </Pressable>
     </SafeAreaView>
   );
 };

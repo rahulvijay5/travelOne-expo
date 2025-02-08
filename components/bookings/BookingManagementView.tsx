@@ -186,22 +186,22 @@ export default function BookingManagementView({
 
   const renderDateNavigation = () => (
     <View className="flex-row items-center justify-between flex-grow">
-      <Button
+      <Pressable
         onPress={() => handleDateChange(-7)}
         className="bg-gray-200 dark:bg-gray-700 p-2 rounded-full"
       >
         <ChevronLeft size={24} color={isDark ? "white" : "black"} />
-      </Button>
+      </Pressable>
       <Text className="text-lg font-bold dark:text-white">
         {format(startDate, "MMM d")} -{" "}
         {format(addDays(startDate, 6), "MMM d, yyyy")}
       </Text>
-      <Button
+      <Pressable
         onPress={() => handleDateChange(7)}
         className="bg-gray-200 dark:bg-gray-700 p-2 rounded-full"
       >
         <ChevronRight size={24} color={isDark ? "white" : "black"} />
-      </Button>
+      </Pressable>
     </View>
   );
 

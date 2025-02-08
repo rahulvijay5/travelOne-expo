@@ -15,6 +15,9 @@ export default function TermsScreen() {
           headerStyle: {
             backgroundColor: isDarkColorScheme ? "#000" : "#fff",
           },
+          headerBackVisible:true,
+          headerBackButtonMenuEnabled:true,
+          headerBackTitle: "Back",
           headerTintColor: isDarkColorScheme ? "#fff" : "#000",
         }}
       />
