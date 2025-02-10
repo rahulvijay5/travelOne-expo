@@ -6,6 +6,7 @@ import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
+import { useRouter } from 'expo-router';
 
 interface BookingModalProps {
   booking: BookingDataInDb | null;
@@ -16,6 +17,7 @@ interface BookingModalProps {
 export default function BookingModal({ booking, visible, onClose }: BookingModalProps) {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const router = useRouter();
 
   if (!booking) return null;
 
@@ -96,7 +98,10 @@ export default function BookingModal({ booking, visible, onClose }: BookingModal
               )}
             </View>
 
-            <Pressable onPress={onClose} style={styles.viewDetailsButton}>
+            <Pressable onPress={() => {
+              onClose();
+              router.push(`/bookings/${booking.id}`);
+            }} style={styles.viewDetailsButton}>
               <Text style={styles.viewDetailsText}>View Full Details</Text>
             </Pressable>
           </ScrollView>

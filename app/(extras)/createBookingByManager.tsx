@@ -141,6 +141,7 @@ const CreateBookingByManager = () => {
   }, [rooms, guests, roomSearch, extraMattress]);
 
   const handleSearchCustomer = async () => {
+    console.log("extra mattress:", hotelDetails?.rules.extraMattressOnAvailability);
     try {
       setLoading(true);
       setError(null);
@@ -234,7 +235,7 @@ const CreateBookingByManager = () => {
                 />
                 <Pressable
                   onPress={handleSearchCustomer}
-                  className="bg-blue-500"
+                  className="bg-blue-500 rounded-lg p-3"
                   disabled={loading || !customerPhone}
                 >
                   <Text className="text-white">Search</Text>

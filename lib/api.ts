@@ -750,10 +750,14 @@ const api = {
       const res = await fetch(`${API_URL}/api/bookings/${bookingId}`, {
         method: "GET",
         headers: getHeaders(token),
-    });
+      });
+      
+      if (res.status === 404) {
+        return { error: "Booking not found" };
+      }
       return handleResponse(res);
     } catch (error) {
-      console.error("Error getting booking:", error);
+      console.error("Error getting booking details:", error);
       throw error;
     }
   },
@@ -854,6 +858,53 @@ const api = {
       throw error;
     }
   },
-};
 
+  updateBookingPaymentStatus: async (
+    bookingId: string,
+    paidAmount: number,
+    status: "PAID" | "FAILED",
+    token: string
+  ) => {
+    try {
+      const response = await fetch(`${API_URL}/api/bookings/${bookingId}/payment`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          paidAmount,
+          status,
+          transactionId: "OFFLINE",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update booking payment status: ${response.statusText}`);
+      }
+
+      return { status: response.status, data: await response.json() };
+    } catch (error) {
+      console.error("Error updating booking payment status:", error);
+      throw error;
+    }
+  },
+
+  checkOutBooking: async (bookingId: string, token?: string) => {
+    try {
+      const response = await fetch(`${API_URL}/api/bookings/${bookingId}/checkout`, {
+        method: "PATCH",
+        headers: getHeaders(token),
+      });
+      if(response.status === 200){
+        return { status: 200, data: await response.json() };
+      }else{
+        return { status: response.status, error: "Failed to check out booking" };
+      }
+    } catch (error) {
+      console.error("Error checking out booking:", error);
+      throw error;
+    }
+  },
+};
 export default api;

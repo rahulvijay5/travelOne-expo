@@ -161,7 +161,7 @@ export default function HomeScreen() {
   if (!currentHotel) {
     return (
       <View className="flex-1 items-center justify-center p-4 gap-20">
-        <Pressable onPress={() => router.push('/scanqr')} className="dark:bg-lime-500 bg-lime-300 h-56 w-56 rounded-full shadow-md shadow-black/50">
+        <Pressable onPress={() => router.push('/scanqr')} className="dark:bg-lime-500 flex items-center justify-center bg-lime-300 h-56 w-56 rounded-full shadow-md shadow-black/50">
           <Text className="text-2xl font-bold">Scan QR Code</Text>
         </Pressable>
         <Text className="text-xl text-center px-6 dark:text-white text-black mb-4">

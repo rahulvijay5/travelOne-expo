@@ -100,11 +100,11 @@ const manageRooms = () => {
           <PlusCircleIcon color="white" className="w-4 h-4" />
         </TouchableOpacity>
         <TouchableOpacity
-          className="flex flex-row items-center gap-2 bg-blue-500 p-2 px-4 my-4 rounded-md"
+          className="flex flex-row items-center gap-2 bg-gray-500 p-2 px-2 my-4 rounded-md"
           onPress={() => setReload(!reload)}
         >
 
-          <RefreshCcw color="white" className="w-4 h-4" />
+          <RefreshCcw color="white" className="w-2 h-2 " />
         </TouchableOpacity>
         </View>
       </View>

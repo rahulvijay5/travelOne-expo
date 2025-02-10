@@ -97,6 +97,14 @@ const ExtrasLayout = () => {
           }}
         />
         <Stack.Screen
+          name="bookings/[id]"
+          options={{
+            headerShown: true,
+            headerBackButtonDisplayMode: "minimal",
+            headerTitle: "Booking Details",
+          }}
+        />
+        <Stack.Screen
           name="createBooking"
           options={{
             headerShown: false,
