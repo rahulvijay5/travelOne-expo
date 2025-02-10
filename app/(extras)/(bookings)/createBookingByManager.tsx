@@ -20,6 +20,7 @@ import RoomCard from "@/components/RoomCard";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { startOfDay, isSameDay, isAfter, addDays, set } from "date-fns";
 import { getHotelById, getHotelRoomsByStatus, getAvailableRooms, searchUserByPhone } from "@lib/api";
+import { navigateTo } from "@/lib/actions/navigation";
 
 const getAdjustedCheckInTime = (selectedDate: Date, checkInTimeMinutes: number, currentHotelDetails: any) => {
   const now = new Date();
@@ -262,18 +263,15 @@ const CreateBookingByManager = () => {
       return;
     }
 
-    router.push({
-      pathname: "/(extras)/managerConfirmBooking",
-      params: {
-        roomId,
-        hotelId: currentHotelId,
-        customerId,
-        noOfGuests: guests,
-        checkIn: checkIn.toISOString(),
-        checkOut: checkOut.toISOString(),
-        price: price.toString(),
-        extraMattress: extraMattress.toString(),
-      },
+    navigateTo("/managerConfirmBooking", {
+      roomId,
+      hotelId: currentHotelId,
+      customerId,
+      noOfGuests: guests,
+      checkIn: checkIn.toISOString(),
+      checkOut: checkOut.toISOString(),
+      price: price.toString(),
+      extraMattress: extraMattress.toString(),
     });
   };
 

@@ -11,7 +11,7 @@ const ExtrasLayout = () => {
     <SafeAreaProvider>
       <Stack>
         <Stack.Screen
-          name="hotelrules"
+          name="(owner)/hotelrules"
           options={{
             headerShown: true,
             headerLeft: () => <Text />,
@@ -19,7 +19,7 @@ const ExtrasLayout = () => {
           }}
         />
         <Stack.Screen
-          name="roomdetails"
+          name="(rooms)/roomdetails"
           options={{
             headerShown: true,
             headerLeft: () => <Text />,
@@ -27,7 +27,7 @@ const ExtrasLayout = () => {
           }}
         />
         <Stack.Screen
-          name="newhotel"
+          name="(owner)/newhotel"
           options={{
             headerShown: true,
             headerBackVisible: true,
@@ -43,13 +43,13 @@ const ExtrasLayout = () => {
           }}
         />
         <Stack.Screen
-          name="not-authenticated"
+          name="(helpers)/not-authenticated"
           options={{
             headerShown: false,
           }}
         />
         <Stack.Screen
-          name="not-authorized"
+          name="(helpers)/not-authorized"
           options={{
             headerShown: false,
           }}
@@ -65,7 +65,7 @@ const ExtrasLayout = () => {
         />
         
         <Stack.Screen
-          name="managePeople"
+          name="(owner)/managePeople"
           options={{
             headerShown: true,
             headerBackButtonDisplayMode: "minimal",
@@ -73,7 +73,7 @@ const ExtrasLayout = () => {
           }}
         />
         <Stack.Screen
-          name="ownedHotels"
+          name="(owner)/ownedHotels"
           options={{
             headerShown: true,
             headerBackButtonDisplayMode: "minimal",
@@ -81,7 +81,7 @@ const ExtrasLayout = () => {
           }}
         />
         <Stack.Screen
-          name="manageRooms"
+          name="(owner)/manageRooms"
           options={{
             headerShown: true,
             headerBackButtonDisplayMode: "minimal",
@@ -89,7 +89,7 @@ const ExtrasLayout = () => {
           }}
         />
         <Stack.Screen
-          name="roomPage"
+          name="(rooms)/roomPage"
           options={{
             headerShown: true,
             headerBackButtonDisplayMode: "minimal",
@@ -105,7 +105,7 @@ const ExtrasLayout = () => {
           }}
         />
         <Stack.Screen
-          name="createBooking"
+          name="(bookings)/createBooking"
           options={{
             headerShown: false,
             headerBackButtonDisplayMode: "minimal",
@@ -113,7 +113,7 @@ const ExtrasLayout = () => {
           }}
         />
         <Stack.Screen
-          name="createBookingByManager"
+          name="(bookings)/createBookingByManager"
           options={{
             headerShown: true,
             headerBackButtonDisplayMode: "minimal",
@@ -127,26 +127,26 @@ const ExtrasLayout = () => {
           }}
         />
         <Stack.Screen
-          name="managerConfirmBooking"
+          name="(bookings)/managerConfirmBooking"
           options={{
             headerShown: false,
           }}
         />
         <Stack.Screen
-          name="thankyou"
+          name="(bookings)/thankyou"
           options={{
             headerShown: false,
           }}
         />
         <Stack.Screen
-          name="terms"
+          name="(helpers)terms"
           options={{
             headerShown: true,
             
           }}
         />
         <Stack.Screen
-          name="privacy"
+          name="(helpers)/privacy"
           options={{
             headerShown: true,
           }}

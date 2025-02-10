@@ -7,6 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/button";
 import { Feather } from "@expo/vector-icons";
 import { useState } from "react";
+import { navigateTo } from "@/lib/actions/navigation";
 
 
 export default function SignUpScreen() {
@@ -76,7 +77,7 @@ export default function SignUpScreen() {
       if (signUpAttempt.status === "complete") {
 
         await setActive({ session: signUpAttempt.createdSessionId });
-        router.replace("/(extras)/onboarding");
+        router.replace("/onboarding");
       } else {
         // If the status is not complete, check why. User may need to
         // complete further steps.
@@ -136,14 +137,14 @@ export default function SignUpScreen() {
             By signing up, you agree to our{" "}
             <Text 
               className="text-lime-600 dark:text-lime-500"
-              onPress={() => router.push("/terms")}
+              onPress={() => navigateTo("/terms")}
             >
               Terms & Conditions
             </Text>
             {" "}and{" "}
             <Text 
               className="text-lime-600 dark:text-lime-500"
-              onPress={() => router.push("/privacy")}
+              onPress={() => navigateTo("/privacy")}
             >
               Privacy Policy
             </Text>

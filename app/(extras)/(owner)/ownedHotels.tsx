@@ -5,11 +5,11 @@ import { useUserStorage } from "@/hooks/useUserStorage";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/clerk-expo";
 import { UserData } from "@/types";
-import api from "@/lib/api";
+
 import { ArrowUpRightFromCircle } from "lucide-react-native";
 import { processCode } from "@/lib/actions/processCode";
 import { getOwnedHotels } from "@lib/api";
-
+import { navigateTo } from "@/lib/actions/navigation";
 const OwnedHotels = () => {
   const { getUserData, storeUserData } = useUserStorage();
   const { getToken } = useAuth();
@@ -62,26 +62,11 @@ const OwnedHotels = () => {
     }
   }, [ownerId]);
 
-  const handleManagePeople = (hotelId: string, hotelName: string) => {
-    router.push({
-      pathname: "/managePeople",
-      params: { hotelId, hotelName },
-    });
-  };
+  const handleManagePeople = (hotelId: string, hotelName: string) => {navigateTo("/managePeople", { hotelId, hotelName })};
 
-  const navigateToHotelRules = (hotelId: string) => {
-    router.push({
-      pathname: "/hotelrules",
-      params: { hotelId },
-    });
-  };
+  const navigateToHotelRules = (hotelId: string) => {navigateTo("/hotelrules", { hotelId })};
 
-  const navigateToManageRooms = (hotelId: string) => {
-    router.push({
-      pathname: "/manageRooms",
-      params: { hotelId },
-    });
-  };
+  const navigateToManageRooms = (hotelId: string) => {navigateTo("/manageRooms", { hotelId })};
 
   if (loading) {
     return (
@@ -108,7 +93,7 @@ const OwnedHotels = () => {
             <Image
               source={
                 hotel.hotelImages[0]
-                  ? { uri: (hotel.hotelImages[0]) }
+                  ? { uri: hotel.hotelImages[0] }
                   : { uri: "" }
               }
               className="bg-gray-200 dark:bg-gray-800 rounded-lg h-20"
@@ -130,21 +115,21 @@ const OwnedHotels = () => {
                           getToken,
                           getUserData,
                           storeUserData,
-                          forceRefetch: true // Always get fresh data when switching hotels
+                          forceRefetch: true, // Always get fresh data when switching hotels
                         });
 
                         if (result.success) {
-                          router.push({
-                            pathname: "/",
-                            params: { hotelId: hotel.id },
-                          });
+                          navigateTo("/", { hotelId: hotel.id });
                         } else {
                           Alert.alert("Error", result.error);
                         }
                       }
                     } catch (error) {
                       console.error("Error switching hotel:", error);
-                      Alert.alert("Error", "Failed to switch hotel. Please try again.");
+                      Alert.alert(
+                        "Error",
+                        "Failed to switch hotel. Please try again."
+                      );
                     }
                   }}
                 >
@@ -186,13 +171,13 @@ const OwnedHotels = () => {
               </Pressable>
             </View>
             <Pressable
-                className=" p-2 bg-blue-500 mt-2 flex-grow rounded-lg"
-                onPress={() => navigateToManageRooms(hotel.id)}
-              >
-                <Text className="text-white font-bold text-lg text-center">
-                  Manage Rooms
-                </Text>
-              </Pressable>
+              className=" p-2 bg-blue-500 mt-2 flex-grow rounded-lg"
+              onPress={() => navigateToManageRooms(hotel.id)}
+            >
+              <Text className="text-white font-bold text-lg text-center">
+                Manage Rooms
+              </Text>
+            </Pressable>
           </View>
         ))
       )}

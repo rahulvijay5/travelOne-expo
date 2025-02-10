@@ -1,16 +1,15 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { View, ScrollView, TextInput, Pressable } from "react-native";
 import { Text } from "@/components/ui/text";
-import { Button } from "@/components/ui/button";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
-import api from "@/lib/api";
 import { defaultAmenities } from "@/lib/constants";
 import { HotelFormData, UserData } from "@/types";
 import { Textarea } from "@/components/ui/textarea";
 import { useUserStorage } from "@/hooks/useUserStorage";
 import CustomImagePicker from "@/components/ImagePicker";
 import { uploadImages, createHotel, saveHotelToStorage } from "@lib/api";
+import { navigateTo } from "@/lib/actions/navigation";
 
 const NewHotel = () => {
   const { user } = useUser();
@@ -118,7 +117,7 @@ const NewHotel = () => {
       const token = await getToken();
       if (!token) {
         console.error("No auth token available");
-        router.push("/(extras)/not-authenticated");
+        router.push("/not-authenticated");
         return;
       }
 
@@ -157,13 +156,7 @@ const NewHotel = () => {
 
       // Navigate to hotel rules page
       setTimeout(() => {
-        router.push({
-          pathname: "/hotelrules",
-          params: { 
-            hotelId: response.data.id,
-            createNewHotel: "true"  // Convert boolean to string as URL params are strings
-          }
-        });
+        navigateTo("/hotelrules", { hotelId: response.data.id, createNewHotel: "true" });
         setShowNextButton(true);
       }, 500);
     } catch (err: unknown) {

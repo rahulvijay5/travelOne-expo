@@ -4,7 +4,6 @@ import { View, Pressable } from "react-native";
 import { useAuth } from "@clerk/clerk-expo";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { Text } from "@/components/ui/text";
-import { useUserStorage } from "@/hooks/useUserStorage";
 import React from "react";
 import CustomDrawerContent from "@/components/CustomDrawerContent";
 import { router } from "expo-router";
@@ -12,8 +11,6 @@ import { Feather } from "@expo/vector-icons";
 
 export default function Layout() {
   const { isDarkColorScheme } = useColorScheme();
-  const { getUserData } = useUserStorage();
-  const userData = getUserData();
 
   const { isSignedIn } = useAuth();
 
@@ -41,7 +38,6 @@ export default function Layout() {
           headerTitle(props) {
             return (
               <Text className="text-2xl font-bold dark:text-white text-black">
-                {/* {userData ? userData?.currentStay?.hotelName : "HotelOne"} */}
                 HotelOne
               </Text>
             );

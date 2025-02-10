@@ -47,7 +47,7 @@ export default function BookingDetails({
       if (response?.status === 200) {
         Alert.alert("Success", "Booking checked out successfully");
         onBookingUpdated();
-        router.push('/(drawer)/(tabs)/bookings');
+        router.push('/bookings');
       } else {
         throw new Error("Failed to check out booking");
       }
@@ -81,7 +81,7 @@ export default function BookingDetails({
           } successfully`
         );
         onBookingUpdated();
-        router.push('/(drawer)/(tabs)/bookings');
+        router.push('/bookings');
       } else {
         throw new Error("Failed to update booking");
       }

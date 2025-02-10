@@ -7,10 +7,8 @@ import {
   Pressable,
 } from "react-native";
 import { Text } from "@/components/ui/text";
-import { Button } from "@/components/ui/button";
 import { useUserStorage } from "@/hooks/useUserStorage";
 import { useAuth } from "@clerk/clerk-expo";
-import api from "@/lib/api";
 import { Room, BookingDataInDb } from "@/types";
 import { router } from "expo-router";
 import { Picker } from "@react-native-picker/picker";
@@ -31,6 +29,7 @@ import BookingModal from "@/components/bookings/BookingModal";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { startOfDay, isSameDay, isAfter, addDays, set } from "date-fns";
 import { getHotelRoomsByStatus, getAvailableRooms } from "@lib/api";
+import { navigateTo } from "@/lib/actions/navigation";
 
 const getAdjustedCheckInTime = (selectedDate: Date, checkInTimeMinutes: number, currentHotelDetails: any) => {
   const now = new Date();
@@ -161,18 +160,16 @@ const Bookings = () => {
   }, [currentHotelId]);
 
   const handleCreateBooking = (roomId: string, price: number) => {
-    router.push({
-      pathname: "/(extras)/createBooking",
-      params: {
-        roomId,
-        hotelId: currentHotelId,
-        noOfGuests: filters.maxOccupancy,
-        checkIn: filters.checkIn.toISOString(),
-        checkOut: filters.checkOut.toISOString(),
-        price: price.toString(),
-      },
-    } as any);
+    navigateTo("/createBooking", {
+      roomId,
+      hotelId: currentHotelId,
+      noOfGuests: filters.maxOccupancy,
+      checkIn: filters.checkIn.toISOString(),
+      checkOut: filters.checkOut.toISOString(),
+      price: price.toString(),
+    });
   };
+
 
   const handleClearFilters = () => {
     setFilters((prev) => ({
@@ -289,9 +286,7 @@ const Bookings = () => {
             <View className="flex-row gap-2">
               <Pressable
                 onPress={() =>
-                  router.push({
-                    pathname: "/(extras)/createBookingByManager",
-                  } as any)
+                  navigateTo("/createBookingByManager")
                 }
                 className="bg-blue-500 rounded-lg p-2"
               >

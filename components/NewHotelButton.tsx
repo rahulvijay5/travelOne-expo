@@ -22,7 +22,7 @@ const NewHotelButton = () => {
   if (!isOwner) return null;
 
   return (
-    <Pressable onPress={() => router.push("/(extras)/newhotel")} className=" bg-blue-500 w-full p-3 rounded-lg">
+    <Pressable onPress={() => router.push("/newhotel")} className=" bg-blue-500 w-full p-3 rounded-lg">
       <Text className="text-lg font-bold text-white text-center">
         New Hotel
       </Text>

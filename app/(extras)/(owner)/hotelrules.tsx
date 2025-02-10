@@ -9,10 +9,11 @@ import {
 import React, { useEffect, useState } from "react";
 import { useLocalSearchParams, router } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
-import api from "@/lib/api";
+
 import {  HotelRulesChange } from "@/types";
 import TimePicker from "@/components/TimePicker";
 import { updateHotelRules } from "@lib/api";
+import { navigateTo } from "@/lib/actions/navigation";
 
 type HotelRulesPageParams = {
   hotelId: string;
@@ -69,15 +70,12 @@ export default function HotelRulesPage() {
       console.log("rules before sending to backend", rules);
       await updateHotelRules(hotelId as string, rules, token);
       if (creatingNewHotel) {
-        router.push({ 
-          pathname: "/roomdetails", 
-          params: { 
-            hotelId,
-            createNewHotel: "true"
-          } 
+        navigateTo("/roomdetails", { 
+          hotelId,
+          createNewHotel: "true"
         });
       } else {
-        router.back(); // Go back to hotel details page after successful update
+        navigateTo("/", { hotelId });
       }
     } catch (error) {
       console.error("Error updating hotel rules:", error);

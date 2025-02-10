@@ -11,7 +11,7 @@ import { useLocalSearchParams, router } from "expo-router";
 import { RoomForm } from "@/types";
 import { defaultRoomFeatures } from "@/lib/constants";
 import { Trash2 } from "lucide-react-native";
-import api from "@/lib/api";
+
 import { useAuth } from "@clerk/clerk-expo";
 import CustomImagePicker from "@/components/ImagePicker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -224,9 +224,9 @@ const RoomDetails = () => {
           }
 
         if (creatingNewHotel) {
-          router.push("/manageRooms");
+          router.replace("/");
         } else {
-          router.push("/");
+          router.replace("/ownedHotels");
         }
       } catch (err: any) {
         console.error("Error creating rooms:", err);

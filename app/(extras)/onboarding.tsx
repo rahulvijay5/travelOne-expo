@@ -183,7 +183,7 @@ const onboarding = () => {
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 p-4 gap-2">
+      <SafeAreaView className="flex-1 p-4 gap-2 flex items-center justify-center h-screen">
         <Text>Loading...</Text>
       </SafeAreaView>
     );

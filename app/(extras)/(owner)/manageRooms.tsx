@@ -2,12 +2,12 @@ import { View, Text, Pressable, TouchableOpacity } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useLocalSearchParams, router } from "expo-router";
 import { PlusCircleIcon, RefreshCcw } from "lucide-react-native";
-import api from "@/lib/api";
 import { useAuth } from "@clerk/clerk-expo";
 import { Room } from "@/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Button } from "@/components/ui/button";
 import { getHotelRooms } from "@lib/api";
+import { navigateTo } from "@/lib/actions/navigation";
+
 const manageRooms = () => {
   const { hotelId } = useLocalSearchParams<{ hotelId: string }>();
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -15,17 +15,11 @@ const manageRooms = () => {
   const [reload, setReload] = useState<boolean>(false);
 
   const navigateToHotelRooms = (hotelId: string) => {
-    router.push({
-      pathname: "/roomdetails",
-      params: { hotelId },
-    });
+    navigateTo("/roomdetails", { hotelId });
   };
 
   const navigateToRoomView = (roomId: string) => {
-    router.push({
-      pathname: "/roomPage",
-      params: { roomId },
-    });
+    navigateTo("/roomPage", { roomId });
   };
 
   useEffect(() => {
@@ -48,7 +42,7 @@ const manageRooms = () => {
         } else {
           const token = await getToken();
           if (!token) {
-            router.push("/not-authenticated");
+            navigateTo("/not-authenticated");
             return;
           }
           const roomsFromDb = await getHotelRooms(hotelId, token!);

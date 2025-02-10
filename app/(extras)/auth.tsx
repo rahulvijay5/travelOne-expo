@@ -2,11 +2,10 @@ import { Pressable, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { Text } from "@/components/ui/text";
-import { Button } from "@/components/ui/button";
-import api from "@/lib/api";
 import { useRouter } from "expo-router";
 import NewHotelButton from "@/components/NewHotelButton";
 import { useUserStorage } from "@/hooks/useUserStorage";
+import { updateUserRole } from "@lib/api";
 
 const Auth = () => {
   const { user } = useUser();
@@ -141,7 +140,7 @@ const Auth = () => {
         {currentRole === "OWNER" && (
           <Pressable
             onPress={() => {
-              router.push("/(extras)/ownedHotels");
+              router.push("/ownedHotels");
             }}
           className="flex-grow bg-blue-500 px-6 py-3 rounded-lg"
         >

@@ -11,12 +11,12 @@ import {
 import { Text } from "@/components/ui/text";
 import { useLocalSearchParams, router } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
-import api from "@/lib/api";
+
 import { Feather } from "@expo/vector-icons";
 import { RoomDetailsByID, UpdateRoomForm } from "@/types";
 import { defaultRoomFeatures } from "@/lib/constants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getRoomById, deleteRoom, updateRoom } from "@lib/api";
+import { getRoomById, deleteRoom, updateRoom, getHotelRooms } from "@lib/api";
 
 export default function RoomPage() {
   const params = useLocalSearchParams();
@@ -154,12 +154,31 @@ export default function RoomPage() {
           ...editedRoom,
           price: editedRoom.price,
           maxOccupancy: editedRoom.maxOccupancy,
+          roomNumber: editedRoom.roomNumber,
         },
         token
       );
 
       if (result.success) {
         Alert.alert("Success", "Room updated successfully");
+
+        // Update the cached hotel rooms
+        if(room?.roomNumber !== editedRoom.roomNumber){
+        const cachedHotel = await AsyncStorage.getItem("@current_hotel");
+        const hotelId = cachedHotel ? JSON.parse(cachedHotel).hotelId : null;
+
+        const rooms = await getHotelRooms(hotelId as string, token);
+        if (rooms && !rooms.error) {
+          await AsyncStorage.setItem(
+            "@current_hotel_rooms",
+              JSON.stringify({
+                hotelId: hotelId,
+                rooms: rooms.data || rooms,
+              })
+            );
+          }
+        }
+          
         setIsEditing(false);
         loadRoomDetails(); // Reload room details
       } else {
@@ -229,9 +248,23 @@ export default function RoomPage() {
       {/* Room Details */}
       <View className="p-4 space-y-4 flex gap-3">
         <View className="flex-row justify-between items-center">
+          <View className="flex-row items-center gap-2">
           <Text className="text-2xl font-bold dark:text-white">
-            Room {room.roomNumber}
+            Room 
           </Text>
+          {isEditing ? (
+              <TextInput
+                value={editedRoom.roomNumber}
+                onChangeText={(text) =>
+                  setEditedRoom((prev) => ({ ...prev!, roomNumber: text }))
+                }
+                className="border border-gray-300 text-xl dark:border-gray-600 rounded-lg p-2 dark:text-white text-right"
+                placeholder="Room type"
+              />
+            ) : (
+              <Text className="font-bold text-2xl dark:text-white">{room.roomNumber}</Text>
+            )}
+            </View>
           <View className="bg-lime-100 dark:bg-lime-900 px-3 py-1 rounded-full">
             <Text className="text-lime-800 dark:text-lime-200">
               {room.roomStatus}
