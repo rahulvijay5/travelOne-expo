@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Platform, Pressable } from 'react-native';
 import { Text } from '@/components/ui/text';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { format } from 'date-fns';
 
 interface DatePickerProps {
   value: Date;

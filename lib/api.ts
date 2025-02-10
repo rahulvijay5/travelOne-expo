@@ -906,5 +906,38 @@ const api = {
       throw error;
     }
   },
+
+  getAvailableRooms: async (
+    hotelId: string,
+    checkIn: string,
+    checkOut: string,
+    guests: number,
+    token?: string
+  ) => {
+    try {
+      const response = await fetch(
+        `${API_URL}/api/rooms/${hotelId}/available?checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`,
+        {
+          method: "GET",
+          headers: getHeaders(token),
+        }
+      );
+
+      if (!response.ok) {
+        if (response.status === 400) {
+          throw new Error("Invalid request parameters. Please check your input.");
+        } else if (response.status === 500) {
+          throw new Error("Server error. Please try again later.");
+        }
+        throw new Error("Failed to fetch available rooms");
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error fetching available rooms:", error);
+      throw error;
+    }
+  },
 };
 export default api;

@@ -120,8 +120,8 @@ export default function BookingManagementView({
 
   // Load rooms from storage
   useEffect(() => {
-    const loadRooms = async () => {
-      try {
+  const loadRooms = async () => {
+    try {
         const roomsData = await AsyncStorage.getItem("@current_hotel_rooms");
         if (roomsData) {
           const parsedData = JSON.parse(roomsData);
@@ -132,15 +132,15 @@ export default function BookingManagementView({
             const sortedRooms = roomsArray.sort(
               (a: any, b: any) =>
                 parseInt(a.roomNumber) - parseInt(b.roomNumber)
-            );
+        );
             console.log("Loaded rooms:", sortedRooms);
             setRooms(sortedRooms);
           }
-        }
-      } catch (error) {
-        console.error("Error loading rooms:", error);
       }
-    };
+    } catch (error) {
+      console.error("Error loading rooms:", error);
+    }
+  };
     loadRooms();
   }, [hotelId]);
 
@@ -225,9 +225,9 @@ export default function BookingManagementView({
           <View>
             {/* Fixed Header */}
             <View style={[styles.headerRow, isDark && styles.headerRowDark]}>
-              <View
+                <View
                 style={[styles.roomHeader, isDark && styles.roomHeaderDark]}
-              >
+                >
                 <Text
                   style={[styles.headerText, isDark && styles.headerTextDark]}
                 >
@@ -356,7 +356,7 @@ export default function BookingManagementView({
   return (
     <View className="flex-1 bg-white dark:bg-gray-900">
       <View className="py-4 flex-row items-center justify-between px-4">
-        {renderDateNavigation()}
+      {renderDateNavigation()}
       </View>
       <View className="flex-1">{renderTimelineGrid()}</View>
       <BookingModal

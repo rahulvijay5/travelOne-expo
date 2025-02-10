@@ -10,7 +10,7 @@ import {
 import { Text } from "@/components/ui/text";
 import { format } from "date-fns";
 import { useAuth } from "@clerk/clerk-expo";
-import { BookingDataInDb } from "@/types";
+import { BookingDataInDb } from "@/types/index";
 import api from "@/lib/api";
 import { router } from "expo-router";
 import { Feather } from "@expo/vector-icons";
@@ -47,14 +47,14 @@ export default function BookingDetails({
       if (response?.status === 200) {
         Alert.alert("Success", "Booking checked out successfully");
         onBookingUpdated();
-        onClose();
+        router.push('/(drawer)/(tabs)/bookings');
       } else {
         throw new Error("Failed to check out booking");
       }
-    }catch(err){
+    } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to check out");
       console.error("Error checking out:", err);
-    }finally{
+    } finally {
       setIsLoading(false);
     }
   };
@@ -81,7 +81,7 @@ export default function BookingDetails({
           } successfully`
         );
         onBookingUpdated();
-        onClose();
+        router.push('/(drawer)/(tabs)/bookings');
       } else {
         throw new Error("Failed to update booking");
       }
@@ -108,8 +108,28 @@ export default function BookingDetails({
         <Text className="text-xl font-bold dark:text-white">
           Booking #{booking.id.slice(0, 8)}
         </Text>
-        <View className="bg-blue-100 dark:bg-blue-900 px-3 py-1 rounded-full">
-          <Text className="text-blue-800 dark:text-blue-200">
+        <View
+          className={`${
+            booking.status === "CONFIRMED"
+              ? "bg-green-100 dark:bg-green-900"
+              : booking.status === "PENDING"
+              ? "bg-yellow-100 dark:bg-yellow-900"
+              : booking.status === "CANCELLED"
+              ? "bg-red-100 dark:bg-red-900"
+              : "bg-blue-100 dark:bg-blue-900"
+          } px-3 py-1 rounded-full`}
+        >
+          <Text
+            className={`${
+              booking.status === "CONFIRMED"
+                ? "text-green-800 dark:text-green-100"
+                : booking.status === "PENDING"
+                ? "text-yellow-800 dark:text-yellow-100"
+                : booking.status === "CANCELLED"
+                ? "text-red-800 dark:text-red-100"
+                : "text-blue-800 dark:text-blue-100"
+            }`}
+          >
             {booking.status.toLowerCase()}
           </Text>
         </View>
@@ -150,9 +170,9 @@ export default function BookingDetails({
       {/* Customer Information */}
       <View className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg mb-4">
         <Text className="text-lg font-semibold mb-2 dark:text-white">
-          Customer Information
+          Traveller Information
         </Text>
-        <View className="space-y-2">
+        <View className="flex gap-2">
           <View className="flex-row items-center gap-2">
             <Feather name="user" size={16} color={isDark ? "#fff" : "#000"} />
             <Text className="dark:text-white">{booking.customer.name}</Text>
@@ -175,13 +195,13 @@ export default function BookingDetails({
           <View className="flex-row justify-between">
             <Text className="text-gray-600 dark:text-gray-300">Check-in:</Text>
             <Text className="font-medium dark:text-white">
-              {format(new Date(booking.checkIn), "PPP")}
+              {format(new Date(booking.checkIn), "dd MMM, hh:mm a")}
             </Text>
           </View>
           <View className="flex-row justify-between">
             <Text className="text-gray-600 dark:text-gray-300">Check-out:</Text>
             <Text className="font-medium dark:text-white">
-              {format(new Date(booking.checkOut), "PPP")}
+              {format(new Date(booking.checkOut), "dd MMM, hh:mm a")}
             </Text>
           </View>
           <View className="flex-row justify-between">
@@ -197,7 +217,7 @@ export default function BookingDetails({
               Booking Date:
             </Text>
             <Text className="font-medium dark:text-white">
-              {format(new Date(booking.bookingTime), "PPP")}
+              {format(new Date(booking.bookingTime), "dd MMM, hh:mm a")}
             </Text>
           </View>
         </View>
@@ -219,8 +239,8 @@ export default function BookingDetails({
             <Text
               className={
                 booking.payment.status === "PAID"
-                  ? "text-green-800 dark:text-green-200"
-                  : "text-red-800 dark:text-red-200"
+                  ? "text-green-800 dark:text-green-100"
+                  : "text-red-800 dark:text-red-100"
               }
             >
               {booking.payment.status.toLowerCase()}
@@ -237,6 +257,17 @@ export default function BookingDetails({
               ₹{booking.payment.totalAmount}
             </Text>
           </View>
+
+          {booking.payment.status === "PAID" && (
+            <View className="space-y-2 flex-row items-center justify-between">
+              <Text className="text-gray-600 dark:text-gray-300">
+                Paid Amount:
+              </Text>
+              <Text className="font-semibold dark:text-white">
+                ₹{booking.payment.paidAmount}
+              </Text>
+            </View>
+          )}
 
           {booking.payment.status === "PENDING" && (
             <View className="space-y-2 flex-row items-center justify-between">
@@ -284,7 +315,9 @@ export default function BookingDetails({
             onPress={() => handleUpdateBooking("PAID")}
             disabled={parseFloat(paidAmount) <= 0 || paidAmount === ""}
             className={`px-4 py-2 rounded-lg ${
-              (parseFloat(paidAmount) <= 0 || paidAmount === "") ? "bg-blue-400" : "bg-blue-500"
+              parseFloat(paidAmount) <= 0 || paidAmount === ""
+                ? "bg-blue-400"
+                : "bg-blue-500"
             }`}
           >
             <Text className="text-white">Confirm Booking</Text>
@@ -293,12 +326,14 @@ export default function BookingDetails({
       )}
       {booking.status === "CONFIRMED" && (
         <View className="flex-row justify-center gap-4 mt-4">
-          <Pressable onPress={handleCheckOut} className="bg-red-500 px-4 py-2 rounded-lg">
+          <Pressable
+            onPress={handleCheckOut}
+            className="bg-red-500 px-4 py-2 rounded-lg"
+          >
             <Text className="text-white">CheckOut</Text>
           </Pressable>
         </View>
       )}
-      
     </ScrollView>
   );
 }

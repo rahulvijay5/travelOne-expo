@@ -113,7 +113,7 @@ const ThankYou = () => {
         <Text className="text-red-500 text-lg mb-4">{error}</Text>
         <Pressable 
           onPress={() => router.back()}
-          className="bg-blue-500"
+          className="bg-blue-500 px-4 py-2 rounded-lg"
         >
           <Text className="text-white">Go Back</Text>
         </Pressable>

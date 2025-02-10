@@ -19,6 +19,53 @@ import { useTheme } from "@react-navigation/native";
 import { Room, HotelDetails } from "@/types";
 import RoomCard from "@/components/RoomCard";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { startOfDay, isSameDay, isAfter, addDays, set } from "date-fns";
+
+const getAdjustedCheckInTime = (selectedDate: Date, checkInTimeMinutes: number, currentHotelDetails: any) => {
+  const now = new Date();
+  const today = startOfDay(now);
+  console.log("Selected Date:", selectedDate);
+  const selectedDay = startOfDay(selectedDate);
+  console.log("selectedDay:", selectedDay);
+  const checkInTime = set(selectedDay, {
+    hours: Math.floor(checkInTimeMinutes / 60),
+    minutes: checkInTimeMinutes % 60,
+    seconds: 0,
+    milliseconds: 0
+  });
+  console.log("checkInTime:", checkInTime);
+
+  // If booking for a future date, use hotel's check-in time
+  if (isAfter(selectedDay, today)) {
+    return checkInTime;
+  }
+
+  // If booking for today
+
+  if (isSameDay(selectedDay, today)) {
+    // If current time is after check-in time, use current time
+    console.log("isAfter(now, checkInTime):", isAfter(now, checkInTime));
+    if (isAfter(now, checkInTime)) {
+      console.log("now:", now);
+      return now;
+    }
+    return checkInTime;
+  }
+
+  return checkInTime;
+};
+
+const getAdjustedCheckOutTime = (checkOutDate: Date, checkOutTimeMinutes: number) => {
+  console.log("checkOutDate:", checkOutDate);
+  const checkOutTime = set(checkOutDate, {
+    hours: Math.floor(checkOutTimeMinutes / 60),
+    minutes: checkOutTimeMinutes % 60,
+    seconds: 0,
+    milliseconds: 0
+  });
+  console.log("checkOutTime:", checkOutTime);
+  return checkOutTime;
+};
 
 const CreateBookingByManager = () => {
   const { getUserData } = useUserStorage();
@@ -39,6 +86,9 @@ const CreateBookingByManager = () => {
   const [extraMattress, setExtraMattress] = useState(false);
   const [hotelDetails, setHotelDetails] = useState<HotelDetails | null>(null);
   const [noRoomsAvailable, setNoRoomsAvailable] = useState(false);
+  const [searchInitiated, setSearchInitiated] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [priceRange, setPriceRange] = useState<{ min: number; max: number } | null>(null);
 
   // Fetch user data and initialize
   useEffect(() => {
@@ -59,6 +109,21 @@ const CreateBookingByManager = () => {
               console.log("parsedHotel:", parsedHotel);
               hotelId = parsedHotel.id;
               setHotelDetails(parsedHotel);
+
+              // Set initial check-in time based on hotel rules
+              if (parsedHotel.rules?.checkInTime) {
+                const adjustedCheckIn = getAdjustedCheckInTime(
+                  new Date(),
+                  parsedHotel.rules.checkInTime,
+                  parsedHotel
+                );
+                setCheckIn(adjustedCheckIn);
+                const adjustedCheckOut = getAdjustedCheckOutTime(
+                  addDays(adjustedCheckIn, 1),
+                  parsedHotel.rules.checkOutTime
+                );
+                setCheckOut(adjustedCheckOut);
+              }
             }
           } else {
             // Fetch hotel details if we have hotelId
@@ -66,13 +131,26 @@ const CreateBookingByManager = () => {
             if (token) {
               const details = await api.getHotelById(hotelId, token);
               setHotelDetails(details);
+
+              // Set initial check-in time based on hotel rules
+              if (details.rules?.checkInTime) {
+                const adjustedCheckIn = getAdjustedCheckInTime(
+                  new Date(),
+                  details.rules.checkInTime,
+                  details
+                );
+                setCheckIn(adjustedCheckIn);
+                const adjustedCheckOut = getAdjustedCheckOutTime(
+                  addDays(adjustedCheckIn, 1),
+                  details.rules.checkOutTime
+                );
+                setCheckOut(adjustedCheckOut);
+              }
             }
           }
 
           if (hotelId) {
             setCurrentHotelId(hotelId);
-            // Fetch rooms immediately after setting hotelId
-            // fetchRooms(hotelId);
           } else {
             setError("Please select a hotel first. Redirecting...");
             setTimeout(() => {  
@@ -95,7 +173,7 @@ const CreateBookingByManager = () => {
       console.log("Fetching rooms for hotel:", hotelId);
       const response = await api.getHotelRoomsByStatus(hotelId, "AVAILABLE");
       console.log("Rooms response:", response);
-
+      
       // Sort rooms by room number
       const sortedRooms = response.sort((a: Room, b: Room) =>
         a.roomNumber.localeCompare(b.roomNumber, undefined, { numeric: true })
@@ -197,6 +275,56 @@ const CreateBookingByManager = () => {
         extraMattress: extraMattress.toString(),
       },
     });
+  };
+
+  const handleSearchRooms = async () => {
+    try {
+      setLoading(true);
+      setSearchError(null);
+      
+      if (!customerPhone.trim()) {
+        setSearchError("Please enter customer's phone number");
+        return;
+      }
+
+      if (!hotelDetails?.rules?.checkInTime || !hotelDetails?.rules?.checkOutTime) {
+        setSearchError("Hotel check-in/out times not configured");
+        return;
+      }
+
+      const token = await getToken();
+      const adjustedCheckIn = getAdjustedCheckInTime(
+        checkIn,
+        hotelDetails.rules.checkInTime,
+        hotelDetails
+      );
+
+      const adjustedCheckOut = getAdjustedCheckOutTime(
+        checkOut,
+        hotelDetails.rules.checkOutTime
+      );
+
+      console.log("adjustedCheckIn:", adjustedCheckIn);
+      console.log("adjustedCheckOut:", adjustedCheckOut);
+
+      const response = await api.getAvailableRooms(
+        currentHotelId!,
+        adjustedCheckIn.toISOString(),
+        adjustedCheckOut.toISOString(),
+        parseInt(guests),
+        token || undefined
+      );
+
+      setRooms(response.availableRooms);
+      setPriceRange(response.priceRange);
+      setSearchInitiated(true);
+      setFilteredRooms(response.availableRooms);
+    } catch (error) {
+      console.error("Error searching rooms:", error);
+      setSearchError(error instanceof Error ? error.message : "Failed to search rooms");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) {
@@ -301,9 +429,20 @@ const CreateBookingByManager = () => {
               <DatePicker
                 value={checkIn}
                 onChange={(date) => {
-                  setCheckIn(date);
-                  if (checkOut < date) {
-                    setCheckOut(new Date(date.getTime() + 86400000));
+                  if (hotelDetails?.rules?.checkInTime) {
+                    const adjustedCheckIn = getAdjustedCheckInTime(
+                      date,
+                      hotelDetails.rules.checkInTime,
+                      hotelDetails
+                    );
+                    setCheckIn(adjustedCheckIn);
+                    if (isAfter(adjustedCheckIn, checkOut)) {
+                      const adjustedCheckOut = getAdjustedCheckOutTime(
+                        addDays(adjustedCheckIn, 1),
+                        hotelDetails.rules.checkOutTime
+                      );
+                      setCheckOut(adjustedCheckOut);
+                    }
                   }
                 }}
                 minimumDate={new Date()}
@@ -311,12 +450,47 @@ const CreateBookingByManager = () => {
               />
               <DatePicker
                 value={checkOut}
-                onChange={(date) => setCheckOut(date)}
-                minimumDate={new Date(checkIn.getTime() + 86400000)}
+                onChange={(date) => {
+                  if (hotelDetails?.rules?.checkOutTime) {
+                    const adjustedCheckOut = getAdjustedCheckOutTime(
+                      date,
+                      hotelDetails.rules.checkOutTime
+                    );
+                    setCheckOut(adjustedCheckOut);
+                  }
+                }}
+                minimumDate={addDays(checkIn, 1)}
                 label="Check-out Date"
               />
             </View>
           </View>
+
+          <Pressable
+            onPress={handleSearchRooms}
+            className="bg-blue-500 p-3 rounded-lg mt-4"
+          >
+            <Text className="text-white text-center text-lg font-semibold">
+              Search Available Rooms
+            </Text>
+          </Pressable>
+
+          {searchError && (
+            <View className="bg-red-100 dark:bg-red-900 p-3 rounded-lg mt-4">
+              <Text className="text-red-500 dark:text-red-100">{searchError}</Text>
+            </View>
+          )}
+
+          {/* Price Range Info */}
+          {/* {searchInitiated && priceRange && (
+            <View className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg mt-4">
+              <Text className="text-lg font-semibold dark:text-white mb-2">
+                Price Range
+              </Text>
+              <Text className="dark:text-white">
+                ₹{priceRange.min} - ₹{priceRange.max} per night
+              </Text>
+            </View>
+          )} */}
         </View>
 
         {noRoomsAvailable && (
@@ -325,8 +499,7 @@ const CreateBookingByManager = () => {
           </View>
         )}
 
-        {customerId && !noRoomsAvailable && (
-          
+        {customerId && !noRoomsAvailable && searchInitiated && (
           <>
             <View className="flex-row justify-between items-center gap-2 my-4">
               <Text className="text-xl font-bold dark:text-white">
@@ -353,9 +526,7 @@ const CreateBookingByManager = () => {
                   <RoomCard
                     key={room.id}
                     room={room}
-                    onBookNow={(roomId, price) =>
-                      handleSelectRoom(roomId, price)
-                    }
+                    onBookNow={(roomId, price) => handleSelectRoom(roomId, price)}
                     hideImage={true}
                   />
                 ))

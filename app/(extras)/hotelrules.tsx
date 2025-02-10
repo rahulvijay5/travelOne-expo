@@ -11,6 +11,7 @@ import { useLocalSearchParams, router } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 import api from "@/lib/api";
 import {  HotelRulesChange } from "@/types";
+import TimePicker from "@/components/TimePicker";
 
 type HotelRulesPageParams = {
   hotelId: string;
@@ -43,8 +44,8 @@ export default function HotelRulesPage() {
     swimmingPool: false,
     swimmingPoolTimings: "6:00 AM - 8:00 PM",
     ownRestaurant: false,
-    checkInTime: "14:00",
-    checkOutTime: "11:00",
+    checkInTime: 660, // 11:00 AM in minutes
+    checkOutTime: 600, // 10:00 AM in minutes
     guestInfoNeeded: true,
     smokingAllowed: false,
     alcoholAllowed: false,
@@ -98,30 +99,18 @@ export default function HotelRulesPage() {
 
       <View className="flex-1 p-4 gap-2">
         <View className="flex-row justify-between items-center">
-          <Text className="text-lg dark:text-white text-black">
-            Check-in Time
-          </Text>
-          <TextInput
-            className="border-2 border-gray-300 dark:text-white text-black rounded-lg p-2"
+          <TimePicker
             value={rules.checkInTime}
-            onChangeText={(text) =>
-              setRules((prev) => ({ ...prev, checkInTime: text }))
-            }
-            placeholder="11:00"
+            onChange={(time) => setRules((prev) => ({ ...prev, checkInTime: time }))}
+            label="Check-in Time"
           />
         </View>
 
         <View className="flex-row justify-between items-center">
-          <Text className="text-lg dark:text-white text-black">
-            Check-out Time
-          </Text>
-          <TextInput
-            className="border-2 border-gray-300 dark:text-white text-black rounded-lg p-2"
+          <TimePicker
             value={rules.checkOutTime}
-            onChangeText={(text) =>
-              setRules((prev) => ({ ...prev, checkOutTime: text }))
-            }
-            placeholder="10:00"
+            onChange={(time) => setRules((prev) => ({ ...prev, checkOutTime: time }))}
+            label="Check-out Time"
           />
         </View>
 

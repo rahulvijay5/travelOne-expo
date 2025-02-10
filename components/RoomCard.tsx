@@ -53,7 +53,7 @@ const RoomCard = ({ room, onBookNow, hideImage = false }: RoomCardProps) => {
           onPress={() => onBookNow(room.id, room.price)}
           className="mt-3 bg-blue-500 p-2 rounded-lg"
         >
-          <Text className="text-white text-lg">Book Now</Text>
+          <Text className="text-white text-lg text-center">Book Now</Text>
         </Pressable>
       </View>
     </View>

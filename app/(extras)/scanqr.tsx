@@ -104,7 +104,7 @@ export default function ScanQRScreen() {
       code,
       getToken,
       getUserData,
-      storeUserData
+      storeUserData,
     });
 
     if (result.success) {
@@ -141,7 +141,8 @@ export default function ScanQRScreen() {
         code,
         getToken,
         getUserData,
-        storeUserData
+        storeUserData,
+        forceRefetch: true, 
       });
 
       if (result.success) {

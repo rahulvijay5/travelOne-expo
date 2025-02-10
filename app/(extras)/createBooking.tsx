@@ -147,12 +147,12 @@ const CreateBooking = () => {
             <View className="space-y-2">
               <View className="flex-row justify-between">
                 <Text className="dark:text-white">Check-in</Text>
-                <Text className="dark:text-white font-semibold">{checkInDate.toLocaleDateString()}</Text>
+                <Text className="dark:text-white font-semibold">{checkInDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</Text>
               </View>
               
               <View className="flex-row justify-between">
                 <Text className="dark:text-white">Check-out</Text>
-                <Text className="dark:text-white font-semibold">{checkOutDate.toLocaleDateString()}</Text>
+                <Text className="dark:text-white font-semibold">{checkOutDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</Text>
               </View>
 
               <View className="flex-row justify-between">
@@ -177,28 +177,28 @@ const CreateBooking = () => {
           <View className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
             <Text className="text-lg font-bold dark:text-white mb-4">Payment Mode</Text>
             
-            <View className="flex-row gap-4">
+            <View className="flex-row gap-2">
               <Pressable
                 onPress={() => setPaymentMode('OFFLINE')}
-                className={`flex-1 ${paymentMode === 'OFFLINE' ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-700'}`}
+                className={`flex-1 p-2 rounded-lg ${paymentMode === 'OFFLINE' ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-700'}`}
               >
-                <Text className={paymentMode === 'OFFLINE' ? 'text-white' : 'text-gray-600 dark:text-gray-300'}>
+                <Text className={` text-center ${ paymentMode === 'OFFLINE' ? 'text-white' : 'text-gray-600 dark:text-gray-300'}`}>
                   Pay at Hotel
                 </Text>
               </Pressable>
               
               <Pressable
                 disabled
-                className="flex-1 bg-gray-300 dark:bg-gray-700 opacity-50"
+                className="flex-1 bg-gray-300 dark:bg-gray-700 opacity-50 p-2 rounded-lg"
               >
-                <Text className="text-gray-600 dark:text-gray-300">Pay Online</Text>
+                <Text className="text-gray-600 text-center dark:text-gray-300">Pay Online</Text>
               </Pressable>
             </View>
           </View>
 
           <Pressable
             onPress={handleCreateBooking}
-            className="bg-blue-500 p-4"
+            className="bg-blue-500 p-4 rounded-lg"
             disabled={loading}
           >
             {loading ? (

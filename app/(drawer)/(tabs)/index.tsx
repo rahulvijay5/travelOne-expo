@@ -9,8 +9,17 @@ import { HotelDetails } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@clerk/clerk-expo';
 import api from '@/lib/api';
+import { format, set } from "date-fns";
 
 const { width } = Dimensions.get('window');
+
+const formatTimeFromMinutes = (minutes: number) => {
+  const date = set(new Date(), {
+    hours: Math.floor(minutes / 60),
+    minutes: minutes % 60,
+  });
+  return format(date, "h:mm a");
+};
 
 export default function HomeScreen() {
   const [currentHotel, setCurrentHotel] = useState<HotelDetails | null>(null);
@@ -235,16 +244,20 @@ export default function HomeScreen() {
         {/* Rules */}
         <View>
           <Text className="text-lg font-bold mb-2 dark:text-white text-black">
-            Hotel Rules
+            Hotel Guidelines
           </Text>
           <View className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 flex gap-1">
             <View className="flex-row justify-between items-center">
               <Text className="text-gray-600 dark:text-gray-300">Check-in</Text>
-              <Text className="text-gray-800 dark:text-gray-100 font-medium">{currentHotel?.rules?.checkInTime}</Text>
+              <Text className="text-gray-800 dark:text-gray-100 font-medium">
+                {currentHotel?.rules?.checkInTime ? (formatTimeFromMinutes(currentHotel.rules.checkInTime)) : "Not set"}
+              </Text>
             </View>
             <View className="flex-row justify-between items-center">
               <Text className="text-gray-600 dark:text-gray-300">Check-out</Text>
-              <Text className="text-gray-800 dark:text-gray-100 font-medium">{currentHotel?.rules?.checkOutTime}</Text>
+              <Text className="text-gray-800 dark:text-gray-100 font-medium">
+                {currentHotel?.rules?.checkOutTime ? (formatTimeFromMinutes(currentHotel.rules.checkOutTime)) : "Not set"}
+              </Text>
             </View>
             <View className="flex-row justify-between items-center">
               <Text className="text-gray-600 dark:text-gray-300">Max People/Room</Text>

@@ -46,6 +46,23 @@ export const defaultRoomFeatures = [
   "Free WiFi",
 ] as const;
 
+export const defaultHotelRules = {
+  petsAllowed: false,
+  maxPeopleInOneRoom: 2,
+  extraMattressOnAvailability: false,
+  parking: true,
+  swimmingPool: false,
+  swimmingPoolTimings: "6:00 AM - 8:00 PM",
+  ownRestaurant: false,
+  checkInTime: 720, // 12:00 PM in minutes
+  checkOutTime: 660, // 11:00 AM in minutes
+  guestInfoNeeded: true,
+  smokingAllowed: false,
+  alcoholAllowed: false,
+  eventsAllowed: false,
+  minimumAgeForCheckIn: 18,
+};
+
 export const HotelData = [
   {
     hotelId: "H1234",

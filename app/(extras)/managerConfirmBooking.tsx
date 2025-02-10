@@ -219,7 +219,7 @@ const ManagerConfirmBooking = () => {
 
           <Pressable
             onPress={handleCreateBooking}
-            className="bg-blue-500 p-4"
+            className="bg-blue-500 p-4 rounded-lg"
             disabled={loading || parseFloat(paidAmount) === 0}
           >
             {loading ? (

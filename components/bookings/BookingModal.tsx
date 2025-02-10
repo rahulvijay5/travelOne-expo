@@ -56,11 +56,11 @@ export default function BookingModal({ booking, visible, onClose }: BookingModal
               <Text style={[styles.sectionTitle, isDark && styles.sectionTitleDark]}>Stay Details</Text>
               <View style={styles.detailsRow}>
                 <Text style={styles.detailsLabel}>Check In</Text>
-                <Text style={styles.detailsValue}>{format(parseISO(booking.checkIn), 'PPP')}</Text>
+                <Text style={styles.detailsValue}>{format(parseISO(booking.checkIn), 'd MMM, HH:mm a')}</Text>
               </View>
               <View style={styles.detailsRow}>
                 <Text style={styles.detailsLabel}>Check Out</Text>
-                <Text style={styles.detailsValue}>{format(parseISO(booking.checkOut), 'PPP')}</Text>
+                <Text style={styles.detailsValue}>{format(parseISO(booking.checkOut), 'd MMM, HH:mm a')}</Text>
               </View>
               <View style={styles.detailsRow}>
                 <Text style={styles.detailsLabel}>Room</Text>

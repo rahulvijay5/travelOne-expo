@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, FlatList, ActivityIndicator, Pressable } from 'react-native';
+import { View, FlatList, ActivityIndicator, Pressable, RefreshControl } from 'react-native';
 import { format, parseISO, isEqual, startOfDay } from 'date-fns';
 import { Text } from '@/components/ui/text';
-import { BookingDataInDb } from '@/types';
+import { BookingDataInDb } from '@/types/index';
 import { useAuth } from '@clerk/clerk-expo';
 import api from '@/lib/api';
 import { useColorScheme } from 'nativewind';
@@ -29,6 +29,7 @@ export default function BookingListView({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const ITEMS_PER_PAGE = 15;
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchBookings = async (pageNum: number) => {
     try {
@@ -71,10 +72,16 @@ export default function BookingListView({
     }
   };
 
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await fetchBookings(1);
+    setRefreshing(false);
+  }, [hotelId]);
+
   const renderDateHeader = (date: Date) => (
     <View className="py-2 px-4 bg-gray-100 dark:bg-gray-800">
-      <Text className="font-bold text-gray-700 dark:text-gray-300">
-        {format(date, 'EEEE, MMMM d, yyyy')}
+      <Text className="font-bold text-gray-700  dark:text-gray-300">
+        {format(date, 'EEEE, d MMM, yyyy')}
       </Text>
     </View>
   );
@@ -88,7 +95,7 @@ export default function BookingListView({
       <View>
         {showDateHeader && renderDateHeader(currentDate)}
         <Pressable 
-          className={`p-4 border-b w-full border-gray-200 dark:border-gray-700 ${
+          className={`p-4 border w-full border-gray-200  dark:border-gray-700 ${
             isDark ? 'bg-gray-900' : 'bg-white'
           }`}
           // onTouchEnd={() => handleBookingPress(item)}
@@ -113,13 +120,14 @@ export default function BookingListView({
                 {item.status}
               </Text>
               <Text className="text-gray-600 dark:text-gray-400">
-                {format(parseISO(item.checkIn), 'h:mm a')} - {format(parseISO(item.checkOut), 'h:mm a')}
-              </Text>
+              {item.guests} guests • ₹{item.payment.totalAmount} </Text>
             </View>
           </View>
           <View className="mt-2">
             <Text className="text-gray-600 dark:text-gray-400">
-              {item.guests} guests • ₹{item.payment.totalAmount}
+              
+            {format(parseISO(item.checkIn), 'h:mm a')} - {format(parseISO(item.checkOut), 'h:mm a, d MMM')}
+             
             </Text>
           </View>
       </Pressable>
@@ -156,6 +164,14 @@ export default function BookingListView({
           }
         }}
         onEndReachedThreshold={0.5}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[isDark ? '#ffffff' : '#000000']}
+            tintColor={isDark ? '#ffffff' : '#000000'}
+          />
+        }
         ListFooterComponent={() => 
           loading ? (
             <View className="py-4">
