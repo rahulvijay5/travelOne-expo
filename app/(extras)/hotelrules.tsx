@@ -12,6 +12,7 @@ import { useAuth } from "@clerk/clerk-expo";
 import api from "@/lib/api";
 import {  HotelRulesChange } from "@/types";
 import TimePicker from "@/components/TimePicker";
+import { updateHotelRules } from "@lib/api";
 
 type HotelRulesPageParams = {
   hotelId: string;
@@ -66,7 +67,7 @@ export default function HotelRulesPage() {
       }
 
       console.log("rules before sending to backend", rules);
-      await api.updateHotelRules(hotelId as string, rules, token);
+      await updateHotelRules(hotelId as string, rules, token);
       if (creatingNewHotel) {
         router.push({ 
           pathname: "/roomdetails", 

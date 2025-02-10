@@ -11,10 +11,10 @@ import { Text } from "@/components/ui/text";
 import { format } from "date-fns";
 import { useAuth } from "@clerk/clerk-expo";
 import { BookingDataInDb } from "@/types/index";
-import api from "@/lib/api";
 import { router } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
+import { checkOutBooking, updateBookingPaymentStatus } from "@lib/api";
 
 interface BookingDetailsProps {
   booking: BookingDataInDb;
@@ -43,7 +43,7 @@ export default function BookingDetails({
       const token = await getToken();
       if (!token) throw new Error("Authentication required");
 
-      const response = await api.checkOutBooking(booking.id, token);
+      const response = await checkOutBooking(booking.id, token);
       if (response?.status === 200) {
         Alert.alert("Success", "Booking checked out successfully");
         onBookingUpdated();
@@ -66,7 +66,7 @@ export default function BookingDetails({
       const token = await getToken();
       if (!token) throw new Error("Authentication required");
 
-      const response = await api.updateBookingPaymentStatus(
+      const response = await updateBookingPaymentStatus(
         booking.id,
         parseFloat(paidAmount),
         newStatus,

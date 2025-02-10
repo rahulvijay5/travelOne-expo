@@ -1,7 +1,6 @@
 import { Pressable, View } from "react-native";
 import React from "react";
 import { Text } from "@/components/ui/text";
-import { Button } from "@/components/ui/button";
 import { router } from "expo-router";
 const NotAuthenticated = () => {
   return (

@@ -10,7 +10,7 @@ import api from '@/lib/api';
 import { ChevronLeft } from 'lucide-react-native';
 import { useTheme } from '@react-navigation/native';
 import { Room } from '@/types';
-
+import { getHotelRoomsByStatus, createBooking } from '@lib/api';
 const ManagerConfirmBooking = () => {
   const { roomId, hotelId, customerId, noOfGuests, checkIn, checkOut, price, extraMattress } = useLocalSearchParams();
   const { getUserData } = useUserStorage();
@@ -25,7 +25,7 @@ const ManagerConfirmBooking = () => {
   useEffect(() => {
     const fetchRoom = async () => {
       try {
-        const response = await api.getHotelRoomsByStatus(hotelId as string);
+        const response = await getHotelRoomsByStatus(hotelId as string);
         const roomData = response.find((r: Room) => r.id === roomId);
         if (roomData) {
           setRoom(roomData);
@@ -71,7 +71,7 @@ const ManagerConfirmBooking = () => {
         }
       };
 
-      const response = await api.createBooking(bookingData, token);
+      const response = await createBooking(bookingData, token);
 
       setError(response.error);
 

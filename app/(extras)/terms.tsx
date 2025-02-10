@@ -2,10 +2,9 @@ import { View } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useColorScheme } from '@/lib/useColorScheme';
 import { Stack } from 'expo-router';
-
+import { APP_URL } from '@/lib/config/index';
 export default function TermsScreen() {
   const { isDarkColorScheme } = useColorScheme();
-  const appUrl = process.env.EXPO_PUBLIC_APP_URL;
 
   return (
     <View className="flex-1">
@@ -22,7 +21,7 @@ export default function TermsScreen() {
         }}
       />
       <WebView 
-        source={{ uri: `${appUrl}/tnc` }}
+        source={{ uri: `${APP_URL}/tnc` }}
         style={{ flex: 1 }}
         className={isDarkColorScheme ? "bg-black" : "bg-white"}
       />

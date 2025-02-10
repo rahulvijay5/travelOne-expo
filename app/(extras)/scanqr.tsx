@@ -3,13 +3,10 @@ import { useState, useEffect } from "react";
 import { CameraView, Camera } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
-import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { useAuth } from "@clerk/clerk-expo";
 import { SafeAreaView } from "react-native-safe-area-context";
-import api from "@/lib/api";
 import { useUserStorage } from "@/hooks/useUserStorage";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { processCode } from "@/lib/actions/processCode";
 
 export default function ScanQRScreen() {

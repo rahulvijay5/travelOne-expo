@@ -1,6 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import api from "@/lib/api";
-import { Alert } from "react-native";
+import { getHotelByCode, getHotelRooms } from "@/lib/api/hotels";
 
 interface ProcessCodeOptions {
   code: string;
@@ -52,7 +51,7 @@ export const processCode = async ({
             ) {
               const authToken = token || (await getToken());
               if (authToken) {
-                const rooms = await api.getHotelRooms(cachedHotel.id, authToken);
+                const rooms = await getHotelRooms(cachedHotel.id, authToken);
                 if (rooms && !rooms.error) {
                   await AsyncStorage.setItem(
                     "@current_hotel_rooms",
@@ -72,7 +71,7 @@ export const processCode = async ({
     }
 
     // If not in cache or force refetch, get from API
-    const response = await api.getHotelByCode(code);
+    const response = await getHotelByCode(code);
     console.log("API Response:", response);
 
     if (response.status === 200 && response.data) {
@@ -100,7 +99,7 @@ export const processCode = async ({
         ) {
           const authToken = token || (await getToken());
           if (authToken) {
-            const rooms = await api.getHotelRooms(response.data.id, authToken);
+            const rooms = await getHotelRooms(response.data.id, authToken);
             if (rooms && !rooms.error) {
               await AsyncStorage.setItem(
                 "@current_hotel_rooms",

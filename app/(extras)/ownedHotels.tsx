@@ -8,6 +8,7 @@ import { UserData } from "@/types";
 import api from "@/lib/api";
 import { ArrowUpRightFromCircle } from "lucide-react-native";
 import { processCode } from "@/lib/actions/processCode";
+import { getOwnedHotels } from "@lib/api";
 
 const OwnedHotels = () => {
   const { getUserData, storeUserData } = useUserStorage();
@@ -47,7 +48,7 @@ const OwnedHotels = () => {
             console.error("No auth token available");
             return;
           }
-          const res = await api.getOwnedHotels(ownerId, token);
+          const res = await getOwnedHotels(ownerId, token);
           if (res.ok && res.data) {
             setHotels(res.data);
           }

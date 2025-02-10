@@ -6,6 +6,7 @@ import { BookingDataInDb } from '@/types/index';
 import api from '@/lib/api';
 import BookingDetails from '@/components/bookings/BookingDetails';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getBookingById } from '@lib/api';
 
 export default function BookingDetailsPage() {
   const params = useLocalSearchParams();
@@ -44,7 +45,7 @@ export default function BookingDetailsPage() {
         return;
       }
 
-      const response = await api.getBookingById(params.id as string, token);
+      const response = await getBookingById(params.id as string, token);
       if (response.error) {
         setError(response.error);
       } else {

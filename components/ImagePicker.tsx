@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import { View, Image, TouchableOpacity, ScrollView, Platform, Dimensions, Pressable } from 'react-native';
 import { Text } from '@/components/ui/text';
-import { Button } from '@/components/ui/button';
 import * as ImagePicker from 'expo-image-picker';
 import Carousel from 'react-native-reanimated-carousel';
 import { Ionicons } from '@expo/vector-icons';

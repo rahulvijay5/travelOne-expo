@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { router } from "expo-router";
 import { useUserStorage } from "@/hooks/useUserStorage";
 import { useAuth } from "@clerk/clerk-expo";
-import api from "@/lib/api";
 import DatePicker from "@/components/DatePicker";
 import { Minus, Plus, Search } from "lucide-react-native";
 import { useTheme } from "@react-navigation/native";
@@ -20,6 +19,7 @@ import { Room, HotelDetails } from "@/types";
 import RoomCard from "@/components/RoomCard";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { startOfDay, isSameDay, isAfter, addDays, set } from "date-fns";
+import { getHotelById, getHotelRoomsByStatus, getAvailableRooms, searchUserByPhone } from "@lib/api";
 
 const getAdjustedCheckInTime = (selectedDate: Date, checkInTimeMinutes: number, currentHotelDetails: any) => {
   const now = new Date();
@@ -129,7 +129,7 @@ const CreateBookingByManager = () => {
             // Fetch hotel details if we have hotelId
             const token = await getToken();
             if (token) {
-              const details = await api.getHotelById(hotelId, token);
+              const details = await getHotelById(hotelId, token);
               setHotelDetails(details);
 
               // Set initial check-in time based on hotel rules
@@ -171,7 +171,7 @@ const CreateBookingByManager = () => {
     try {
       setLoading(true);
       console.log("Fetching rooms for hotel:", hotelId);
-      const response = await api.getHotelRoomsByStatus(hotelId, "AVAILABLE");
+      const response = await getHotelRoomsByStatus(hotelId, "AVAILABLE");
       console.log("Rooms response:", response);
       
       // Sort rooms by room number
@@ -236,7 +236,7 @@ const CreateBookingByManager = () => {
         return;
       }
 
-      let customerResponse = await api.searchUserByPhone(customerPhone, token);
+      let customerResponse = await searchUserByPhone(customerPhone, token);
       if (!customerResponse || customerResponse.error) {
         setError("Customer not found. Please ask them to register first.");
         return;
@@ -307,7 +307,7 @@ const CreateBookingByManager = () => {
       console.log("adjustedCheckIn:", adjustedCheckIn);
       console.log("adjustedCheckOut:", adjustedCheckOut);
 
-      const response = await api.getAvailableRooms(
+      const response = await getAvailableRooms(
         currentHotelId!,
         adjustedCheckIn.toISOString(),
         adjustedCheckOut.toISOString(),

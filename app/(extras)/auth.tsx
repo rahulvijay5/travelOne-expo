@@ -37,7 +37,7 @@ const Auth = () => {
             return;
           }
 
-          const response = await api.updateUserRole(user.id, "CUSTOMER", token);
+          const response = await updateUserRole(user.id, "CUSTOMER", token);
           console.log("Update role response:", response);
 
           if (response?.role) {
@@ -85,7 +85,7 @@ const Auth = () => {
             return;
           }
 
-          const response = await api.updateUserRole(user.id, "CUSTOMER", token);
+          const response = await updateUserRole(user.id, "CUSTOMER", token);
           console.log("Update role response:", response);
 
           if (response?.role) {

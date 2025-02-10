@@ -9,8 +9,7 @@ import * as React from "react";
 import { useState, useEffect } from "react";
 import { Alert, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-import api from "@/lib/api";
+import { getUserByClerkId, updateUserRole, createUser } from "@lib/api";
 
 const onboarding = () => {
   const { signOut } = useClerk();
@@ -50,7 +49,7 @@ const onboarding = () => {
       
       // First check if user exists in DB
       try {
-        const dbUser = await api.getUserByClerkId(user.user.id, token);
+        const dbUser = await getUserByClerkId(user.user.id, token);
         console.log("DB User response:", dbUser);
         
         // If there's an error or user not found, just continue with onboarding
@@ -133,7 +132,7 @@ const onboarding = () => {
         clerkId: user.user.id
       });
 
-      const userData = await api.createUser(
+      const userData = await createUser(
         phone,
         email,
         name,
@@ -145,7 +144,7 @@ const onboarding = () => {
       console.log("User created:", userData);
 
       try {
-        const roleResponse = await api.updateUserRole(user.user.id, "CUSTOMER", token);
+        const roleResponse = await updateUserRole(user.user.id, "CUSTOMER", token);
         console.log("Role update response:", roleResponse);
       } catch (roleError) {
         console.error("Error updating role, but user was created:", roleError);

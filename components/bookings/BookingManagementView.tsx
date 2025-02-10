@@ -4,7 +4,6 @@ import {
   ScrollView,
   Pressable,
   StyleSheet,
-  Dimensions,
 } from "react-native";
 import {
   format,
@@ -14,17 +13,15 @@ import {
   eachDayOfInterval,
   subDays,
 } from "date-fns";
-import api from "@/lib/api";
 import { useAuth } from "@clerk/clerk-expo";
 import { BookingDataInDb, BookingStatus, RoomStatus } from "@/types";
 import { useColorScheme } from "nativewind";
 import { Text } from "@/components/ui/text";
-import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import BookingModal from "./BookingModal";
 import DropDownPicker from "react-native-dropdown-picker";
-
+import { getFilteredHotelBookings } from "@lib/api";
 interface BookingManagementViewProps {
   hotelId: string;
 }
@@ -149,7 +146,7 @@ export default function BookingManagementView({
       setLoading(true);
       const token = await getToken();
 
-      const bookingsResponse = await api.getFilteredHotelBookings(
+      const bookingsResponse = await getFilteredHotelBookings(
         hotelId,
         {
           ...(filters.status ? { status: filters.status } : {}),

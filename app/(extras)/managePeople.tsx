@@ -6,8 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@clerk/clerk-expo';
-import api from '@/lib/api';
 import { APP_NAME, APP_URL } from '@/lib/constants';
+import { getHotelManagers, searchUserByPhone, addManagerToHotel, removeManagerFromHotel } from '@lib/api';
 
 interface Manager {
   id: string;
@@ -54,7 +54,7 @@ const ManagePeople = () => {
 
       // Load managers
       console.log("Loading managers for hotel:", hotelId);
-      const managersResponse = await api.getHotelManagers(hotelId, token);
+      const managersResponse = await getHotelManagers(hotelId, token);
       console.log("Managers response:", managersResponse);
       setManagers(managersResponse);
       setIsLoading(false);
@@ -83,7 +83,7 @@ const ManagePeople = () => {
       }
 
       console.log("Searching for user with phone:", searchQuery);
-      const response = await api.searchUserByPhone(searchQuery, token);
+      const response = await searchUserByPhone(searchQuery, token);
       console.log("Search response:", response);
       
       if (response && response.length > 0) {
@@ -132,7 +132,7 @@ const ManagePeople = () => {
               }
 
               console.log("Adding manager:", searchResult.id, "to hotel:", hotelId);
-              await api.addManagerToHotel(hotelId, searchResult.id, token);
+              await addManagerToHotel(hotelId, searchResult.id, token);
               console.log("Manager added successfully");
               
               // Refresh managers list
@@ -183,7 +183,7 @@ const ManagePeople = () => {
               }
 
               console.log("Removing manager:", manager.id, "from hotel:", hotelId);
-              await api.removeManagerFromHotel(hotelId, manager.id, token);
+              await removeManagerFromHotel(hotelId, manager.id, token);
               console.log("Manager removed successfully");
               
               // Refresh managers list

@@ -10,6 +10,7 @@ import { HotelFormData, UserData } from "@/types";
 import { Textarea } from "@/components/ui/textarea";
 import { useUserStorage } from "@/hooks/useUserStorage";
 import CustomImagePicker from "@/components/ImagePicker";
+import { uploadImages, createHotel, saveHotelToStorage } from "@lib/api";
 
 const NewHotel = () => {
   const { user } = useUser();
@@ -124,7 +125,7 @@ const NewHotel = () => {
       // First upload the images
       let uploadedImageUrls: string[] = [];
       try {
-        uploadedImageUrls = await api.uploadImages(formData.hotelImages, "HotelImages", token);
+        uploadedImageUrls = await uploadImages(formData.hotelImages, "HotelImages", token);
       } catch (uploadError) {
         console.error('Error uploading images:', uploadError);
         setError('Failed to upload images. Please try again.');
@@ -144,13 +145,13 @@ const NewHotel = () => {
         owner: user.id,
       };
 
-      const response = await api.createHotel(hotelData, token);
+      const response = await createHotel(hotelData, token);
       if (!response.ok) {
         throw new Error(response.error || "Failed to create hotel");
       }
 
       // Save hotel data to local storage
-      await api.saveHotelToStorage(response.data);
+      await saveHotelToStorage(response.data);
       
       setStep(2);
 

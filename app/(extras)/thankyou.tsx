@@ -3,10 +3,9 @@ import { View, ActivityIndicator, Pressable } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { useAuth } from '@clerk/clerk-expo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from '@/lib/api';
 import { router } from 'expo-router';
-import { Button } from '@/components/ui/button';
 import { useUserStorage } from '@/hooks/useUserStorage';
+import { getBookingById } from '@lib/api';
 
 const ThankYou = () => {
   const { getToken } = useAuth();
@@ -33,7 +32,7 @@ const ThankYou = () => {
           throw new Error('Booking information not found');
         }
 
-        const response = await api.getBookingById(bookingId, token);
+        const response = await getBookingById(bookingId, token);
 
         if (!mounted) return;
 

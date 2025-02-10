@@ -6,6 +6,12 @@
       "@/*": [
         "./*"
       ],
+      "@lib/*": [
+        "./lib/*"
+      ],
+      "@lib/api":[
+        "./lib/api/index.ts"
+      ]
     }
   },
   "include": [

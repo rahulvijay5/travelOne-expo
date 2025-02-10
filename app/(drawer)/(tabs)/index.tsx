@@ -8,8 +8,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { HotelDetails } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@clerk/clerk-expo';
-import api from '@/lib/api';
 import { format, set } from "date-fns";
+import { getHotelById, getHotelRooms } from "@lib/api";
+
 
 const { width } = Dimensions.get('window');
 
@@ -67,11 +68,11 @@ export default function HomeScreen() {
       if (hotelIdParam) {
         const token = await getToken();
         if (token) {
-          const hotelDetails = await api.getHotelById(hotelIdParam, token);
+          const hotelDetails = await getHotelById(hotelIdParam, token);
           if (hotelDetails) {
             // Get rooms data if user is owner or manager
             if (user?.role === 'OWNER' || user?.role === 'MANAGER') {
-              const rooms = await api.getHotelRooms(hotelIdParam, token);
+              const rooms = await getHotelRooms(hotelIdParam, token);
               if (rooms && !rooms.error) {
                 await AsyncStorage.setItem(
                   "@current_hotel_rooms",
@@ -123,7 +124,7 @@ export default function HomeScreen() {
         if (!parsedHotel.rules && (user?.role === 'OWNER' || user?.role === 'MANAGER')) {
           const token = await getToken();
           if (token) {
-            const completeHotelDetails = await api.getHotelById(parsedHotel.id, token);
+            const completeHotelDetails = await getHotelById(parsedHotel.id, token);
             if (completeHotelDetails) {
               await AsyncStorage.setItem('@current_hotel_details', JSON.stringify(completeHotelDetails));
               setCurrentHotel(completeHotelDetails);

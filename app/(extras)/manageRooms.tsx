@@ -7,7 +7,7 @@ import { useAuth } from "@clerk/clerk-expo";
 import { Room } from "@/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Button } from "@/components/ui/button";
-
+import { getHotelRooms } from "@lib/api";
 const manageRooms = () => {
   const { hotelId } = useLocalSearchParams<{ hotelId: string }>();
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -51,7 +51,7 @@ const manageRooms = () => {
             router.push("/not-authenticated");
             return;
           }
-          const roomsFromDb = await api.getHotelRooms(hotelId, token!);
+          const roomsFromDb = await getHotelRooms(hotelId, token!);
           console.log("Rooms from db:", roomsFromDb);
           if (roomsFromDb && !roomsFromDb.error) {
             setRooms(roomsFromDb);

@@ -27,7 +27,7 @@ const CreateBooking = () => {
   useEffect(() => {
     const fetchRoom = async () => {
       try {
-        const response = await api.getHotelRoomsByStatus(hotelId as string);
+        const response = await getHotelRoomsByStatus(hotelId as string);
         const roomData = response.find((r: Room) => r.id === roomId);
         if (roomData) {
           setRoom(roomData);
@@ -73,10 +73,10 @@ const CreateBooking = () => {
         }
       };
 
-      const response = await api.createBooking(bookingData, token);
+      const response = await createBooking(bookingData, token);
       
       // Save booking data to storage
-      await api.saveBookingToStorage(response);
+      await saveBookingToStorage(response);
       
       // Store booking ID for thank you page
       await AsyncStorage.setItem('currentBookingId', response.id);

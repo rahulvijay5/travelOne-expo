@@ -16,6 +16,7 @@ import { Feather } from "@expo/vector-icons";
 import { RoomDetailsByID, UpdateRoomForm } from "@/types";
 import { defaultRoomFeatures } from "@/lib/constants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getRoomById, deleteRoom, updateRoom } from "@lib/api";
 
 export default function RoomPage() {
   const params = useLocalSearchParams();
@@ -40,7 +41,7 @@ export default function RoomPage() {
         return;
       }
 
-      const response = await api.getRoomById(params.roomId as string, token);
+      const response = await getRoomById(params.roomId as string, token);
       if (response.error) {
         setError(response.error);
       } else {
@@ -102,7 +103,7 @@ export default function RoomPage() {
                 return;
               }
 
-              await api.deleteRoom(params.roomId as string, token);
+              await deleteRoom(params.roomId as string, token);
 
               const cachedHotel = await AsyncStorage.getItem("@current_hotel");
               const cachedRoomsStr = await AsyncStorage.getItem(
@@ -147,7 +148,7 @@ export default function RoomPage() {
         return;
       }
 
-      const result = await api.updateRoom(
+      const result = await updateRoom(
         params.roomId as string,
         {
           ...editedRoom,

@@ -4,9 +4,8 @@ import { format, parseISO, isEqual, startOfDay } from 'date-fns';
 import { Text } from '@/components/ui/text';
 import { BookingDataInDb } from '@/types/index';
 import { useAuth } from '@clerk/clerk-expo';
-import api from '@/lib/api';
 import { useColorScheme } from 'nativewind';
-import { Button } from '../ui/button';
+import { getFilteredHotelBookings } from '@lib/api';
 
 interface BookingListViewProps {
   hotelId: string;
@@ -34,7 +33,7 @@ export default function BookingListView({
   const fetchBookings = async (pageNum: number) => {
     try {
       const token = await getToken();
-      const response = await api.getFilteredHotelBookings(
+      const response = await getFilteredHotelBookings(
         hotelId,
         {
           sortBy: 'checkIn',

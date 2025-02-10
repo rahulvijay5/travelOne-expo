@@ -30,6 +30,7 @@ import BookingListView from "@/components/bookings/BookingListView";
 import BookingModal from "@/components/bookings/BookingModal";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { startOfDay, isSameDay, isAfter, addDays, set } from "date-fns";
+import { getHotelRoomsByStatus, getAvailableRooms } from "@lib/api";
 
 const getAdjustedCheckInTime = (selectedDate: Date, checkInTimeMinutes: number, currentHotelDetails: any) => {
   const now = new Date();
@@ -143,7 +144,7 @@ const Bookings = () => {
       const fetchRooms = async () => {
     try {
       setLoading(true);
-          const response = await api.getHotelRoomsByStatus(
+          const response = await getHotelRoomsByStatus(
             currentHotelId,
             "AVAILABLE"
       );
@@ -250,7 +251,7 @@ const Bookings = () => {
         hotelDetails.rules.checkOutTime
       );
 
-      const response = await api.getAvailableRooms(
+      const response = await getAvailableRooms(
         currentHotelId!,
         adjustedCheckIn.toISOString(),
         adjustedCheckOut.toISOString(),

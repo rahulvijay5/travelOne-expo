@@ -15,6 +15,7 @@ import api from "@/lib/api";
 import { useAuth } from "@clerk/clerk-expo";
 import CustomImagePicker from "@/components/ImagePicker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { uploadImages, createMultipleRooms, getHotelRooms } from "@lib/api";
 
 type HotelRulesPageParams = {
   hotelId: string;
@@ -180,7 +181,7 @@ const RoomDetails = () => {
       const roomsWithUploadedImages = await Promise.all(
         formattedRooms.map(async (room) => {
           try {
-            const uploadedImageUrls = await api.uploadImages(
+            const uploadedImageUrls = await uploadImages(
               room.images,
               "RoomImages",
               token
@@ -198,7 +199,7 @@ const RoomDetails = () => {
 
       // Create rooms with uploaded image URLs
       try {
-        const res = await api.createMultipleRooms(
+        const res = await createMultipleRooms(
           roomsWithUploadedImages,
           hotelId as string,
           token
@@ -211,7 +212,7 @@ const RoomDetails = () => {
         // Update rooms in AsyncStorage
         await AsyncStorage.removeItem("@temp_rooms");
 
-        const rooms = await api.getHotelRooms(hotelId as string, token);
+        const rooms = await getHotelRooms(hotelId as string, token);
         if (rooms && !rooms.error) {
           await AsyncStorage.setItem(
             "@current_hotel_rooms",

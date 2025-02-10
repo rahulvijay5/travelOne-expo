@@ -20,7 +20,7 @@ export default function JoinGroup({ onJoined }: JoinGroupProps) {
     }
 
     try {
-      const response = await api.addMember(groupId, currentUser.id);
+      const response = await addMember(groupId, currentUser.id);
       if (response.ok) {
         setMessage('Successfully joined group');
         setGroupId(0);
