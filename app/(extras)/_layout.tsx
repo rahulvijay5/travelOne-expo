@@ -105,7 +105,7 @@ const ExtrasLayout = () => {
           }}
         />
         <Stack.Screen
-          name="(bookings)/createBooking"
+          name="(bookings)/confirmBooking"
           options={{
             headerShown: false,
             headerBackButtonDisplayMode: "minimal",

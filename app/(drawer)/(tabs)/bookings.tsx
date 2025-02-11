@@ -160,7 +160,7 @@ const Bookings = () => {
   }, [currentHotelId]);
 
   const handleCreateBooking = (roomId: string, price: number) => {
-    navigateTo("/createBooking", {
+    navigateTo("/confirmBooking", {
       roomId,
       hotelId: currentHotelId,
       noOfGuests: filters.maxOccupancy,
@@ -519,12 +519,12 @@ const Bookings = () => {
 
         {/* Price Range Info */}
         {searchInitiated && priceRange && (
-          <View className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg mt-4">
+          <View className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg mt-4 flex flex-row justify-between items-center">
             <Text className="text-lg font-semibold dark:text-white mb-2">
-              Price Range
+              Available Price Range:
             </Text>
             <Text className="dark:text-white">
-              ₹{priceRange.min} - ₹{priceRange.max} per night
+              ₹{priceRange.min} - ₹{priceRange.max} / night
             </Text>
           </View>
         )}

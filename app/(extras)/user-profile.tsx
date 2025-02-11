@@ -92,7 +92,7 @@ const UserProfile = () => {
         <Text className="text-xl font-bold mb-4 dark:text-white">
           Recent Bookings
         </Text>
-        <View className="space-y-4">
+        <View className="flex gap-1">
           {userProfile.bookings.map((booking: any, index: number) => (
             <Pressable
               key={index}
@@ -138,7 +138,7 @@ const UserProfile = () => {
           <Text className="text-xl font-bold mb-4 dark:text-white">
             Owned Hotels
           </Text>
-          <View className="space-y-4">
+          <View className="flex gap-1">
             {userProfile.ownedHotels.map((hotel: any, index: number) => (
               <Pressable
                 key={index}
@@ -166,7 +166,7 @@ const UserProfile = () => {
           <Text className="text-xl font-bold mb-4 dark:text-white">
             Managed Hotels
           </Text>
-          <View className="space-y-4">
+          <View className="flex gap-1">
             {userProfile.managedHotels.map((hotel: any, index: number) => (
               <Pressable
                 key={index}

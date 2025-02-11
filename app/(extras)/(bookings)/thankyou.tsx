@@ -44,13 +44,10 @@ const ThankYou = () => {
           setLoading(false);
           clearInterval(pollInterval);
           
-          // Clear the current booking ID
-          // await AsyncStorage.removeItem('currentBookingId');
-          
           // After 4 seconds, redirect to bookings page
           setTimeout(() => {
             router.replace('/');
-          }, 4000);
+          }, 3000);
         } else if (response.status === 'CANCELLED') {
           setError('Booking was cancelled');
           setLoading(false);

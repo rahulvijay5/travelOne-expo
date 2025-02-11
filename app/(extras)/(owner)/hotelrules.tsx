@@ -210,7 +210,7 @@ export default function HotelRulesPage() {
               Pool Timings
             </Text>
             <TextInput
-              className="border-2 border-gray-300 rounded-lg p-2"
+              className="border-2 border-gray-300 dark:text-white text-black rounded-lg p-2"
               value={rules.swimmingPoolTimings}
               onChangeText={(text) =>
                 setRules((prev) => ({ ...prev, swimmingPoolTimings: text }))

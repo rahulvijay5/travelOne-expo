@@ -92,7 +92,7 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
                 className="flex-row items-center justify-start mb-4 py-4 pl-4 bg-lime-100 dark:bg-lime-950 rounded-lg border-2 dark:border-lime-100 border-lime-600"
                 onPress={() => {
                   console.log("Selected hotel:", currentHotel.id);
-                }}
+              }}
               >
                 <Image
                   source={
@@ -100,7 +100,8 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
                       ? { uri: currentHotel.hotelImages[0] }
                       : require("@/assets/images/favicon.png")
                   }
-                  className="h-16 w-16 aspect-square mb-4 rounded-2xl"
+                  style={{ width: 70, height: 70 }}
+                  className="h-16 w-16 aspect-square rounded-xl"
                 />
                 <View className="ml-3 flex-1 items-start justify-start">
                   <Text className="text-xl font-bold dark:text-white text-black">
