@@ -52,6 +52,8 @@ export default function BookingModal({ booking, visible, onClose }: BookingModal
               <Text style={[styles.guestText, isDark && styles.guestTextDark]}>Guests: {booking.guests}</Text>
             </View>
 
+            
+
             <View style={styles.section}>
               <Text style={[styles.sectionTitle, isDark && styles.sectionTitleDark]}>Stay Details</Text>
               <View style={styles.detailsRow}>
@@ -149,8 +151,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    padding: 4,
-    paddingHorizontal: 20,
+    padding: 20,
     maxHeight: '85%',
   },
   modalContainerDark: {
@@ -160,8 +161,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
-    paddingTop: 8,
+    paddingVertical: 8,
   },
   title: {
     fontSize: 24,

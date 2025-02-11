@@ -17,6 +17,9 @@ export const formatTimeFromMinutes = (minutes: number) => {
     hours: Math.floor(minutes / 60),
     minutes: minutes % 60,
   });
-  return format(date, "h:mm a");
+  console.log(date);
+  const formattedTime = format(date, "h:mm a");
+  console.log(formattedTime);
+  return formattedTime;
 };
 

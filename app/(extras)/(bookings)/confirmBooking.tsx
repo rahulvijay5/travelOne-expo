@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, ActivityIndicator, Image, Pressable } from 'react-native';
+import { View, ScrollView, ActivityIndicator, Image, Pressable, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
@@ -7,12 +7,14 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { useUserStorage } from '@/hooks/useUserStorage';
 import { useAuth } from '@clerk/clerk-expo';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { createBooking, saveBookingToStorage, getHotelRoomsByStatus } from '@lib/api';
+import { createBooking, saveBookingToStorage, getHotelRoomsByStatus, getRoomById } from '@lib/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ArrowLeft, ChevronLeft } from 'lucide-react-native';
 import { useTheme } from '@react-navigation/native';
 import { Room } from '@/types';
 import { navigateTo } from '@/lib/actions/navigation';
+// import DocumentUploader from '@/components/DocumentUploader';
+
 const CreateBooking = () => {
   const { roomId, hotelId, noOfGuests, checkIn, checkOut, price } = useLocalSearchParams();
   const { getUserData } = useUserStorage();
@@ -22,26 +24,62 @@ const CreateBooking = () => {
   const [error, setError] = useState<string | null>(null);
   const [room, setRoom] = useState<Room | null>(null);
   const [paymentMode, setPaymentMode] = useState<'ONLINE' | 'OFFLINE'>('OFFLINE');
+  const [guestInfoNeeded, setGuestInfoNeeded] = useState(false);
+  const [documentUrl, setDocumentUrl] = useState<string | null>(null);
+
+useEffect(() => {
+  const fetchRoomDetails = async () => {
+    const token = await getToken();
+    if (!token) {
+      navigateTo("/not-authenticated");
+      return;
+    }
+    const response = await getRoomById(roomId as string, token);
+    if (response.error) {
+      setError(response.error);
+    } else {
+      setRoom(response);
+    }
+  };
+  fetchRoomDetails();
+}, [roomId, hotelId]);
+
 
   // Fetch room details
-  useEffect(() => {
-    const fetchRoom = async () => {
-      try {
-        const response = await getHotelRoomsByStatus(hotelId as string);
-        const roomData = response.find((r: Room) => r.id === roomId);
-        if (roomData) {
-          setRoom(roomData);
-        }
-      } catch (error) {
-        console.error('Error fetching room:', error);
-        setError('Failed to fetch room details');
-      }
-    };
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const [
+  //         roomsResponse, 
+  //         // hotelDetails
+  //       ] = await Promise.all([
+  //         getHotelRoomsByStatus(hotelId as string),
+  //         // AsyncStorage.getItem('@current_hotel_details')
+  //       ]);
+  //       const roomData = roomsResponse.find((r: Room) => r.id === roomId);
+  //       if (roomData) {
+  //         setRoom(roomData);
+  //       }
+  //       // if (hotelDetails) {
+  //       //   const hotelDetailsData = JSON.parse(hotelDetails);
+  //       //   setGuestInfoNeeded(hotelDetailsData.rules.guestInfoNeeded);
+  //       // }
+  //     } catch (error) {
+  //       console.error('Error fetching data:', error);
+  //       setError('Failed to fetch booking details');
+  //     }
+  //   };
 
-    fetchRoom();
-  }, [roomId, hotelId]);
+  //   fetchData();
+  // }, [roomId, hotelId]);
+
+
 
   const handleCreateBooking = async () => {
+    // if (guestInfoNeeded && !documentUrl) {
+    //   setError('Document Required, Please upload your government ID.');
+    //   return;
+    // }
     try {
       setLoading(true);
       setError(null);
@@ -70,7 +108,8 @@ const CreateBooking = () => {
           paidAmount: 0,
           status: "PENDING" as const,
           transactionId: "OFFLINE"
-        }
+        },
+        // documentUrl
       };
 
       const response = await createBooking(bookingData, token);
@@ -112,6 +151,10 @@ const CreateBooking = () => {
               <Text className="text-red-500 dark:text-red-100">{error}</Text>
             </View>
           )}
+{/* 
+          {guestInfoNeeded && (
+            <DocumentUploader onUploadSuccess={(url: string) => setDocumentUrl(url)} />
+          )} */}
 
           {room && (
             <View className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">

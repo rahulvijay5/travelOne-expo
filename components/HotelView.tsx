@@ -1,12 +1,12 @@
 import {
   View,
-  Text,
   ScrollView,
   Image,
   Pressable,
   Dimensions,
   Linking,
 } from "react-native";
+import { Text } from "@/components/ui/text";
 import React from "react";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { router } from "expo-router";
@@ -80,7 +80,7 @@ const HotelView = ({
           <Text className="text-lg font-bold mb-2 dark:text-white text-black">
             Amenities
           </Text>
-          <View className="flex-row flex-wrap">
+          <View className="flex-row flex-wrap gap-1">
             {currentHotel.amenities.map((amenity, index) => (
               <View
                 key={index}
@@ -114,7 +114,8 @@ const HotelView = ({
             <View className="flex-row justify-between items-center">
               <Text className="text-gray-600 dark:text-gray-300">Check-in</Text>
               <Text className="text-gray-800 dark:text-gray-100 font-medium">
-                {currentHotel?.rules?.checkInTime
+                {(currentHotel?.rules?.checkInTime &&
+                !isNaN(currentHotel.rules.checkInTime))
                   ? formatTimeFromMinutes(currentHotel.rules.checkInTime)
                   : "Not set"}
               </Text>
@@ -124,7 +125,8 @@ const HotelView = ({
                 Check-out
               </Text>
               <Text className="text-gray-800 dark:text-gray-100 font-medium">
-                {currentHotel?.rules?.checkOutTime
+                {(currentHotel?.rules?.checkOutTime &&
+                !isNaN(currentHotel.rules.checkOutTime))
                   ? formatTimeFromMinutes(currentHotel.rules.checkOutTime)
                   : "Not set"}
               </Text>
