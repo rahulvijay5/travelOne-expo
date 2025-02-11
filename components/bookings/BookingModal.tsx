@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
   },
   viewDetailsButton: {
     backgroundColor: '#3b82f6',
-    padding: 16,
+    padding: 12,
     borderRadius: 12,
   },
   viewDetailsText: {

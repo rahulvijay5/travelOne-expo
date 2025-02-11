@@ -105,7 +105,7 @@ const Bookings = () => {
       try {
         const userData = await getUserData();
         if (userData) {
-          setUserRole(userData.role);
+          setUserRole(userData.role || null);
           const hotelDetailsStr = await AsyncStorage.getItem("@current_hotel_details");
           const parsedHotel = hotelDetailsStr ? JSON.parse(hotelDetailsStr) : null;
           if (parsedHotel) {
@@ -281,7 +281,7 @@ const Bookings = () => {
     return currentHotelId ? (
       <View className="flex-1">
         <View className="p-4">
-          <View className="flex flex-row gap-2 mb-1 w-full justify-between items-center">
+          <View className="flex flex-row gap-2 w-full justify-between items-center">
             <Text className="text-2xl font-bold dark:text-white">Bookings</Text>
             <View className="flex-row gap-2">
               <Pressable

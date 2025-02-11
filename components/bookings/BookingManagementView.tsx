@@ -29,7 +29,7 @@ interface BookingManagementViewProps {
 type SortByType = "checkIn" | "checkOut" | "bookingTime";
 type SortOrderType = "asc" | "desc";
 
-const CELL_WIDTH = 120;
+const CELL_WIDTH = 140;
 const ROOM_COLUMN_WIDTH = 80;
 const TOTAL_DAYS = 7;
 
@@ -479,9 +479,9 @@ const styles = StyleSheet.create({
     borderRightColor: "#374151",
   },
   bookingChip: {
-    padding: 4,
+    padding: 6,
     borderRadius: 4,
-    marginVertical: 2,
+    marginVertical: 4,
   },
   bookingText: {
     color: "white",

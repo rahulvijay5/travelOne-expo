@@ -148,3 +148,21 @@ export const getManagingHotels = async (managerId: string, token?: string) => {
       throw error;
     }
   };
+
+  export const getUserProfile = async (userId: string, token?: string) => {
+    try {
+      const res = await fetch(`${API_URL}/api/users/user-profile/${userId}`, {
+        method: "GET",
+        headers: getHeaders(token),
+      });
+      console.log("res", res);
+      if(res.status === 404) {
+        return { error: "User not found" };
+      }else if(res.status === 200) {
+        return res.json();
+      }
+    } catch (error) {
+      console.error("Error getting user profile:", error);
+      throw error;
+    }
+  };

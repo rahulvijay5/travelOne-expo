@@ -109,7 +109,7 @@ export default function HomeScreen() {
       // Try to load hotel details from storage
       const hotelDetails = await AsyncStorage.getItem('@current_hotel_details');
       if (!hotelDetails) {
-        await storeUserData({ currentStay: null });
+        await storeUserData({ currentStay: undefined });
         setIsLoading(false);
         return;
       }
@@ -137,7 +137,7 @@ export default function HomeScreen() {
       } catch (parseError) {
         console.error('Error parsing hotel data:', parseError);
         setError('Invalid hotel data. Please scan the QR code again.');
-        await storeUserData({ currentStay: null });
+        await storeUserData({ currentStay: undefined });
         await AsyncStorage.removeItem('@current_hotel_details');
       }
     } catch (error) {

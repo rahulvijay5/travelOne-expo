@@ -1,6 +1,6 @@
 // booking.ts
-import { PaymentStatus, BookingStatus } from './payment';
-import { RoomStatusEnum } from './statusEnums';
+import { PaymentStatus, BookingStatus } from "./payment";
+import { BookingStatusEnum, RoomStatusEnum } from "./statusEnums";
 
 export interface Booking {
   hotelId: string;
@@ -18,7 +18,7 @@ export interface Booking {
   };
 }
 
-export interface BookingData extends Omit<Booking, 'status'> {
+export interface BookingData extends Omit<Booking, "status"> {
   status: BookingStatus;
 }
 

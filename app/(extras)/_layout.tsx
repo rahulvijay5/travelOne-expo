@@ -139,7 +139,7 @@ const ExtrasLayout = () => {
           }}
         />
         <Stack.Screen
-          name="(helpers)terms"
+          name="(helpers)/terms"
           options={{
             headerShown: true,
             

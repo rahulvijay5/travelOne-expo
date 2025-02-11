@@ -9,6 +9,8 @@ import { Separator } from "@/components/ui/separator";
 import { router } from "expo-router";
 import Feather from "@expo/vector-icons/Feather";
 import SignOutButton from "@/components/auth/SignOutButton";
+import { navigateTo } from "@/lib/actions/navigation";
+import { getUserProfile } from "@/lib/api/users";
 
 export default function ProfileScreen() {
   const { getUserData } = useUserStorage();
@@ -28,6 +30,13 @@ export default function ProfileScreen() {
     return null;
   }
 
+  const handleViewUserProfile = async () => {
+    console.log("userData", userData);
+    navigateTo("/user-profile",{
+      userId: userData?.userId,
+    });
+  };
+
   const getRoleDisplay = (role: string) => {
     switch (role?.toUpperCase()) {
       case "OWNER":
@@ -44,7 +53,7 @@ export default function ProfileScreen() {
   return (
     <ScrollView className="flex-1 p-4">
       {/* User Info Section */}
-      <View className="flex flex-row justify-between items-start bg-lime-100 dark:bg-lime-950 p-6 rounded-xl mb-6">
+      <Pressable onPress={handleViewUserProfile} className="flex flex-row justify-between items-start bg-lime-100 dark:bg-lime-950 p-6 rounded-xl mb-6">
         <View className="">
           <Text className="text-2xl font-bold mb-2 dark:text-white">
             {userData?.name}
@@ -59,7 +68,7 @@ export default function ProfileScreen() {
           </View>
         </View>
         <SignOutButton isLogoButton={true} />
-      </View>
+      </Pressable>
 
       {/* Quick Actions */}
       <Text className="text-xl font-bold mb-4 dark:text-white">

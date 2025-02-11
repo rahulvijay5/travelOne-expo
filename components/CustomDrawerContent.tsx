@@ -1,24 +1,22 @@
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { Drawer } from "expo-router/drawer";
+import React from "react";
 import {
   DrawerContentComponentProps,
-  DrawerItem,
 } from "@react-navigation/drawer";
 import { DrawerContentScrollView } from "@react-navigation/drawer";
-import Feather from "@expo/vector-icons/Feather";
-import { Redirect, router, Tabs, usePathname } from "expo-router";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { View, Image, Pressable, ActivityIndicator } from "react-native";
 import { SignedOut, useAuth, useClerk } from "@clerk/clerk-expo";
+
+import { getOwnedHotels } from "@lib/api";
+import { Text } from "@/components/ui/text";
+import { HotelData } from "@/lib/constants";
+import Feather from "@expo/vector-icons/Feather";
 import { Separator } from "@/components/ui/separator";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Text } from "@/components/ui/text";
-import { HotelData } from "@/lib/constants";
-import { getOwnedHotels } from "@lib/api";
-import SignOutButton from "@/components/auth/SignOutButton";
 import { useUserStorage } from "@/hooks/useUserStorage";
-import React from "react";
+import SignOutButton from "@/components/auth/SignOutButton";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function CustomDrawerContent(props: DrawerContentComponentProps) {
@@ -42,18 +40,19 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
           // Get current hotel from storage
           const hotelDetailsStr = await AsyncStorage.getItem("@current_hotel_details");
           const currentHotelDetails = hotelDetailsStr ? JSON.parse(hotelDetailsStr) : null;
+          console.log("currentHotelDetails", currentHotelDetails);
           setCurrentHotel(currentHotelDetails);
   
-          // If owner, fetch owned hotels
-          if (userData.role === "OWNER" && userData.userId) {
-            const token = await getToken();
-            if (token) {
-              const res = await getOwnedHotels(userData.userId, token);
-              if (res.ok && res.data) {
-                setOwnedHotels(res.data);
-              }
-            }
-          }
+          // If owner, fetch owned hotels 
+          // if (userData.role === "OWNER" && userData.userId) {
+          //   const token = await getToken();
+          //   if (token) {
+          //     const res = await getOwnedHotels(userData.userId, token);
+          //     if (res.ok && res.data) {
+          //       setOwnedHotels(res.data);
+          //     }
+          //   }
+          // }
   
           // For regular users, show previous stays
           if (userData.role === "USER") {
@@ -87,7 +86,7 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
           {currentHotel && (
             <>
               <Text className="text-lg font-bold mb-4 dark:text-white">
-                {userRole === "MANAGER" ? "Managing Hotel" : "Current Stay"}
+                {(userRole === "MANAGER" || userRole === "OWNER") ? "Managing Hotel" : "Current Stay"}
               </Text>
               <Pressable
                 className="flex-row items-center justify-start mb-4 py-4 pl-4 bg-lime-100 dark:bg-lime-950 rounded-lg border-2 dark:border-lime-100 border-lime-600"
@@ -202,6 +201,15 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
                   </Pressable>
                 ))}
               </View>
+            </>
+          )}
+
+          {userRole === "USER" && previousStays.length === 0 && (
+            <>
+              <Separator className="my-4 dark:bg-white bg-black w-2/3" />
+              <Text className="text-lg font-bold mb-4 dark:text-white">
+                No Previous Stays
+              </Text>
             </>
           )}
   
