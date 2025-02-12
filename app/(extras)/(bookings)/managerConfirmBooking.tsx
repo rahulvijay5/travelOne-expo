@@ -8,6 +8,7 @@ import { useAuth } from '@clerk/clerk-expo';
 import { ChevronLeft } from 'lucide-react-native';
 import { useTheme } from '@react-navigation/native';
 import { Room } from '@/types';
+import { BookingCreatedBy } from '@/types/booking';
 import { getHotelRoomsByStatus, createBooking } from '@lib/api';
 
 const ManagerConfirmBooking = () => {
@@ -67,7 +68,8 @@ const ManagerConfirmBooking = () => {
           paidAmount: parseFloat(paidAmount),
           status: "PAID" as const,
           transactionId: "OFFLINE"
-        }
+        },
+        createdBy: BookingCreatedBy.MANAGER,
       };
 
       const response = await createBooking(bookingData, token);

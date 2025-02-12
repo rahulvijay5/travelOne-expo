@@ -85,14 +85,14 @@ export default function ProfileScreen() {
           </Text>
         </Pressable>
 
-        {userData?.role === "USER" && (
+        {userData?.role === "CUSTOMER" && (
           <Pressable
             className="flex-row items-center justify-start py-4 pl-4 bg-lime-100 dark:bg-lime-950 rounded-xl"
-            onPress={() => router.push("/bookings")}
+            onPress={() => router.push("/previousBookings")}
           >
             <Feather name="book" size={24} color="#84cc16" />
             <Text className="ml-3 font-semibold dark:text-white text-lg">
-              My Bookings
+              Previous Bookings
             </Text>
           </Pressable>
         )}

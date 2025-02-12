@@ -12,6 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ArrowLeft, ChevronLeft } from 'lucide-react-native';
 import { useTheme } from '@react-navigation/native';
 import { Room } from '@/types';
+import { BookingCreatedBy } from '@/types/booking';
 import { navigateTo } from '@/lib/actions/navigation';
 // import DocumentUploader from '@/components/DocumentUploader';
 
@@ -91,7 +92,9 @@ useEffect(() => {
       }
 
       const checkInDate = new Date(checkIn as string);
+      console.log("Check-out:", checkOut);
       const checkOutDate = new Date(checkOut as string);
+      console.log("Check-out date:", checkOutDate);
       const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
       const totalAmount = nights * parseFloat(price as string);
 
@@ -110,6 +113,7 @@ useEffect(() => {
           transactionId: "OFFLINE"
         },
         // documentUrl
+        createdBy: BookingCreatedBy.CUSTOMER,
       };
 
       const response = await createBooking(bookingData, token);

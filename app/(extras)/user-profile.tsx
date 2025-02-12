@@ -8,6 +8,7 @@ import { navigateTo } from "@/lib/actions/navigation";
 import { format } from "date-fns";
 import { Feather } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
+import PreviousBookings from "@/components/bookings/PreviousBookings";
 
 const UserProfile = () => {
   const { userId } = useLocalSearchParams();
@@ -76,60 +77,34 @@ const UserProfile = () => {
 
         <View className="mt-6 flex items-center justify-center gap-2">
           <View className="flex-row items-center">
-            <Feather name="mail" size={20} color={isDark ? "#e5e7eb" : "#374151"} />
+            <Feather
+              name="mail"
+              size={20}
+              color={isDark ? "#e5e7eb" : "#374151"}
+            />
             <Text className="ml-2 dark:text-gray-300">{userProfile.email}</Text>
           </View>
           <View className="flex-row items-center">
-            <Feather name="phone" size={20} color={isDark ? "#e5e7eb" : "#374151"} />
-            <Text className="ml-2 dark:text-gray-300">{userProfile.phoneNumber}</Text>
+            <Feather
+              name="phone"
+              size={20}
+              color={isDark ? "#e5e7eb" : "#374151"}
+            />
+            <Text className="ml-2 dark:text-gray-300">
+              {userProfile.phoneNumber}
+            </Text>
           </View>
         </View>
       </View>
 
       {/* Bookings Section */}
       {userProfile.bookings && userProfile.bookings.length > 0 && (
-      <View className="p-6">
-        <Text className="text-xl font-bold mb-4 dark:text-white">
-          Recent Bookings
-        </Text>
-        <View className="flex gap-1">
-          {userProfile.bookings.map((booking: any, index: number) => (
-            <Pressable
-              key={index}
-              className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl"
-              onPress={() => navigateTo("/bookings")}
-            >
-              <View className="flex-row justify-between items-start">
-                <View>
-                  <Text className="font-semibold text-lg dark:text-white">
-                    {booking.hotel.hotelName}
-                  </Text>
-                  <Text className="text-gray-600 dark:text-gray-400">
-                    {format(new Date(booking.checkIn), "MMM d, yyyy")} -{" "}
-                    {format(new Date(booking.checkOut), "MMM d, yyyy")}
-                  </Text>
-                  <Text className="text-gray-600 dark:text-gray-400">
-                    {booking.guests} guests
-                  </Text>
-                </View>
-                <View className={`px-3 py-1 rounded-full ${
-                  booking.status === "CONFIRMED"
-                    ? "bg-green-100 dark:bg-green-900"
-                    : "bg-yellow-100 dark:bg-yellow-900"
-                }`}>
-                  <Text className={`${
-                    booking.status === "CONFIRMED"
-                      ? "text-green-800 dark:text-green-100"
-                      : "text-yellow-800 dark:text-yellow-100"
-                  }`}>
-                    {booking.status}
-                  </Text>
-                </View>
-              </View>
-            </Pressable>
-          ))}
+        <View className="p-6">
+          <PreviousBookings
+            bookings={userProfile.bookings}
+            title="Previous Bookings"
+          />
         </View>
-      </View>
       )}
 
       {/* Owned Hotels Section */}
@@ -145,7 +120,11 @@ const UserProfile = () => {
                 className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl flex-row items-center"
                 onPress={() => navigateTo("/ownedHotels")}
               >
-                <Feather name="home" size={24} color={isDark ? "#e5e7eb" : "#374151"} />
+                <Feather
+                  name="home"
+                  size={24}
+                  color={isDark ? "#e5e7eb" : "#374151"}
+                />
                 <View className="ml-3">
                   <Text className="font-semibold text-lg dark:text-white">
                     {hotel.hotelName}
@@ -172,7 +151,11 @@ const UserProfile = () => {
                 key={index}
                 className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl flex-row items-center"
               >
-                <Feather name="briefcase" size={24} color={isDark ? "#e5e7eb" : "#374151"} />
+                <Feather
+                  name="briefcase"
+                  size={24}
+                  color={isDark ? "#e5e7eb" : "#374151"}
+                />
                 <View className="ml-3">
                   <Text className="font-semibold text-lg dark:text-white">
                     {hotel.hotelName}
@@ -194,13 +177,17 @@ const UserProfile = () => {
         </Text>
         <View className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl space-y-3">
           <View className="flex-row justify-between">
-            <Text className="text-gray-600 dark:text-gray-400">Member since</Text>
+            <Text className="text-gray-600 dark:text-gray-400">
+              Member since
+            </Text>
             <Text className="dark:text-white">
               {format(new Date(userProfile.createdAt), "MMMM d, yyyy")}
             </Text>
           </View>
           <View className="flex-row justify-between">
-            <Text className="text-gray-600 dark:text-gray-400">Last updated</Text>
+            <Text className="text-gray-600 dark:text-gray-400">
+              Last updated
+            </Text>
             <Text className="dark:text-white">
               {format(new Date(userProfile.updatedAt), "MMMM d, yyyy")}
             </Text>

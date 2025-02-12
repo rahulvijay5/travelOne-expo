@@ -40,6 +40,7 @@ export const PushNotificationProvider = ({ children }: { children: React.ReactNo
       const token = await registerForPushNotificationsAsync();
       console.log("Push token:", token);
       if (token && userId) {
+        console.log("Registering push token:", token);
         try {
           const response = await fetch(`${API_URL}/api/notifications/register-token`, {
             method: 'POST',
@@ -54,6 +55,7 @@ export const PushNotificationProvider = ({ children }: { children: React.ReactNo
             console.error('Failed to register push token:', response.statusText);
           } else {
             hasRegistered.current = true;
+            console.log("Push token registered successfully");
           }
         } catch (error) {
           console.error('Error registering push token:', error);
@@ -91,7 +93,7 @@ export const usePushNotifications = () => {
 // Helper function remains the same
 async function registerForPushNotificationsAsync(): Promise<string | null> {
     if (!isDevice) {
-      Alert.alert('Must use a physical device for Push Notifications');
+      // Alert.alert('Must use a physical device for Push Notifications');
       return null;
     }
 

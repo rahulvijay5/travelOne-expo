@@ -32,7 +32,7 @@ const DatePicker = ({ value, onChange, minimumDate, label }: DatePickerProps) =>
         />
       </View>
     );
-  }
+    }
 
   return (
     <View className="flex-1">

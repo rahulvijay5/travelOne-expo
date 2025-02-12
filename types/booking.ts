@@ -2,6 +2,11 @@
 import { PaymentStatus, BookingStatus } from "./payment";
 import { BookingStatusEnum, RoomStatusEnum } from "./statusEnums";
 
+export enum BookingCreatedBy {
+  MANAGER = "MANAGER",
+  CUSTOMER = "CUSTOMER",
+}
+
 export interface Booking {
   hotelId: string;
   roomId: string;
@@ -16,6 +21,7 @@ export interface Booking {
     status: PaymentStatus;
     transactionId: string;
   };
+  createdBy: BookingCreatedBy;
 }
 
 export interface BookingData extends Omit<Booking, "status"> {
@@ -33,6 +39,11 @@ export type BookingDataInDb = {
   status: BookingStatus;
   bookingTime: string;
   updatedAt: string;
+  hotel: {
+    id: string;
+    hotelName: string;
+    code: string;
+  };
   room: {
     id: string;
     roomNumber: string;

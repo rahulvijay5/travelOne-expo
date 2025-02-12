@@ -222,6 +222,7 @@ const Bookings = () => {
         date,
         hotelDetails.rules.checkOutTime
       );
+      console.log("Adjusted check-out date:", adjustedCheckOut);
       setFilters((prev) => ({ ...prev, checkOut: adjustedCheckOut }));
     }
   };

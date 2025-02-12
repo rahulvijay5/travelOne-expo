@@ -19,9 +19,6 @@ import { NAV_THEME } from "@/lib/constants";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { PortalHost } from "@rn-primitives/portal";
 import { setAndroidNavigationBar } from "@/lib/android-navigation-bar";
-
-
-import PushNotificationHandler from '@/components/PushNotificationsHandler';
 import { PushNotificationProvider } from "@/components/context/PushNotificationContext";
 
 const LIGHT_THEME: Theme = {
