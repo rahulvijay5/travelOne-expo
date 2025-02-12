@@ -105,6 +105,14 @@ const ExtrasLayout = () => {
           }}
         />
         <Stack.Screen
+          name="user-profile"
+          options={{
+            headerShown: true,
+            headerBackButtonDisplayMode: "minimal",
+            headerTitle: "User Profile",
+          }}
+        />
+        <Stack.Screen
           name="(bookings)/confirmBooking"
           options={{
             headerShown: false,

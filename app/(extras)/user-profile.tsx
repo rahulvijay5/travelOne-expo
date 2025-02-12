@@ -171,7 +171,6 @@ const UserProfile = () => {
               <Pressable
                 key={index}
                 className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl flex-row items-center"
-                onPress={() => navigateTo("/managedHotels")}
               >
                 <Feather name="briefcase" size={24} color={isDark ? "#e5e7eb" : "#374151"} />
                 <View className="ml-3">

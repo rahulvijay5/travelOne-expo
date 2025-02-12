@@ -21,6 +21,12 @@ export default function BookingModal({ booking, visible, onClose }: BookingModal
 
   if (!booking) return null;
 
+  const handleOverlayPress = (e: any) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
     <Modal
       visible={visible}
@@ -28,17 +34,24 @@ export default function BookingModal({ booking, visible, onClose }: BookingModal
       animationType="slide"
       onRequestClose={onClose}
     >
-      <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable style={[styles.modalContainer, isDark && styles.modalContainerDark]} onPress={e => e.stopPropagation()}>
+      <View style={styles.overlay}>
+        <View style={[styles.modalContainer, isDark && styles.modalContainerDark]}>
           <View style={styles.header}>
             <Text style={[styles.title, isDark && styles.titleDark]}>Booking Details</Text>
-            <Pressable onPress={onClose} style={styles.closeButton}>
+            <Pressable onPress={onClose} style={styles.closeButton} hitSlop={8}>
               <X size={24} color={isDark ? 'white' : 'black'} />
             </Pressable>
           </View>
 
-          <ScrollView contentContainerStyle={styles.scrollView}>
-            <View style={styles.section}>
+          <ScrollView 
+            style={styles.scrollViewStyle}
+            contentContainerStyle={styles.scrollView}
+            showsVerticalScrollIndicator={true}
+            bounces={true}
+            overScrollMode="always"
+            scrollEventThrottle={16}
+          >
+            <View style={[styles.section, isDark && styles.sectionDark]}>
               <View style={styles.customerInfo}>
                 <View style={styles.avatarContainer}>
                   <Text style={styles.avatarText}>{booking.customer.name[0]}</Text>
@@ -52,63 +65,70 @@ export default function BookingModal({ booking, visible, onClose }: BookingModal
               <Text style={[styles.guestText, isDark && styles.guestTextDark]}>Guests: {booking.guests}</Text>
             </View>
 
-            
-
-            <View style={styles.section}>
+            <View style={[styles.section, isDark && styles.sectionDark]}>
               <Text style={[styles.sectionTitle, isDark && styles.sectionTitleDark]}>Stay Details</Text>
               <View style={styles.detailsRow}>
-                <Text style={styles.detailsLabel}>Check In</Text>
-                <Text style={styles.detailsValue}>{format(parseISO(booking.checkIn), 'd MMM, HH:mm a')}</Text>
+                <Text style={[styles.detailsLabel, isDark && styles.detailsLabelDark]}>Check In</Text>
+                <Text style={[styles.detailsValue, isDark && styles.detailsValueDark]}>
+                  {format(parseISO(booking.checkIn), 'd MMM, HH:mm a')}
+                </Text>
               </View>
               <View style={styles.detailsRow}>
-                <Text style={styles.detailsLabel}>Check Out</Text>
-                <Text style={styles.detailsValue}>{format(parseISO(booking.checkOut), 'd MMM, HH:mm a')}</Text>
+                <Text style={[styles.detailsLabel, isDark && styles.detailsLabelDark]}>Check Out</Text>
+                <Text style={[styles.detailsValue, isDark && styles.detailsValueDark]}>
+                  {format(parseISO(booking.checkOut), 'd MMM, HH:mm a')}
+                </Text>
               </View>
               <View style={styles.detailsRow}>
-                <Text style={styles.detailsLabel}>Room</Text>
-                <Text style={styles.detailsValue}>{booking.room.roomNumber} ({booking.room.type})</Text>
+                <Text style={[styles.detailsLabel, isDark && styles.detailsLabelDark]}>Room</Text>
+                <Text style={[styles.detailsValue, isDark && styles.detailsValueDark]}>
+                  {booking.room.roomNumber} ({booking.room.type})
+                </Text>
               </View>
               <View style={styles.detailsRow}>
-                <Text style={styles.detailsLabel}>Status</Text>
+                <Text style={[styles.detailsLabel, isDark && styles.detailsLabelDark]}>Status</Text>
                 <Text style={[styles.detailsValue, { color: getStatusColor(booking.status) }]}>
                   {booking.status}
                 </Text>
               </View>
             </View>
 
-            <View style={styles.section}>
+            <View style={[styles.section, isDark && styles.sectionDark]}>
               <Text style={[styles.sectionTitle, isDark && styles.sectionTitleDark]}>Payment Details</Text>
               <View style={styles.detailsRow}>
-                <Text style={styles.detailsLabel}>Total Amount</Text>
-                <Text style={styles.detailsValue}>₹{booking.payment.totalAmount}</Text>
+                <Text style={[styles.detailsLabel, isDark && styles.detailsLabelDark]}>Total Amount</Text>
+                <Text style={[styles.detailsValue, isDark && styles.detailsValueDark]}>₹{booking.payment.totalAmount}</Text>
               </View>
               <View style={styles.detailsRow}>
-                <Text style={styles.detailsLabel}>Paid Amount</Text>
-                <Text style={styles.detailsValue}>₹{booking.payment.paidAmount}</Text>
+                <Text style={[styles.detailsLabel, isDark && styles.detailsLabelDark]}>Paid Amount</Text>
+                <Text style={[styles.detailsValue, isDark && styles.detailsValueDark]}>₹{booking.payment.paidAmount}</Text>
               </View>
               <View style={styles.detailsRow}>
-                <Text style={styles.detailsLabel}>Status</Text>
+                <Text style={[styles.detailsLabel, isDark && styles.detailsLabelDark]}>Status</Text>
                 <Text style={[styles.detailsValue, { color: getPaymentStatusColor(booking.payment.status) }]}>
                   {booking.payment.status}
                 </Text>
               </View>
               {booking.payment.transactionId && (
                 <View style={styles.detailsRow}>
-                  <Text style={styles.detailsLabel}>Transaction ID</Text>
-                  <Text style={styles.detailsValue}>{booking.payment.transactionId}</Text>
+                  <Text style={[styles.detailsLabel, isDark && styles.detailsLabelDark]}>Transaction ID</Text>
+                  <Text style={[styles.detailsValue, isDark && styles.detailsValueDark]}>{booking.payment.transactionId}</Text>
                 </View>
               )}
             </View>
 
-            <Pressable onPress={() => {
-              onClose();
-              router.push(`/bookings/${booking.id}`);
-            }} style={styles.viewDetailsButton}>
+            <Pressable 
+              onPress={() => {
+                onClose();
+                router.push(`/bookings/${booking.id}`);
+              }} 
+              style={styles.viewDetailsButton}
+            >
               <Text style={styles.viewDetailsText}>View Full Details</Text>
             </Pressable>
           </ScrollView>
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 }
@@ -151,8 +171,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    padding: 20,
-    maxHeight: '85%',
+    height: '85%',
   },
   modalContainerDark: {
     backgroundColor: '#1f2937',
@@ -161,7 +180,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  scrollViewStyle: {
+    flex: 1,
+  },
+  scrollView: {
+    padding: 20,
+    paddingBottom: 40,
   },
   title: {
     fontSize: 24,
@@ -173,9 +202,6 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     padding: 8,
-  },
-  scrollView: {
-    paddingBottom: 24,
   },
   section: {
     backgroundColor: '#f3f4f6',
@@ -193,7 +219,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitleDark: {
-    color: '#454545',
+    color: '#fff',
   },
   customerInfo: {
     flexDirection: 'row',
@@ -220,14 +246,14 @@ const styles = StyleSheet.create({
     color: '#1f2937',
   },
   customerNameDark: {
-    color: '#454545',
+    color: '#fff',
   },
   customerPhone: {
     fontSize: 14,
     color: '#6b7280',
   },
   customerPhoneDark: {
-    color: '#454545',
+    color: '#fff',
   },
   customerEmail: {
     fontSize: 14,
@@ -235,14 +261,14 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   customerEmailDark: {
-    color: '#454545',
+    color: '#fff',
   },
   guestText: {
     fontSize: 14,
     color: '#6b7280',
   },
   guestTextDark: {
-    color: '#454545',
+    color: '#fff',
   },
   detailsRow: {
     flexDirection: 'row',

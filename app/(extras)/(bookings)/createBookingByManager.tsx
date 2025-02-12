@@ -465,7 +465,7 @@ const CreateBookingByManager = () => {
 
           <Pressable
             onPress={handleSearchRooms}
-            className="bg-blue-500 p-3 rounded-lg mt-4"
+            className="bg-blue-500 p-3 rounded-lg mt-2"
           >
             <Text className="text-white text-center text-lg font-semibold">
               Search Available Rooms
@@ -503,10 +503,10 @@ const CreateBookingByManager = () => {
               <Text className="text-xl font-bold dark:text-white">
                 Available Rooms
               </Text>
-              <View className="flex-row items-center bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2 gap-2 max-w-1/2 w-1/3">
+              <View className="flex-row items-center bg-gray-100 dark:bg-gray-800 rounded-lg px-3 gap-2 max-w-1/2 w-1/3">
                 <Search size={20} color={theme.colors.text} />
                 <TextInput
-                  className="flex-1 w-full dark:text-white"
+                  className="flex-1 py-0 w-full dark:text-white"
                   value={roomSearch}
                   onChangeText={setRoomSearch}
                   placeholder="Search room number"

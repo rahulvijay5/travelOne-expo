@@ -7,6 +7,7 @@ import { Image } from "react-native";
 import {
   DarkTheme,
   DefaultTheme,
+  NavigationContainer,
   Theme,
   ThemeProvider,
 } from "@react-navigation/native";
@@ -19,6 +20,9 @@ import { useColorScheme } from "@/lib/useColorScheme";
 import { PortalHost } from "@rn-primitives/portal";
 import { setAndroidNavigationBar } from "@/lib/android-navigation-bar";
 
+
+import PushNotificationHandler from '@/components/PushNotificationsHandler';
+import { PushNotificationProvider } from "@/components/context/PushNotificationContext";
 
 const LIGHT_THEME: Theme = {
   ...DefaultTheme,
@@ -66,6 +70,8 @@ export default function RootLayout() {
   return (
     <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
       <ClerkLoaded>
+
+      <PushNotificationProvider >
           {/* <Slot/> */}
           <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
             <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
@@ -102,6 +108,7 @@ export default function RootLayout() {
             <PortalHost />
           </ThemeProvider>
           <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
+        </PushNotificationProvider>
       </ClerkLoaded>
     </ClerkProvider>
   );
