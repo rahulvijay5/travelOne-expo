@@ -44,7 +44,7 @@ export default function ProfileScreen() {
         return "Hotel Owner";
       case "MANAGER":
         return "Hotel Manager";
-      case "USER":
+      case "CUSTOMER":
         return "Traveler";
       default:
         return role;

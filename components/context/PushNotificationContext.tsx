@@ -1,8 +1,6 @@
 import React, { createContext, useContext, useEffect, useRef } from 'react';
 import { Platform, Alert } from 'react-native';
 import * as Notifications from 'expo-notifications';
-import * as Permissions from 'expo-permissions';
-import Constants from 'expo-constants';
 import { useAuth } from '@clerk/clerk-expo';
 import { getHeaders } from '@lib/utils';
 import { API_URL } from '@lib/config/index';

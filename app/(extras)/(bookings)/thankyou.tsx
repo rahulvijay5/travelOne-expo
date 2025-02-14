@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useUserStorage } from '@/hooks/useUserStorage';
 import { getBookingById } from '@lib/api';
+import { format } from 'date-fns';
 
 const ThankYou = () => {
   const { getToken } = useAuth();
@@ -22,7 +23,7 @@ const ThankYou = () => {
     const MAX_POLLS = 20; // Maximum number of polling attempts (30 seconds)
 
     const checkBookingStatus = async () => {
-      console.log("checking booking status");
+      console.log("checking booking status at", format(new Date().getTime(), "HH:mm:ss"));
       try {
         const bookingId = await AsyncStorage.getItem('currentBookingId');
         const token = await getToken();
@@ -90,9 +91,12 @@ const ThankYou = () => {
     };
 
     // Start polling after 15 seconds
+    console.log("polling will be started after 30 seconds");
+    console.log("current time in seconds:", format(new Date().getTime(), "HH:mm:ss"));
     setTimeout(() => {
+      console.log("polling started at", format(new Date().getTime(), "HH:mm:ss"));
       pollInterval = setInterval(checkBookingStatus, 4000);
-    }, 15000);
+    }, 30000);
 
     // Initial check
     checkBookingStatus();

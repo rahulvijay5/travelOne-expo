@@ -1,26 +1,15 @@
 import { useEffect, useState } from 'react';
-import { View, Text, ScrollView, Image, Dimensions, Pressable, ActivityIndicator, Linking } from 'react-native';
+import { View, Text, Dimensions, Pressable, ActivityIndicator } from 'react-native';
 import { useColorScheme } from '@/lib/useColorScheme';
 import { useUserStorage } from '@/hooks/useUserStorage';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Button } from '@/components/ui/button';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { HotelDetails } from '@/types';
-import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@clerk/clerk-expo';
-import { format, set } from "date-fns";
 import { getHotelById, getHotelRooms } from "@lib/api";
 import HotelView from '@/components/HotelView';
 
 const { width } = Dimensions.get('window');
-
-const formatTimeFromMinutes = (minutes: number) => {
-  const date = set(new Date(), {
-    hours: Math.floor(minutes / 60),
-    minutes: minutes % 60,
-  });
-  return format(date, "h:mm a");
-};
 
 export default function HomeScreen() {
   const [currentHotel, setCurrentHotel] = useState<HotelDetails | null>(null);
@@ -31,7 +20,6 @@ export default function HomeScreen() {
   const [UserIsManager, setUserIsManager] = useState(false);
   const { getToken } = useAuth();
   const params = useLocalSearchParams();
-  console.log("Params:", params);
 
   useEffect(() => {
     loadCurrentHotel();

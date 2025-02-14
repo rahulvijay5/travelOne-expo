@@ -70,7 +70,7 @@ const UserProfile = () => {
           </Text>
           <View className="bg-lime-200 dark:bg-lime-900 px-4 py-1 rounded-full">
             <Text className="text-lime-800 dark:text-lime-200 font-medium">
-              {userProfile.role}
+            {userProfile.role === "CUSTOMER" ? "Traveler" : userProfile.role}
             </Text>
           </View>
         </View>
