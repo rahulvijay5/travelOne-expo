@@ -1,43 +1,119 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { useUser, useAuth } from "@clerk/clerk-expo";
 import { useClerk } from "@clerk/clerk-expo";
 import { useUserStorage } from "@/hooks/useUserStorage";
 import { router } from "expo-router";
 import * as React from "react";
-import { useState, useEffect } from "react";
-import { Alert, Pressable } from "react-native";
+import { useState, useEffect, useRef } from "react";
+import { Alert, Pressable, View, ActivityIndicator, useColorScheme, TextInput, ScrollView, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getUserByClerkId, updateUserRole, createUser } from "@lib/api";
+import { Feather } from "@expo/vector-icons";
+import { navigateTo } from "@/lib/actions/navigation";
+import { z } from "zod";
+import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import { APP_NAME } from "@/lib/constants";
 
-const onboarding = () => {
+const phoneSchema = z.string().regex(/^[6-9]\d{9}$/, {
+  message: "Please enter a valid 10-digit phone number starting with 6-9",
+});
+
+type FeatureIcon = "smartphone" | "key" | "bell" | "coffee";
+
+interface Feature {
+  icon: FeatureIcon;
+  title: string;
+  description: string;
+}
+
+const features: Feature[] = [
+  {
+    icon: "smartphone",
+    title: "Easy Booking",
+    description: "Book your perfect stay in just a few taps"
+  },
+  {
+    icon: "key",
+    title: "Digital Keys",
+    description: "Access your room with your phone"
+  },
+  {
+    icon: "bell",
+    title: "Real-time Updates",
+    description: "Get instant notifications about your stay"
+  },
+  {
+    icon: "coffee",
+    title: "Room Service",
+    description: "Order food and services directly from the app"
+  }
+];
+
+const Onboarding = () => {
   const { signOut } = useClerk();
   const { storeUserData, getUserData } = useUserStorage();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const scrollViewRef = useRef(null);
+  const [currentFeature, setCurrentFeature] = useState(0);
 
   const user = useUser();
   const { getToken } = useAuth();
-  
+
   useEffect(() => {
     if (!user.isLoaded) return;
-    
+
     if (!user.user) {
       router.replace("/(auth)/sign-in");
       return;
     }
-    
+
+    // Set initial name from user data
+    if (user.user?.firstName || user.user?.externalAccounts[0]?.firstName) {
+      setName(
+        `${user.user?.firstName || user.user?.externalAccounts[0]?.firstName} ${
+          user.user?.lastName || user.user?.externalAccounts[0]?.lastName || ""
+        }`
+      );
+    }
+
     checkOnboardingStatus();
   }, [user.isLoaded]);
 
+  // Auto-scroll feature carousel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentFeature((prev) => (prev + 1) % features.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const validatePhone = (value: string) => {
+    try {
+      phoneSchema.parse(value);
+      setPhoneError("");
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        setPhoneError(error.errors[0].message);
+      } else {
+        setPhoneError("Invalid phone number");
+      }
+      return false;
+    }
+  };
+
   const checkOnboardingStatus = async () => {
     if (!user.user?.id) return;
-    
+
+    setName(user.user.externalAccounts[0].firstName + " " + user.user.externalAccounts[0].lastName);
     try {
       setIsLoading(true);
-      
+
       console.log("Checking onboarding status for clerkId:", user.user.id);
 
       const token = await getToken();
@@ -46,12 +122,12 @@ const onboarding = () => {
         setIsLoading(false);
         return;
       }
-      
+
       // First check if user exists in DB
       try {
         const dbUser = await getUserByClerkId(user.user.id, token);
         console.log("DB User response:", dbUser);
-        
+
         // If there's an error or user not found, just continue with onboarding
         if (dbUser.error === "User not found") {
           console.log("User not found in DB, continuing with onboarding");
@@ -71,7 +147,7 @@ const onboarding = () => {
             currentStay: {
               hotelId: dbUser.hotelId,
               hotelCode: dbUser.hotelCode,
-              hotelName: dbUser.hotelName
+              hotelName: dbUser.hotelName,
             },
             role: dbUser.role,
           });
@@ -79,7 +155,7 @@ const onboarding = () => {
           return;
         }
       } catch (error) {
-        console.error("Error checking user in DB:", error);
+        console.log("Error checking user in DB:", error);
         // Don't throw here, continue checking local storage
       }
 
@@ -96,7 +172,7 @@ const onboarding = () => {
       } catch (storageError) {
         console.error("Error reading from local storage:", storageError);
       }
-      
+
       // If we get here, user needs to be onboarded
       setIsLoading(false);
     } catch (error) {
@@ -111,7 +187,11 @@ const onboarding = () => {
       return;
     }
 
-    if (!phone || !name || !user.user?.emailAddresses[0]?.emailAddress) {
+    if (!validatePhone(phone)) {
+      return;
+    }
+
+    if (!phone || !name) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
@@ -129,7 +209,7 @@ const onboarding = () => {
         phone,
         email,
         name,
-        clerkId: user.user.id
+        clerkId: user.user.id,
       });
 
       const userData = await createUser(
@@ -144,7 +224,11 @@ const onboarding = () => {
       console.log("User created:", userData);
 
       try {
-        const roleResponse = await updateUserRole(user.user.id, "CUSTOMER", token);
+        const roleResponse = await updateUserRole(
+          user.user.id,
+          "CUSTOMER",
+          token
+        );
         console.log("Role update response:", roleResponse);
       } catch (roleError) {
         console.error("Error updating role, but user was created:", roleError);
@@ -161,7 +245,7 @@ const onboarding = () => {
         currentStay: {
           hotelId: "",
           hotelCode: "",
-          hotelName: ""
+          hotelName: "",
         },
         role: "CUSTOMER",
       });
@@ -183,53 +267,126 @@ const onboarding = () => {
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 p-4 gap-2 flex items-center justify-center h-screen">
-        <Text>Loading...</Text>
+      <SafeAreaView className="flex-1 justify-center items-center">
+        <View className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+          <ActivityIndicator size="large" color="#0284c7" />
+          <Text className="mt-4 text-gray-600 dark:text-gray-300 text-center">
+            Setting up your profile...
+          </Text>
+        </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 p-4 gap-2">
-      <Text className="text-2xl font-semibold dark:text-white text-black text-center my-2">Onboarding</Text>
-      <Input
-        placeholder="Enter your name"
-        value={name}
-        onChangeText={setName}
-        className="dark:text-white text-black p-4 rounded-lg border-2 border-gray-300"
-      />
-      <Text className="dark:text-white text-gray-500 p-4 rounded-lg border border-gray-300">
-        {user?.user?.emailAddresses[0].emailAddress}
-      </Text>
-      <Input
-        placeholder="Enter your phone number"
-        value={phone}
-        onChangeText={setPhone}
-        className="dark:text-white text-black p-4 rounded-lg border-2 border-gray-300"
-      />
-      <Pressable
-        onPress={handleOnboardingSubmit}
-        className="mt-4 border-2 border-gray-300 bg-yellow-200 flex items-center justify-center"
-      >
-        <Text className="text-lg font-bold p-4 flex items-center justify-center">
-          Submit
-        </Text>
-      </Pressable>
+    <View className="flex-1">
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        {/* Feature Showcase */}
+        <View className="h-[45vh] bg-blue-500 dark:bg-blue-600 p-6 relative w-screen">
+          <View className="absolute inset-0 justify-center items-center">
+            <View className="grid  gap-6 flex-wrap items-center">
+              {Array.from({ length: 132 }).map((_, index) => (
+                <View key={index} className="w-4 h-4 bg-white/5 rounded-full " />
+              ))}
+            </View>
+          </View>
+          <Animated.View 
+            entering={FadeInUp}
+            className="flex-1 justify-center items-center z-10"
+          >
+            <View className="w-16 h-16 bg-white/20 rounded-full items-center justify-center mb-6">
+              <Feather name={features[currentFeature].icon} size={32} color="white" />
+            </View>
+            <Text className="text-white text-2xl font-bold text-center mb-2">
+              {features[currentFeature].title}
+            </Text>
+            <Text className="text-white/80 text-center text-lg">
+              {features[currentFeature].description}
+            </Text>
+          </Animated.View>
+        </View>
 
-      <Pressable
-        onPress={() => router.push("/(auth)/sign-in")}
-        className="mt-4 border-2 border-gray-300 bg-yellow-200 flex items-center justify-center"
-      >
-        <Text className="text-lg font-bold p-4 ">SignIn</Text>
-      </Pressable>
-      <Pressable
-        onPress={() => signOut()}
-        className="mt-4 border-2 border-gray-300 bg-yellow-200 flex items-center justify-center"
-      >
-        <Text className="text-lg font-bold p-4 ">SignOut</Text>
-      </Pressable>
-    </SafeAreaView>
+        {/* Welcome Message */}
+        <View className="px-6 py-8">
+          <Text className="text-3xl font-bold dark:text-white text-black text-center">
+            Welcome to {APP_NAME}
+          </Text>
+          <Text className="text-gray-500 dark:text-gray-400 text-center mt-2">
+            Let's get started with your profile
+          </Text>
+        </View>
+
+        {/* Simple Form */}
+        <View className="px-6">
+          <Animated.View 
+            entering={FadeInDown.delay(200)}
+            className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md flex gap-2"
+          >
+            <View className="">
+              <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Your Name
+              </Text>
+              <TextInput
+                placeholder="Enter your name"
+                value={name}
+                onChangeText={setName}
+                className="dark:text-white text-black p-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-transparent"
+              />
+            </View>
+
+            <View className="mb-6">
+              <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Phone Number
+              </Text>
+              <TextInput
+                placeholder="Enter 10-digit phone number"
+                value={phone}
+                onChangeText={(value) => {
+                  setPhone(value);
+                  validatePhone(value);
+                }}
+                keyboardType="phone-pad"
+                maxLength={10}
+                className="dark:text-white text-black p-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-transparent"
+              />
+              {phoneError && (
+                <Text className="text-red-500 text-sm mt-1">{phoneError}</Text>
+              )}
+            </View>
+
+            <Pressable
+              onPress={handleOnboardingSubmit}
+              className="bg-blue-500 rounded-xl overflow-hidden"
+            >
+              <View className="px-6 py-4 flex-row items-center justify-center">
+                <Text className="text-white font-semibold text-lg mr-2">
+                  Continue
+                </Text>
+                <Feather name="arrow-right" size={20} color="white" />
+              </View>
+            </Pressable>
+          </Animated.View>
+
+          <Text className="text-center text-gray-500 dark:text-gray-400 mt-6 text-sm px-4">
+            By continuing, you agree to our{" "}
+            <Text
+              className="text-blue-500"
+              onPress={() => navigateTo("/terms")}
+            >
+              Terms
+            </Text>
+            {" "}and{" "}
+            <Text
+              className="text-blue-500"
+              onPress={() => navigateTo("/privacy")}
+            >
+              Privacy Policy
+            </Text>
+          </Text>
+        </View>
+      </ScrollView>
+    </View>
   );
 };
 
-export default onboarding;
+export default Onboarding;

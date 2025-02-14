@@ -42,7 +42,7 @@ export const createUser = async (
 
   if (!res.ok) {
     const error = await handleResponse(res);
-    throw new Error(error.message || "Failed to create user");
+    console.log("error", error);
   }
 
   return handleResponse(res);

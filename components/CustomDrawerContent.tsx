@@ -43,17 +43,6 @@ export default function CustomDrawerContent(props: DrawerContentComponentProps) 
           console.log("currentHotelDetails", currentHotelDetails);
           setCurrentHotel(currentHotelDetails);
   
-          // If owner, fetch owned hotels 
-          // if (userData.role === "OWNER" && userData.userId) {
-          //   const token = await getToken();
-          //   if (token) {
-          //     const res = await getOwnedHotels(userData.userId, token);
-          //     if (res.ok && res.data) {
-          //       setOwnedHotels(res.data);
-          //     }
-          //   }
-          // }
-  
           // For regular users, show previous stays
           if (userData.role === "USER") {
             setPreviousStays(HotelData.filter((item) => parseInt(item.hotelId) !== 1));

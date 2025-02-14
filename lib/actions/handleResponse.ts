@@ -1,7 +1,7 @@
 export const handleResponse = async (res: Response) => {
     if (!res.ok) {
       // Log the response status and type to debug
-      console.error("API Response Error: ", res.status, res.statusText);
+      console.log("API Response Error: ", res.status, res.statusText);
   
       try {
         // Try to parse as JSON first
@@ -11,18 +11,18 @@ export const handleResponse = async (res: Response) => {
           if (res.status === 404 && errorData.message === "User not found") {
             return { error: "User not found" };
           }
-          throw new Error(errorData.message || `API error: ${res.status}`);
+          console.log(errorData.message || `API error: ${res.status}`);
         }
         
         // If not JSON, try to get text
         const text = await res.text();
         console.error("Error Response Text: ", text);
-        throw new Error(`API error: ${res.status} - ${res.statusText}`);
+        console.log(`API error: ${res.status} - ${res.statusText}`);
       } catch (error) {
         if (error instanceof Error) {
           throw error;
         }
-        throw new Error(`API error: ${res.status} - ${res.statusText}`);
+        console.log(`API error: ${res.status} - ${res.statusText}`);
       }
     }
   

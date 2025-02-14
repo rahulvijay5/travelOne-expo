@@ -25,8 +25,8 @@ const CreateBooking = () => {
   const [error, setError] = useState<string | null>(null);
   const [room, setRoom] = useState<Room | null>(null);
   const [paymentMode, setPaymentMode] = useState<'ONLINE' | 'OFFLINE'>('OFFLINE');
-  const [guestInfoNeeded, setGuestInfoNeeded] = useState(false);
-  const [documentUrl, setDocumentUrl] = useState<string | null>(null);
+  // const [guestInfoNeeded, setGuestInfoNeeded] = useState(false);
+  // const [documentUrl, setDocumentUrl] = useState<string | null>(null);
 
 useEffect(() => {
   const fetchRoomDetails = async () => {
@@ -44,37 +44,6 @@ useEffect(() => {
   };
   fetchRoomDetails();
 }, [roomId, hotelId]);
-
-
-  // Fetch room details
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       const [
-  //         roomsResponse, 
-  //         // hotelDetails
-  //       ] = await Promise.all([
-  //         getHotelRoomsByStatus(hotelId as string),
-  //         // AsyncStorage.getItem('@current_hotel_details')
-  //       ]);
-  //       const roomData = roomsResponse.find((r: Room) => r.id === roomId);
-  //       if (roomData) {
-  //         setRoom(roomData);
-  //       }
-  //       // if (hotelDetails) {
-  //       //   const hotelDetailsData = JSON.parse(hotelDetails);
-  //       //   setGuestInfoNeeded(hotelDetailsData.rules.guestInfoNeeded);
-  //       // }
-  //     } catch (error) {
-  //       console.error('Error fetching data:', error);
-  //       setError('Failed to fetch booking details');
-  //     }
-  //   };
-
-  //   fetchData();
-  // }, [roomId, hotelId]);
-
-
 
   const handleCreateBooking = async () => {
     // if (guestInfoNeeded && !documentUrl) {
@@ -125,7 +94,7 @@ useEffect(() => {
       await AsyncStorage.setItem('currentBookingId', response.id);
 
       // Navigate to thank you page
-      navigateTo('/thankyou');
+      router.replace('/thankyou');
     } catch (error) {
       console.error('Error creating booking:', error);
       setError(error instanceof Error ? error.message : 'Failed to create booking');

@@ -20,7 +20,7 @@ export const PushNotificationProvider = ({ children }: { children: React.ReactNo
   useEffect(() => {
     console.log('Is Device:', isDevice);
     if (!isDevice) {
-      Alert.alert('Error', 'Must use a physical device for Push Notifications');
+      // Alert.alert('Error', 'Must use a physical device for Push Notifications');
       return
     }
   }, []);

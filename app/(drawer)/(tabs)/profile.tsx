@@ -18,6 +18,10 @@ export default function ProfileScreen() {
   const { isSignedIn } = useAuth();
 
   useEffect(() => {
+    if (!isSignedIn) {
+      router.replace("/not-authenticated");
+    }
+    
     const loadUserData = async () => {
       const data = await getUserData();
       setUserData(data);
@@ -25,10 +29,7 @@ export default function ProfileScreen() {
     loadUserData();
   }, []);
 
-  if (!isSignedIn) {
-    router.replace("/sign-in");
-    return null;
-  }
+  
 
   const handleViewUserProfile = async () => {
     console.log("userData", userData);
