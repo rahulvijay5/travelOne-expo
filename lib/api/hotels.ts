@@ -59,7 +59,7 @@ export const getHotelBookingsFromStorage = async (
 
     if (data) {
       const parsedData = JSON.parse(data);
-      console.log(`Retrieved data: ${JSON.stringify(parsedData)}`);
+      console.log(`Retrieved data from storage for hotel ID: ${hotelId}`);
 
       // Check if data is older than 7 days
       const sevenDaysAgo = new Date();
@@ -175,7 +175,7 @@ export const getOwnedHotels = async (ownerId: string, token?: string) => {
       headers: getHeaders(token),
     });
 
-    console.log("Response in getOwnedHotels:", res);
+    console.log("Got response in getOwnedHotels");
     if (!res.ok) {
       throw new Error("Failed to get owned hotels");
     }
@@ -200,13 +200,11 @@ export const updateHotelRules = async (
 ) => {
   try {
     console.log("Updating hotel rules for hotelId:", hotelId);
-    console.log("Rules:", rules);
     const response = await fetch(`${API_URL}/api/hotels/${hotelId}/rules`, {
       method: "PUT",
       headers: getHeaders(token),
       body: JSON.stringify(rules),
     });
-    console.log("Response in updateHotelRules:", response);
 
     if (!response.ok) {
       throw new Error("Failed to update hotel rules");

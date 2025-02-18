@@ -55,34 +55,42 @@ const Onboarding = () => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [phoneError, setPhoneError] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const scrollViewRef = useRef(null);
   const [currentFeature, setCurrentFeature] = useState(0);
+  const [isInitialCheck, setIsInitialCheck] = useState(true);
 
   const user = useUser();
   const { getToken } = useAuth();
 
   useEffect(() => {
-    if (!user.isLoaded) return;
+    const initializeUser = async () => {
+      if (!user.isLoaded) return;
 
-    if (!user.user) {
-      router.replace("/(auth)/sign-in");
-      return;
-    }
+      if (!user.user) {
+        router.replace("/(auth)/sign-in");
+        return;
+      }
 
-    // Set initial name from user data
-    if (user.user?.firstName || user.user?.externalAccounts[0]?.firstName) {
-      setName(
-        `${user.user?.firstName || user.user?.externalAccounts[0]?.firstName} ${
-          user.user?.lastName || user.user?.externalAccounts[0]?.lastName || ""
-        }`
-      );
-    }
+      // Set initial name from user data
+      if (user.user?.firstName || user.user?.externalAccounts[0]?.firstName) {
+        setName(
+          `${user.user?.firstName || user.user?.externalAccounts[0]?.firstName} ${
+            user.user?.lastName || user.user?.externalAccounts[0]?.lastName || ""
+          }`
+        );
+      }
 
-    checkOnboardingStatus();
-  }, [user.isLoaded]);
+      if (isInitialCheck) {
+        await checkOnboardingStatus();
+        setIsInitialCheck(false);
+      }
+    };
+
+    initializeUser();
+  }, [user.isLoaded, isInitialCheck]);
 
   // Auto-scroll feature carousel
   useEffect(() => {
@@ -110,67 +118,48 @@ const Onboarding = () => {
   const checkOnboardingStatus = async () => {
     if (!user.user?.id) return;
 
-    setName(user.user.externalAccounts[0].firstName + " " + user.user.externalAccounts[0].lastName);
     try {
       setIsLoading(true);
-
       console.log("Checking onboarding status for clerkId:", user.user.id);
 
       const token = await getToken();
       if (!token) {
         console.error("No auth token available");
-        setIsLoading(false);
         return;
       }
 
       // First check if user exists in DB
-      try {
-        const dbUser = await getUserByClerkId(user.user.id, token);
-        console.log("DB User response:", dbUser);
+      const dbUser = await getUserByClerkId(user.user.id, token);
+      console.log("DB User response:", dbUser);
 
-        // If there's an error or user not found, just continue with onboarding
-        if (dbUser.error === "User not found") {
-          console.log("User not found in DB, continuing with onboarding");
-          setIsLoading(false);
-          return;
-        }
-
-        if (dbUser && dbUser.id) {
-          console.log("User exists in DB, storing data and redirecting");
-          await storeUserData({
-            userId: dbUser.id.toString(),
-            name: dbUser.name,
-            email: dbUser.email,
-            phone: dbUser.phoneNumber,
-            clerkId: dbUser.clerkId,
-            isOnboarded: true,
-            currentStay: {
-              hotelId: dbUser.hotelId,
-              hotelCode: dbUser.hotelCode,
-              hotelName: dbUser.hotelName,
-            },
-            role: dbUser.role,
-          });
-          router.replace("/");
-          return;
-        }
-      } catch (error) {
-        console.log("Error checking user in DB:", error);
-        // Don't throw here, continue checking local storage
+      if (dbUser && !dbUser.error) {
+        console.log("User exists in DB, storing data and redirecting");
+        await storeUserData({
+          userId: dbUser.id.toString(),
+          name: dbUser.name,
+          email: dbUser.email,
+          phone: dbUser.phoneNumber,
+          clerkId: dbUser.clerkId,
+          isOnboarded: true,
+          currentStay: {
+            hotelId: dbUser.hotelId || "",
+            hotelCode: dbUser.hotelCode || "",
+            hotelName: dbUser.hotelName || "",
+          },
+          role: dbUser.role,
+        });
+        router.replace("/");
+        return;
       }
 
       // Then check local storage
-      try {
-        const userData = await getUserData();
-        console.log("Local storage user data:", userData);
+      const userData = await getUserData();
+      console.log("Local storage user data:", userData);
 
-        if (userData?.isOnboarded) {
-          console.log("User is onboarded in local storage, redirecting");
-          router.replace("/");
-          return;
-        }
-      } catch (storageError) {
-        console.error("Error reading from local storage:", storageError);
+      if (userData?.isOnboarded) {
+        console.log("User is onboarded in local storage, redirecting");
+        router.replace("/");
+        return;
       }
 
       // If we get here, user needs to be onboarded

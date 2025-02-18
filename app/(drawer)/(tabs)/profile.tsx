@@ -29,8 +29,6 @@ export default function ProfileScreen() {
     loadUserData();
   }, []);
 
-  
-
   const handleViewUserProfile = async () => {
     console.log("userData", userData);
     navigateTo("/user-profile",{

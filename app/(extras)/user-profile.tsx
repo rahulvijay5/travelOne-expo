@@ -14,7 +14,7 @@ const UserProfile = () => {
   const { userId } = useLocalSearchParams();
   const { getToken } = useAuth();
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
 
@@ -28,7 +28,7 @@ const UserProfile = () => {
           return;
         }
         const profile = await getUserProfile(userId as string, token);
-        console.log("userProfile", profile);
+        console.log("userProfile fetched");
         setUserProfile(profile);
       } catch (error) {
         console.error("Error fetching profile:", error);
@@ -62,15 +62,15 @@ const UserProfile = () => {
         <View className="items-center">
           <View className="w-32 h-32 bg-lime-500 rounded-full items-center justify-center mb-4">
             <Text className="text-4xl text-white font-bold">
-              {userProfile.name[0]}
+              {userProfile?.name[0]}  
             </Text>
           </View>
           <Text className="text-2xl font-bold dark:text-white mb-2">
-            {userProfile.name}
+            {userProfile?.name}
           </Text>
           <View className="bg-lime-200 dark:bg-lime-900 px-4 py-1 rounded-full">
             <Text className="text-lime-800 dark:text-lime-200 font-medium">
-            {userProfile.role === "CUSTOMER" ? "Traveler" : userProfile.role}
+              {userProfile?.role === "CUSTOMER" ? "Traveler" : userProfile?.role}
             </Text>
           </View>
         </View>

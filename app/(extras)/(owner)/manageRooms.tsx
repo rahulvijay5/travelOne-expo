@@ -36,7 +36,7 @@ const manageRooms = () => {
               (a: any, b: any) =>
                 parseInt(a.roomNumber) - parseInt(b.roomNumber)
             );
-            console.log("Loaded rooms:", sortedRooms);
+            console.log("Rooms loaded in manageRooms");
             setRooms(sortedRooms);
           }
         } else {

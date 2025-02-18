@@ -63,7 +63,7 @@ export const updateUserRole = async (
     const error = await handleResponse(res);
     throw new Error(error.message || "Failed to update user role");
   }
-  console.log("res", res);
+
   return handleResponse(res);
 };
 
@@ -155,7 +155,7 @@ export const getManagingHotels = async (managerId: string, token?: string) => {
         method: "GET",
         headers: getHeaders(token),
       });
-      console.log("res", res);
+
       if(res.status === 404) {
         return { error: "User not found" };
       }else if(res.status === 200) {

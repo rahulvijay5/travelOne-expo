@@ -72,7 +72,7 @@ export const processCode = async ({
 
     // If not in cache or force refetch, get from API
     const response = await getHotelByCode(code);
-    console.log("API Response:", response);
+    console.log("Got hotel by code. ");
 
     if (response.status === 200 && response.data) {
       // Store in cache

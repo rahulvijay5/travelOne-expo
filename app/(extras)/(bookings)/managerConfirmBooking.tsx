@@ -1,26 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import { View, ScrollView, TextInput, ActivityIndicator, Pressable } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Text } from '@/components/ui/text';
-import { useLocalSearchParams, router } from 'expo-router';
-import { useUserStorage } from '@/hooks/useUserStorage';
-import { useAuth } from '@clerk/clerk-expo';
-import { ChevronLeft } from 'lucide-react-native';
-import { useTheme } from '@react-navigation/native';
-import { Room } from '@/types';
-import { BookingCreatedBy } from '@/types/booking';
-import { getHotelRoomsByStatus, createBooking } from '@lib/api';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  ScrollView,
+  TextInput,
+  ActivityIndicator,
+  Pressable,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Text } from "@/components/ui/text";
+import { useLocalSearchParams, router } from "expo-router";
+import { useUserStorage } from "@/hooks/useUserStorage";
+import { useAuth } from "@clerk/clerk-expo";
+import { ChevronLeft } from "lucide-react-native";
+import { useTheme } from "@react-navigation/native";
+import { Room } from "@/types";
+import { BookingCreatedBy } from "@/types/booking";
+import { getHotelRoomsByStatus, createBooking } from "@lib/api";
 
 const ManagerConfirmBooking = () => {
-  const { roomId, hotelId, customerId, noOfGuests, checkIn, checkOut, price, extraMattress } = useLocalSearchParams();
+  const {
+    roomId,
+    hotelId,
+    customerId,
+    noOfGuests,
+    checkIn,
+    checkOut,
+    price,
+    extraMattress,
+  } = useLocalSearchParams();
   const { getUserData } = useUserStorage();
   const { colors } = useTheme();
   const { getToken } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [room, setRoom] = useState<Room | null>(null);
-  const [paidAmount, setPaidAmount] = useState('0');
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
+
+  const [paidAmount, setPaidAmount] = useState(
+    JSON.stringify(
+      Math.ceil(
+        (new Date(checkOut as string).getTime() -
+          new Date(checkIn as string).getTime()) /
+          (1000 * 60 * 60 * 24)
+      ) * parseFloat(price as string)
+    )
+  );
+
   // Fetch room details
   useEffect(() => {
     const fetchRoom = async () => {
@@ -31,13 +56,12 @@ const ManagerConfirmBooking = () => {
           setRoom(roomData);
         }
       } catch (error) {
-        console.error('Error fetching room:', error);
-        setError('Failed to fetch room details');
+        console.error("Error fetching room:", error);
+        setError("Failed to fetch room details");
       }
     };
 
     fetchRoom();
-    
   }, [roomId, hotelId]);
 
   const handleCreateBooking = async () => {
@@ -47,13 +71,17 @@ const ManagerConfirmBooking = () => {
       const token = await getToken();
 
       if (!token) {
-        throw new Error('User not authenticated');
+        throw new Error("User not authenticated");
       }
 
       const checkInDate = new Date(checkIn as string);
       const checkOutDate = new Date(checkOut as string);
-      const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
+      const nights = Math.ceil(
+        (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
       const totalAmount = nights * parseFloat(price as string);
+
+      // const [paidAmount, setPaidAmount] = useState(JSON.stringify(totalAmount));
 
       const bookingData = {
         hotelId: hotelId as string,
@@ -67,7 +95,7 @@ const ManagerConfirmBooking = () => {
           totalAmount,
           paidAmount: parseFloat(paidAmount),
           status: "PAID" as const,
-          transactionId: "OFFLINE"
+          transactionId: "OFFLINE",
         },
         createdBy: BookingCreatedBy.MANAGER,
       };
@@ -77,17 +105,18 @@ const ManagerConfirmBooking = () => {
       setError(response.error);
 
       // Save booking data to storage
-      if(!response.error){
+      if (!response.error) {
         setBookingConfirmed(true);
         setTimeout(() => {
           setBookingConfirmed(false);
-          router.replace('/(drawer)/(tabs)/bookings');
+          router.replace("/(drawer)/(tabs)/bookings");
         }, 2000);
       }
-      
     } catch (error) {
-      console.error('Error creating booking:', error);
-      setError(error instanceof Error ? error.message : 'Failed to create booking');
+      console.error("Error creating booking:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to create booking"
+      );
     } finally {
       setLoading(false);
     }
@@ -95,18 +124,22 @@ const ManagerConfirmBooking = () => {
 
   const checkInDate = new Date(checkIn as string);
   const checkOutDate = new Date(checkOut as string);
-  const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
+  const nights = Math.ceil(
+    (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)
+  );
   const totalAmount = nights * parseFloat(price as string);
 
   return (
-    <SafeAreaView className="flex-1">   
+    <SafeAreaView className="flex-1">
       <ScrollView className="flex-1 p-4">
         <View className="flex gap-4">
           <View className="flex-row justify-start items-center">
             <Pressable onPress={() => router.back()}>
               <ChevronLeft size={24} color={colors.text} />
             </Pressable>
-            <Text className="text-2xl font-bold dark:text-white">Confirm Booking</Text>
+            <Text className="text-2xl font-bold dark:text-white">
+              Confirm Booking
+            </Text>
           </View>
 
           {error && (
@@ -117,23 +150,36 @@ const ManagerConfirmBooking = () => {
 
           {bookingConfirmed && (
             <View className="bg-green-100 dark:bg-green-900 p-3 rounded-lg">
-              <Text className="text-green-500 dark:text-green-100">Booking confirmed successfully!</Text>
+              <Text className="text-green-500 dark:text-green-100">
+                Booking confirmed successfully!
+              </Text>
             </View>
           )}
 
           {room && (
             <View className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
               <View className="flex-row justify-between items-center">
-                <Text className="text-xl font-bold dark:text-white">{room.type}</Text>
-                <Text className="text-gray-600 text-xl font-bold dark:text-gray-300">{room.roomNumber}</Text>
+                <Text className="text-xl font-bold dark:text-white">
+                  {room.type}
+                </Text>
+                <Text className="text-gray-600 text-xl font-bold dark:text-gray-300">
+                  {room.roomNumber}
+                </Text>
               </View>
               <View className="flex-row justify-between items-center mt-2">
-                <Text className="text-gray-600 dark:text-gray-300">Max Occupancy: {room.maxOccupancy}</Text>
-                <Text className="text-lg font-semibold dark:text-white">₹{room.price}/night</Text>
+                <Text className="text-gray-600 dark:text-gray-300">
+                  Max Occupancy: {room.maxOccupancy}
+                </Text>
+                <Text className="text-lg font-semibold dark:text-white">
+                  ₹{room.price}/night
+                </Text>
               </View>
               <View className="flex-row flex-wrap mt-2">
-                {room.features.map(feature => (
-                  <View key={feature} className="bg-gray-200 dark:bg-gray-700 rounded-full px-2 py-1 mr-2 mb-2">
+                {room.features.map((feature) => (
+                  <View
+                    key={feature}
+                    className="bg-gray-200 dark:bg-gray-700 rounded-full px-2 py-1 mr-2 mb-2"
+                  >
                     <Text className="text-sm dark:text-white">{feature}</Text>
                   </View>
                 ))}
@@ -142,17 +188,23 @@ const ManagerConfirmBooking = () => {
           )}
 
           <View className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <Text className="text-lg font-bold dark:text-white mb-4">Booking Details</Text>
-            
+            <Text className="text-lg font-bold dark:text-white mb-4">
+              Booking Details
+            </Text>
+
             <View className="space-y-2">
               <View className="flex-row justify-between">
                 <Text className="dark:text-white">Check-in</Text>
-                <Text className="dark:text-white font-semibold">{checkInDate.toLocaleDateString()}</Text>
+                <Text className="dark:text-white font-semibold">
+                  {checkInDate.toLocaleDateString()}
+                </Text>
               </View>
-              
+
               <View className="flex-row justify-between">
                 <Text className="dark:text-white">Check-out</Text>
-                <Text className="dark:text-white font-semibold">{checkOutDate.toLocaleDateString()}</Text>
+                <Text className="dark:text-white font-semibold">
+                  {checkOutDate.toLocaleDateString()}
+                </Text>
               </View>
 
               <View className="flex-row justify-between">
@@ -162,10 +214,12 @@ const ManagerConfirmBooking = () => {
 
               <View className="flex-row justify-between">
                 <Text className="dark:text-white">Guests</Text>
-                <Text className="dark:text-white font-semibold">{noOfGuests}</Text>
+                <Text className="dark:text-white font-semibold">
+                  {noOfGuests}
+                </Text>
               </View>
 
-              {extraMattress==="true" && (
+              {extraMattress === "true" && (
                 <View className="flex-row justify-between">
                   <Text className="dark:text-white">Extra Mattress</Text>
                   <Text className="dark:text-white font-semibold">Yes</Text>
@@ -175,16 +229,20 @@ const ManagerConfirmBooking = () => {
 
               <View className="flex-row justify-between items-center">
                 <Text className="dark:text-white font-bold">Total Amount</Text>
-                <Text className="dark:text-white text-xl font-bold">₹{totalAmount}</Text>
+                <Text className="dark:text-white text-xl font-bold">
+                  ₹{totalAmount}
+                </Text>
               </View>
             </View>
           </View>
 
           <View className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <Text className="text-lg font-bold dark:text-white mb-4">Payment Details</Text>
-            
+            <Text className="text-lg font-bold dark:text-white mb-4">
+              Payment Details
+            </Text>
+
             <View className="space-y-4">
-              <View className='flex items-center justify-between flex-row'>
+              <View className="flex items-center justify-between flex-row">
                 <Text className="dark:text-white mb-2">Amount Paid</Text>
                 <TextInput
                   className="border border-gray-300 dark:border-gray-600 rounded-lg p-3 dark:text-white"
@@ -220,7 +278,9 @@ const ManagerConfirmBooking = () => {
 
           <Pressable
             onPress={handleCreateBooking}
-            className="bg-blue-500 p-4 rounded-lg"
+            className={`bg-blue-500 p-4 rounded-lg ${
+              parseFloat(paidAmount) === 0 ? "opacity-50" : ""
+            }`}
             disabled={loading || parseFloat(paidAmount) === 0}
           >
             {loading ? (
@@ -237,4 +297,4 @@ const ManagerConfirmBooking = () => {
   );
 };
 
-export default ManagerConfirmBooking; 
+export default ManagerConfirmBooking;

@@ -96,7 +96,7 @@ export const getFilteredHotelBookings = async (
 
     // First try to get data from storage
     const storedBookings = await getHotelBookingsFromStorage(hotelId);
-    console.log(`Stored bookings retrieved:`, storedBookings);
+    console.log(`Stored bookings retrieved`);
     let bookingsToReturn = storedBookings || [];
 
     // Construct query parameters for API call
@@ -131,7 +131,7 @@ export const getFilteredHotelBookings = async (
 
     const apiResponse = await handleResponse(res);
     const newBookings = apiResponse.data;
-    console.log(`API response received:`, apiResponse);
+    console.log(`API response received in getFilteredHotelBookings`);
 
     // If we got new data and it's different from stored data
     if (

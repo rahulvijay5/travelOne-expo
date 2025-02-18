@@ -139,8 +139,8 @@ export default function Page() {
           >
             <Feather
               name={showPassword ? "eye-off" : "eye"}
-              size={24}
-              color={isDarkColorScheme ? "#fff" : "#000"}
+              size={20}
+              color={!isDarkColorScheme ? "#fff" : "#000"}
             />
           </Pressable>
         </View>

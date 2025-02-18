@@ -50,12 +50,12 @@ const HotelView = ({
           style={{ width, height: width * 0.7 }}
           className="bg-gray-200"
         />
-        <View className="absolute top-0 right-0 p-3 rounded-bl-lg bg-black/50">
-          <Text className="text-2xl font-bold text-gray-200">
+        <View className="absolute top-0 right-0 p-3" style={{ backgroundColor: "rgba(0, 0, 0, 0.5)", borderBottomLeftRadius: 10 }}>
+          <Text className="text-2xl font-bold text-white">
             {currentHotel.code}
           </Text>
         </View>
-        <View className="absolute bottom-0 left-0 right-0 p-4 bg-black/50">
+        <View className="absolute bottom-0 left-0 right-0 p-4" style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
           <Text className="text-2xl font-bold text-white">
             {currentHotel.hotelName}
           </Text>
@@ -156,14 +156,14 @@ const HotelView = ({
                 </View>
               )}
               {currentHotel?.rules?.parking && (
-                <View className="bg-blue-100 dark:bg-blue-900 px-3 py-1 rounded-full">
+                <View className="px-3 py-1 rounded-full" style={{ backgroundColor: "rgba(0, 0, 100, 0.1)" }}>
                   <Text className="text-blue-800 dark:text-blue-100">
                     Parking Available
                   </Text>
                 </View>
               )}
               {currentHotel?.rules?.swimmingPool && (
-                <View className="bg-cyan-100 dark:bg-cyan-900 px-3 py-1 rounded-full">
+                <View className="px-3 py-1 rounded-full" style={{ backgroundColor: "rgba(0, 100, 100, 0.1)" }}>
                   <Text className="text-cyan-800 dark:text-cyan-100">
                     Swimming Pool
                   </Text>
@@ -212,7 +212,7 @@ const HotelView = ({
           <Text className="text-lg font-bold mb-2 dark:text-white text-black">
             Hotel Managers
           </Text>
-          <View className="flex-row flex-wrap">
+          <View className="flex-row flex-wrap gap-1">
             {currentHotel.managers.map((manager, index) => (
               <View
                 key={index}

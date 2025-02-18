@@ -130,7 +130,7 @@ export default function BookingManagementView({
               (a: any, b: any) =>
                 parseInt(a.roomNumber) - parseInt(b.roomNumber)
         );
-            console.log("Loaded rooms:", sortedRooms);
+            console.log("Loaded sorted rooms in BookingManagementView");
             setRooms(sortedRooms);
           }
       }

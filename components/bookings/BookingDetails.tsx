@@ -31,7 +31,7 @@ export default function BookingDetails({
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const [paidAmount, setPaidAmount] = useState(
-    booking.payment.paidAmount.toString()
+    booking.payment.totalAmount.toString()
   );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

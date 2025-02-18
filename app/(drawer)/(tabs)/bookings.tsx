@@ -76,29 +76,30 @@ const Bookings = () => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const theme = useTheme();
   const [currentHotelId, setCurrentHotelId] = useState<string | null>(null);
+  
+  const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
+  
+  const [showFilters, setShowFilters] = useState(false);
+  
+  // Add state for modal and selected booking
+  const [selectedBooking, setSelectedBooking] =
+  useState<BookingDataInDb | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  
+  const [hotelDetails, setHotelDetails] = useState<any>(null);
+  
+  const [searchInitiated, setSearchInitiated] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [priceRange, setPriceRange] = useState<{ min: number; max: number } | null>(null);
+
   const [filters, setFilters] = useState({
     type: "",
     maxOccupancy: "2",
     features: [] as string[],
     checkIn: new Date(),
-    checkOut: new Date(Date.now() + 86400000), // Tomorrow
+    checkOut: new Date(Date.now() + 86400000),
   });
-
-  const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
-
-  const [showFilters, setShowFilters] = useState(false);
-
-  // Add state for modal and selected booking
-  const [selectedBooking, setSelectedBooking] =
-    useState<BookingDataInDb | null>(null);
-  const [showModal, setShowModal] = useState(false);
-
-  const [hotelDetails, setHotelDetails] = useState<any>(null);
-
-  const [searchInitiated, setSearchInitiated] = useState(false);
-  const [searchError, setSearchError] = useState<string | null>(null);
-  const [priceRange, setPriceRange] = useState<{ min: number; max: number } | null>(null);
-
+  
   // Fetch user data and initialize
   useEffect(() => {
     const initialize = async () => {
@@ -119,10 +120,14 @@ const Bookings = () => {
                 parsedHotel.rules.checkInTime,
                 parsedHotel
               );
+              const adjustedCheckOutTime = getAdjustedCheckOutTime(
+                addDays(adjustedCheckIn, 1),
+                parsedHotel.rules.checkOutTime
+              );
               setFilters(prev => ({
                 ...prev,
                 checkIn: adjustedCheckIn,
-                checkOut: addDays(adjustedCheckIn, 1)
+                checkOut: adjustedCheckOutTime
               }));
             }
           }
