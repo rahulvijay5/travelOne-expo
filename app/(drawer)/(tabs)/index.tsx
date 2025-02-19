@@ -8,11 +8,11 @@ import { HotelDetails } from '@/types';
 import { useAuth } from '@clerk/clerk-expo';
 import { getHotelById, getHotelRooms } from "@lib/api";
 import HotelView from '@/components/HotelView';
+import { useHotelStore } from '@/lib/store/hotelStore';
 
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
-  const [currentHotel, setCurrentHotel] = useState<HotelDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { isDarkColorScheme } = useColorScheme();
@@ -20,6 +20,7 @@ export default function HomeScreen() {
   const [UserIsManager, setUserIsManager] = useState(false);
   const { getToken } = useAuth();
   const params = useLocalSearchParams();
+  const { currentHotel, setCurrentHotel } = useHotelStore();
 
   useEffect(() => {
     loadCurrentHotel();
@@ -72,7 +73,6 @@ export default function HomeScreen() {
               }
             }
 
-            await AsyncStorage.setItem('@current_hotel_details', JSON.stringify(hotelDetails));
             await storeUserData({
               currentStay: {
                 hotelId: hotelDetails.id,
@@ -114,7 +114,6 @@ export default function HomeScreen() {
           if (token) {
             const completeHotelDetails = await getHotelById(parsedHotel.id, token);
             if (completeHotelDetails) {
-              await AsyncStorage.setItem('@current_hotel_details', JSON.stringify(completeHotelDetails));
               setCurrentHotel(completeHotelDetails);
               return;
             }
@@ -126,7 +125,6 @@ export default function HomeScreen() {
         console.error('Error parsing hotel data:', parseError);
         setError('Invalid hotel data. Please scan the QR code again.');
         await storeUserData({ currentStay: undefined });
-        await AsyncStorage.removeItem('@current_hotel_details');
       }
     } catch (error) {
       console.error('Error loading hotel details:', error);
@@ -156,20 +154,9 @@ export default function HomeScreen() {
     );
   }
 
-  if (!currentHotel) {
-    return (
-      <View className="flex-1 items-center justify-center p-4 gap-20">
-        <Pressable onPress={() => router.push('/scanqr')} className="dark:bg-lime-500 flex items-center justify-center bg-lime-300 h-56 w-56 rounded-full shadow-md shadow-black/50">
-          <Text className="text-2xl font-bold">Scan QR Code</Text>
-        </Pressable>
-        <Text className="text-xl text-center px-6 dark:text-white text-black mb-4">
-          Seems like you don't have an active hotel stay. Scan a QR code to start your stay.
-        </Text>
-      </View>
-    );
-  }
-
   return (
-    <HotelView currentHotel={currentHotel} UserIsManager={UserIsManager} />
+    <View className="flex-1">
+      <HotelView currentHotel={currentHotel} UserIsManager={UserIsManager} />
+    </View>
   );
 }

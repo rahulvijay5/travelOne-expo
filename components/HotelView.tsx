@@ -7,12 +7,16 @@ import {
   Linking,
 } from "react-native";
 import { Text } from "@/components/ui/text";
-import React from "react";
+import React, { useRef, useCallback } from "react";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { router } from "expo-router";
 import { Nullable, HotelDetails } from "@/types";
 import { formatTimeFromMinutes } from "@/lib/utils";
-import { Ionicons } from "@expo/vector-icons";
+import { AntDesign, Feather, Ionicons } from "@expo/vector-icons";
+import HotelAnalytics from "@/components/analytics/HotelAnalytics";
+import BottomSheet, { BottomSheetBackdrop } from "@gorhom/bottom-sheet";
+import QRCodeBottomSheet from "@/components/QRCodeBottomSheet";
+import { APP_URL } from "@/lib/config/index";
 
 const HotelView = ({
   currentHotel,
@@ -21,8 +25,23 @@ const HotelView = ({
   currentHotel: Nullable<HotelDetails>;
   UserIsManager: boolean;
 }) => {
-  const isDarkColorScheme = useColorScheme();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
   const width = Dimensions.get("window").width;
+  const bottomSheetRef = useRef<BottomSheet>(null);
+
+  const handleOpenQRCode = useCallback(() => {
+    console.log("open qr code");
+    if (bottomSheetRef.current) {
+      bottomSheetRef.current.expand();
+    }
+  }, []);
+
+  const handleCloseQRCode = useCallback(() => {
+    if (bottomSheetRef.current) {
+      bottomSheetRef.current.close();
+    }
+  }, []);
 
   if (!currentHotel) {
     return (
@@ -41,6 +60,50 @@ const HotelView = ({
     );
   }
 
+  if (UserIsManager) {
+    return (
+      <View className="flex-1 bg-white dark:bg-black">
+        <View className="flex-1">
+          {/* Manager Header */}
+          {/* <View className="flex justify-between gap-2 items-center flex-row p-4">
+            <View className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-3">
+              <Text className="text-2xl font-bold dark:text-white">
+                {currentHotel.hotelName}
+              </Text>
+              <Text className="text-gray-500 dark:text-gray-400 mt-1">
+                Hotel Code: {currentHotel.code}
+              </Text>
+            </View>
+            <Pressable
+              onPress={() => {
+                if (bottomSheetRef.current) {
+                  bottomSheetRef.current.snapToIndex(0);
+                }
+              }}
+              className="bg-white dark:bg-gray-800 p-3 rounded-xl shadow-sm"
+            >
+              <AntDesign
+                name="qrcode"
+                size={32}
+                color={isDark ? "#9ca3af" : "#4b5563"}
+              />
+            </Pressable>
+          </View> */}
+
+          {/* Analytics Section */}
+          <HotelAnalytics hotelId={currentHotel.id} />
+        </View>
+
+        {/* QR Code Bottom Sheet */}
+        <QRCodeBottomSheet
+          bottomSheetRef={bottomSheetRef}
+          appUrl={APP_URL || "https://travelone.app"}
+          onClose={handleCloseQRCode}
+        />
+      </View>
+    );
+  }
+
   return (
     <ScrollView className="flex-1 bg-white dark:bg-black">
       {/* Hero Section */}
@@ -50,12 +113,21 @@ const HotelView = ({
           style={{ width, height: width * 0.7 }}
           className="bg-gray-200"
         />
-        <View className="absolute top-0 right-0 p-3" style={{ backgroundColor: "rgba(0, 0, 0, 0.5)", borderBottomLeftRadius: 10 }}>
+        <View
+          className="absolute top-0 right-0 p-3"
+          style={{
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            borderBottomLeftRadius: 10,
+          }}
+        >
           <Text className="text-2xl font-bold text-white">
             {currentHotel.code}
           </Text>
         </View>
-        <View className="absolute bottom-0 left-0 right-0 p-4" style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
+        <View
+          className="absolute bottom-0 left-0 right-0 p-4"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+        >
           <Text className="text-2xl font-bold text-white">
             {currentHotel.hotelName}
           </Text>
@@ -64,7 +136,7 @@ const HotelView = ({
       </View>
 
       {/* Hotel Details */}
-      <View className="p-4 flex gap-4">
+      <View className="p-2 flex gap-4">
         {/* Description */}
         <View className="space-y-2">
           <Text className="text-lg font-bold dark:text-white text-black">
@@ -75,7 +147,6 @@ const HotelView = ({
           </Text>
         </View>
 
-        {/* Amenities */}
         <View>
           <Text className="text-lg font-bold mb-2 dark:text-white text-black">
             Amenities
@@ -100,7 +171,7 @@ const HotelView = ({
             className="dark:bg-lime-500 bg-lime-300 w-full rounded-2xl shadow-sm py-4 px-2 shadow-black/50"
           >
             <Text className="text-2xl text-center font-bold">
-              {UserIsManager ? "Manage Bookings" : "Book a Room Now"}
+              Book a Room Now
             </Text>
           </Pressable>
         </View>
@@ -114,8 +185,8 @@ const HotelView = ({
             <View className="flex-row justify-between items-center">
               <Text className="text-gray-600 dark:text-gray-300">Check-in</Text>
               <Text className="text-gray-800 dark:text-gray-100 font-medium">
-                {(currentHotel?.rules?.checkInTime &&
-                !isNaN(currentHotel.rules.checkInTime))
+                {currentHotel?.rules?.checkInTime &&
+                !isNaN(currentHotel.rules.checkInTime)
                   ? formatTimeFromMinutes(currentHotel.rules.checkInTime)
                   : "Not set"}
               </Text>
@@ -125,8 +196,8 @@ const HotelView = ({
                 Check-out
               </Text>
               <Text className="text-gray-800 dark:text-gray-100 font-medium">
-                {(currentHotel?.rules?.checkOutTime &&
-                !isNaN(currentHotel.rules.checkOutTime))
+                {currentHotel?.rules?.checkOutTime &&
+                !isNaN(currentHotel.rules.checkOutTime)
                   ? formatTimeFromMinutes(currentHotel.rules.checkOutTime)
                   : "Not set"}
               </Text>
@@ -156,14 +227,20 @@ const HotelView = ({
                 </View>
               )}
               {currentHotel?.rules?.parking && (
-                <View className="px-3 py-1 rounded-full" style={{ backgroundColor: "rgba(0, 0, 100, 0.1)" }}>
+                <View
+                  className="px-3 py-1 rounded-full"
+                  style={{ backgroundColor: "rgba(0, 0, 100, 0.1)" }}
+                >
                   <Text className="text-blue-800 dark:text-blue-100">
                     Parking Available
                   </Text>
                 </View>
               )}
               {currentHotel?.rules?.swimmingPool && (
-                <View className="px-3 py-1 rounded-full" style={{ backgroundColor: "rgba(0, 100, 100, 0.1)" }}>
+                <View
+                  className="px-3 py-1 rounded-full"
+                  style={{ backgroundColor: "rgba(0, 100, 100, 0.1)" }}
+                >
                   <Text className="text-cyan-800 dark:text-cyan-100">
                     Swimming Pool
                   </Text>
@@ -188,7 +265,7 @@ const HotelView = ({
               <Ionicons
                 name="call"
                 size={20}
-                color={isDarkColorScheme ? "#9ca3af" : "#4b5563"}
+                color={isDark ? "#9ca3af" : "#4b5563"}
               />
               <Text className="text-gray-600 dark:text-gray-300 ml-2">
                 {currentHotel?.contactNumber}
@@ -198,7 +275,7 @@ const HotelView = ({
               <Ionicons
                 name="location"
                 size={20}
-                color={isDarkColorScheme ? "#9ca3af" : "#4b5563"}
+                color={isDark ? "#9ca3af" : "#4b5563"}
               />
               <Text className="text-gray-600 dark:text-gray-300 ml-2">
                 {currentHotel?.address}
@@ -221,7 +298,7 @@ const HotelView = ({
                 <Ionicons
                   name="person"
                   size={16}
-                  color={isDarkColorScheme ? "#9ca3af" : "#4b5563"}
+                  color={isDark ? "#9ca3af" : "#4b5563"}
                 />
                 <Text className="text-gray-800 dark:text-gray-200 ml-2">
                   {manager.name}
