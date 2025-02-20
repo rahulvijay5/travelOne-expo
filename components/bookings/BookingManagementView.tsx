@@ -4,6 +4,7 @@ import {
   ScrollView,
   Pressable,
   StyleSheet,
+  ActivityIndicator,
 } from "react-native";
 import {
   format,
@@ -182,7 +183,7 @@ export default function BookingManagementView({
   };
 
   const renderDateNavigation = () => (
-    <View className="flex-row items-center justify-between flex-grow">
+    <View className="flex-row items-center justify-between flex-grow ">
       <Pressable
         onPress={() => handleDateChange(-7)}
         className="bg-gray-200 dark:bg-gray-700 p-2 rounded-full"
@@ -266,8 +267,14 @@ export default function BookingManagementView({
                     Room {room.roomNumber}
                   </Text>
                 </View>
-                {days.map((day) => {
-                  const bookingsForDay = filteredBookings.filter((booking) => {
+
+                {loading ? (    
+                  <View className="justify-center items-start">
+                    <ActivityIndicator size="large" color={isDark ? "white" : "black"} />
+                  </View>
+                ) : (
+                  days.map((day) => {
+                    const bookingsForDay = filteredBookings.filter((booking) => {
                     const bookingStart = parseISO(booking.checkIn);
                     const bookingEnd = parseISO(booking.checkOut);
                     const dayStart = startOfDay(day);
@@ -313,7 +320,10 @@ export default function BookingManagementView({
                       })}
                     </View>
                   );
-                })}
+                })
+              )
+            }
+              
               </View>
             ))}
           </View>
@@ -342,16 +352,8 @@ export default function BookingManagementView({
       </View>
     );
 
-  if (loading) {
-    return (
-      <View className="flex-1 justify-center items-center">
-        <Text className="dark:text-white">Loading...</Text>
-      </View>
-    );
-  }
-
   return (
-    <View className="flex-1 bg-white dark:bg-gray-900">
+    <View className="flex-1">
       <View className="py-4 flex-row items-center justify-between px-4">
       {renderDateNavigation()}
       </View>
@@ -383,20 +385,21 @@ function getStatusColor(status: BookingStatus): string {
 const styles = StyleSheet.create({
   gridContainer: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    borderTopWidth: 1,
+    borderTopColor: "#e5e7eb",
   },
   gridContainerDark: {
-    backgroundColor: "#1f2937",
+    borderTopColor: "#374151",
   },
   headerRow: {
     flexDirection: "row",
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
-    backgroundColor: "#f9fafb",
+
   },
   headerRowDark: {
     borderBottomColor: "#374151",
-    backgroundColor: "#111827",
+
   },
   roomHeader: {
     width: ROOM_COLUMN_WIDTH,
@@ -453,11 +456,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderRightWidth: 1,
     borderRightColor: "#e5e7eb",
-    backgroundColor: "#f9fafb",
+
   },
   roomCellDark: {
     borderRightColor: "#374151",
-    backgroundColor: "#111827",
+
   },
   roomText: {
     fontSize: 14,
@@ -490,10 +493,10 @@ const styles = StyleSheet.create({
   },
   dropdown: {
     borderColor: "#d1d5db",
-    backgroundColor: "#ffffff",
+
   },
   dropdownContainer: {
     borderColor: "#d1d5db",
-    backgroundColor: "#ffffff",
+
   },
 });

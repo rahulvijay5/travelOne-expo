@@ -21,6 +21,7 @@ import { PortalHost } from "@rn-primitives/portal";
 import { setAndroidNavigationBar } from "@/lib/android-navigation-bar";
 import { PushNotificationProvider } from "@/components/context/PushNotificationContext";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { Toaster } from "react-native-customizable-toast";
 
 const LIGHT_THEME: Theme = {
   ...DefaultTheme,

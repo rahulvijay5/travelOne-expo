@@ -6,7 +6,7 @@ import { router } from "expo-router";
 import { Button } from "../ui/button";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LogOutIcon } from "lucide-react-native";
-
+import { useHotelStore } from "@/lib/store/hotelStore";
 const SignOutButton = ({
   isLogoButton = false,
 }: {
@@ -16,11 +16,11 @@ const SignOutButton = ({
   const { clearUserData } = useUserStorage();
   const colorScheme  = useColorScheme();
   const isColorSchemeDark = colorScheme === "dark";
-
+  const { clearCurrentHotel } = useHotelStore();
   const handleSignOut = async () => {
     try {
       await clearUserData();
-      await AsyncStorage.removeItem("@current_hotel_details");
+      await clearCurrentHotel();
       await signOut(); // Sign out from Clerk
       router.replace("/(auth)/sign-in");
     } catch (error) {

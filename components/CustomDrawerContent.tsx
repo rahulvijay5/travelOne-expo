@@ -1,23 +1,22 @@
 import React from "react";
-import { DrawerContentComponentProps } from "@react-navigation/drawer";
-import { DrawerContentScrollView } from "@react-navigation/drawer";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { View, Image, Pressable, ActivityIndicator, Share } from "react-native";
-import { SignedIn, SignedOut, useAuth, useClerk } from "@clerk/clerk-expo";
-
-import { getOwnedHotels } from "@lib/api";
-import { Text } from "@/components/ui/text";
-import { HotelData } from "@/lib/constants";
 import Feather from "@expo/vector-icons/Feather";
+import { SignedIn, SignedOut, useAuth } from "@clerk/clerk-expo";
+import { DrawerContentScrollView } from "@react-navigation/drawer";
+import { DrawerContentComponentProps } from "@react-navigation/drawer";
+import { View, Image, Pressable, ActivityIndicator, Share } from "react-native";
+
+import SignIn from "@/app/(auth)/sign-in";
+import { HotelData } from "@/lib/constants";
+import { Text } from "@/components/ui/text";
+import { APP_URL } from "@/lib/config/index";
 import { Separator } from "@/components/ui/separator";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useUserStorage } from "@/hooks/useUserStorage";
 import SignOutButton from "@/components/auth/SignOutButton";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { APP_URL } from "@/lib/config/index";
-import SignIn from "@/app/(auth)/sign-in";
 
 export default function CustomDrawerContent(
   props: DrawerContentComponentProps

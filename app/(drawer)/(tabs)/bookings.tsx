@@ -285,7 +285,7 @@ const Bookings = () => {
   // For owners/managers
   if (userRole === "OWNER" || userRole === "MANAGER") {
     return currentHotelId ? (
-      <View className="flex-1">
+      <View className="flex-1 ">
         <View className="p-4">
           <View className="flex flex-row gap-2 w-full justify-between items-center">
             <Text className="text-2xl font-bold dark:text-white">Bookings</Text>

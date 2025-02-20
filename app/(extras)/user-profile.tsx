@@ -56,7 +56,7 @@ const UserProfile = () => {
   }
 
   return (
-    <ScrollView className="flex-1 bg-white dark:bg-gray-900">
+    <ScrollView className="flex-1 ">
       {/* Header Section */}
       <View className="p-6 bg-lime-100 dark:bg-lime-950">
         <View className="items-center">

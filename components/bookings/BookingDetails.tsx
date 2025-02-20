@@ -6,6 +6,8 @@ import {
   Alert,
   ActivityIndicator,
   Pressable,
+  Platform,
+  ToastAndroid,
 } from "react-native";
 import { Text } from "@/components/ui/text";
 import { format } from "date-fns";
@@ -74,11 +76,19 @@ export default function BookingDetails({
       );
 
       if (response?.status === 200) {
+        Platform.OS === "ios" ? 
         Alert.alert(
           "Success",
           `Booking ${
             newStatus === "PAID" ? "confirmed" : "cancelled"
           } successfully`
+        ) : (
+          ToastAndroid.show(
+            `Booking ${
+              newStatus === "PAID" ? "confirmed" : "cancelled"
+            } successfully`,
+            ToastAndroid.SHORT
+          )
         );
         onBookingUpdated();
         router.push('/bookings');
@@ -102,7 +112,7 @@ export default function BookingDetails({
   }
 
   return (
-    <ScrollView className="flex-1 bg-white dark:bg-gray-900 p-4">
+    <ScrollView className="flex-1  p-4">
       {/* Booking Header */}
       <View className="flex-row justify-between items-center mb-4">
         <Text className="text-xl font-bold dark:text-white">

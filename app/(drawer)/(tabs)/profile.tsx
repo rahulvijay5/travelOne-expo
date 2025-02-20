@@ -150,7 +150,7 @@ export default function ProfileScreen() {
               View Onboarding
             </Text>
           </Pressable> */}
-          <View className="flex-row gap-2">
+          <View className="flex-row flex-wrap  gap-2 mb-6">
             <Pressable
               className="flex-row items-center flex-grow justify-start py-4 pl-4 bg-lime-100 dark:bg-lime-950 rounded-xl"
               onPress={() => router.push("/terms")}

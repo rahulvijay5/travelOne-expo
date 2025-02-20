@@ -23,8 +23,8 @@ export default function BookingModal({ booking, visible, onClose }: BookingModal
 
   const handleOverlayPress = (e: any) => {
     if (e.target === e.currentTarget) {
-      onClose();
-    }
+          onClose();
+        }
   };
 
   return (
@@ -36,96 +36,96 @@ export default function BookingModal({ booking, visible, onClose }: BookingModal
     >
       <View style={styles.overlay}>
         <View style={[styles.modalContainer, isDark && styles.modalContainerDark]}>
-          <View style={styles.header}>
-            <Text style={[styles.title, isDark && styles.titleDark]}>Booking Details</Text>
+      <View style={styles.header}>
+        <Text style={[styles.title, isDark && styles.titleDark]}>Booking Details</Text>
             <Pressable onPress={onClose} style={styles.closeButton} hitSlop={8}>
-              <X size={24} color={isDark ? 'white' : 'black'} />
-            </Pressable>
-          </View>
+          <X size={24} color={isDark ? 'white' : 'black'} />
+        </Pressable>
+      </View>
 
           <ScrollView 
-            style={styles.scrollViewStyle}
-            contentContainerStyle={styles.scrollView}
-            showsVerticalScrollIndicator={true}
-            bounces={true}
+        style={styles.scrollViewStyle}
+        contentContainerStyle={styles.scrollView}
+        showsVerticalScrollIndicator={true}
+        bounces={true}
             overScrollMode="always"
             scrollEventThrottle={16}
-          >
-            <View style={[styles.section, isDark && styles.sectionDark]}>
-              <View style={styles.customerInfo}>
-                <View style={styles.avatarContainer}>
-                  <Text style={styles.avatarText}>{booking.customer.name[0]}</Text>
-                </View>
-                <View>
-                  <Text style={[styles.customerName, isDark && styles.customerNameDark]}>{booking.customer.name}</Text>
-                  <Text style={[styles.customerPhone, isDark && styles.customerPhoneDark]}>{booking.customer.phoneNumber}</Text>
-                </View>
-              </View>
-              <Text style={[styles.customerEmail, isDark && styles.customerEmailDark]}>{booking.customer.email}</Text>
-              <Text style={[styles.guestText, isDark && styles.guestTextDark]}>Guests: {booking.guests}</Text>
+      >
+        <View style={[styles.section, isDark && styles.sectionDark]}>
+          <View style={styles.customerInfo}>
+            <View style={styles.avatarContainer}>
+              <Text style={styles.avatarText}>{booking.customer.name[0]}</Text>
             </View>
-
-            <View style={[styles.section, isDark && styles.sectionDark]}>
-              <Text style={[styles.sectionTitle, isDark && styles.sectionTitleDark]}>Stay Details</Text>
-              <View style={styles.detailsRow}>
-                <Text style={[styles.detailsLabel, isDark && styles.detailsLabelDark]}>Check In</Text>
-                <Text style={[styles.detailsValue, isDark && styles.detailsValueDark]}>
-                  {format(parseISO(booking.checkIn), 'd MMM, HH:mm a')}
-                </Text>
-              </View>
-              <View style={styles.detailsRow}>
-                <Text style={[styles.detailsLabel, isDark && styles.detailsLabelDark]}>Check Out</Text>
-                <Text style={[styles.detailsValue, isDark && styles.detailsValueDark]}>
-                  {format(parseISO(booking.checkOut), 'd MMM, HH:mm a')}
-                </Text>
-              </View>
-              <View style={styles.detailsRow}>
-                <Text style={[styles.detailsLabel, isDark && styles.detailsLabelDark]}>Room</Text>
-                <Text style={[styles.detailsValue, isDark && styles.detailsValueDark]}>
-                  {booking.room.roomNumber} ({booking.room.type})
-                </Text>
-              </View>
-              <View style={styles.detailsRow}>
-                <Text style={[styles.detailsLabel, isDark && styles.detailsLabelDark]}>Status</Text>
-                <Text style={[styles.detailsValue, { color: getStatusColor(booking.status) }]}>
-                  {booking.status}
-                </Text>
-              </View>
+            <View>
+              <Text style={[styles.customerName, isDark && styles.customerNameDark]}>{booking.customer.name}</Text>
+              <Text style={[styles.customerPhone, isDark && styles.customerPhoneDark]}>{booking.customer.phoneNumber}</Text>
             </View>
+          </View>
+          <Text style={[styles.customerEmail, isDark && styles.customerEmailDark]}>{booking.customer.email}</Text>
+          <Text style={[styles.guestText, isDark && styles.guestTextDark]}>Guests: {booking.guests}</Text>
+        </View>
 
-            <View style={[styles.section, isDark && styles.sectionDark]}>
-              <Text style={[styles.sectionTitle, isDark && styles.sectionTitleDark]}>Payment Details</Text>
-              <View style={styles.detailsRow}>
-                <Text style={[styles.detailsLabel, isDark && styles.detailsLabelDark]}>Total Amount</Text>
-                <Text style={[styles.detailsValue, isDark && styles.detailsValueDark]}>₹{booking.payment.totalAmount}</Text>
-              </View>
-              <View style={styles.detailsRow}>
-                <Text style={[styles.detailsLabel, isDark && styles.detailsLabelDark]}>Paid Amount</Text>
-                <Text style={[styles.detailsValue, isDark && styles.detailsValueDark]}>₹{booking.payment.paidAmount}</Text>
-              </View>
-              <View style={styles.detailsRow}>
-                <Text style={[styles.detailsLabel, isDark && styles.detailsLabelDark]}>Status</Text>
-                <Text style={[styles.detailsValue, { color: getPaymentStatusColor(booking.payment.status) }]}>
-                  {booking.payment.status}
-                </Text>
-              </View>
-              {booking.payment.transactionId && (
-                <View style={styles.detailsRow}>
-                  <Text style={[styles.detailsLabel, isDark && styles.detailsLabelDark]}>Transaction ID</Text>
-                  <Text style={[styles.detailsValue, isDark && styles.detailsValueDark]}>{booking.payment.transactionId}</Text>
-                </View>
-              )}
+        <View style={[styles.section, isDark && styles.sectionDark]}>
+          <Text style={[styles.sectionTitle, isDark && styles.sectionTitleDark]}>Stay Details</Text>
+          <View style={styles.detailsRow}>
+            <Text style={[styles.detailsLabel, isDark && styles.detailsLabelDark]}>Check In</Text>
+            <Text style={[styles.detailsValue, isDark && styles.detailsValueDark]}>
+                {format(parseISO(booking.checkIn), 'd MMM, HH:mm a')}
+              </Text>
             </View>
+          <View style={styles.detailsRow}>
+            <Text style={[styles.detailsLabel, isDark && styles.detailsLabelDark]}>Check Out</Text>
+            <Text style={[styles.detailsValue, isDark && styles.detailsValueDark]}>
+                {format(parseISO(booking.checkOut), 'd MMM, HH:mm a')}
+              </Text>
+            </View>
+          <View style={styles.detailsRow}>
+            <Text style={[styles.detailsLabel, isDark && styles.detailsLabelDark]}>Room</Text>
+            <Text style={[styles.detailsValue, isDark && styles.detailsValueDark]}>
+                {booking.room.roomNumber} ({booking.room.type})
+              </Text>
+            </View>
+          <View style={styles.detailsRow}>
+            <Text style={[styles.detailsLabel, isDark && styles.detailsLabelDark]}>Status</Text>
+            <Text style={[styles.detailsValue, { color: getStatusColor(booking.status) }]}>
+                {booking.status}
+              </Text>
+            </View>
+          </View>
 
-            <Pressable 
-              onPress={() => {
+        <View style={[styles.section, isDark && styles.sectionDark]}>
+          <Text style={[styles.sectionTitle, isDark && styles.sectionTitleDark]}>Payment Details</Text>
+          <View style={styles.detailsRow}>
+            <Text style={[styles.detailsLabel, isDark && styles.detailsLabelDark]}>Total Amount</Text>
+            <Text style={[styles.detailsValue, isDark && styles.detailsValueDark]}>₹{booking.payment.totalAmount}</Text>
+            </View>
+          <View style={styles.detailsRow}>
+            <Text style={[styles.detailsLabel, isDark && styles.detailsLabelDark]}>Paid Amount</Text>
+            <Text style={[styles.detailsValue, isDark && styles.detailsValueDark]}>₹{booking.payment.paidAmount}</Text>
+            </View>
+          <View style={styles.detailsRow}>
+            <Text style={[styles.detailsLabel, isDark && styles.detailsLabelDark]}>Status</Text>
+            <Text style={[styles.detailsValue, { color: getPaymentStatusColor(booking.payment.status) }]}>
+                {booking.payment.status}
+              </Text>
+            </View>
+            {booking.payment.transactionId && (
+            <View style={styles.detailsRow}>
+              <Text style={[styles.detailsLabel, isDark && styles.detailsLabelDark]}>Transaction ID</Text>
+              <Text style={[styles.detailsValue, isDark && styles.detailsValueDark]}>{booking.payment.transactionId}</Text>
+              </View>
+            )}
+          </View>
+
+        <Pressable 
+          onPress={() => {
                 onClose();
-                router.push(`/bookings/${booking.id}`);
-              }} 
-              style={styles.viewDetailsButton}
-            >
-              <Text style={styles.viewDetailsText}>View Full Details</Text>
-            </Pressable>
+            router.push(`/bookings/${booking.id}`);
+          }} 
+          style={styles.viewDetailsButton}
+        >
+          <Text style={styles.viewDetailsText}>View Full Details</Text>
+        </Pressable>
           </ScrollView>
         </View>
       </View>

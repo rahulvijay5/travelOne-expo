@@ -8,32 +8,21 @@ import {
   Dimensions,
 } from "react-native";
 import { Text } from "@/components/ui/text";
-import { getAnalytics, getOccupancyData } from "@lib/api/analytics";
+import { getAnalytics } from "@lib/api/analytics";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@clerk/clerk-expo";
-import { AnalyticsResponse, OccupancyData } from "@/lib/types/analytics";
-import {
-  format,
-  subDays,
-  formatDistanceToNow,
-  startOfMonth,
-  startOfWeek,
-  endOfWeek,
-  addDays,
-} from "date-fns";
-import {
-  Ionicons,
-  MaterialCommunityIcons,
-  FontAwesome5,
-} from "@expo/vector-icons";
+import { AnalyticsResponse, Timeframe } from "@/lib/types/analytics";
+import { formatDistanceToNow } from "date-fns";
+import { Ionicons, FontAwesome5, MaterialIcons } from "@expo/vector-icons";
 import { useColorScheme } from "@/lib/useColorScheme";
 import Svg, { Circle } from "react-native-svg";
 
 const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
+const UI_UPDATE_INTERVAL = 30 * 1000; // 30 seconds for UI updates
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_WIDTH = (SCREEN_WIDTH - 40) / 2; // 40 is total horizontal padding
 
-type DateRange = "month" | "week" | "today" | "tomorrow";
+type DateRange = Timeframe;
 
 const CircularProgress = ({
   isLoading,
@@ -85,22 +74,22 @@ const CircularProgress = ({
               r={radius}
               stroke={color}
               strokeWidth={strokeWidth}
-            strokeDasharray={circumference}
-            strokeDashoffset={strokeDashoffset}
-            strokeLinecap="round"
-            fill="none"
-            transform={`rotate(-90 ${size / 2} ${size / 2})`}
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              fill="none"
+              transform={`rotate(-90 ${size / 2} ${size / 2})`}
             />
           )}
         </Svg>
         <View className="absolute inset-0 items-center justify-center">
           {isLoading ? (
-            <Text className="text-sm font-light text-muted-foreground dark:text-white">
-              Loading...
-            </Text>
+            <ActivityIndicator size="small" color={color} />
           ) : (
             <>
-              <Text className="text-2xl font-bold dark:text-white">{value}</Text>
+              <Text className="text-2xl font-bold dark:text-white">
+                {value}
+              </Text>
               <Text className="text-sm text-gray-500 dark:text-gray-400">
                 {label}
               </Text>
@@ -112,79 +101,93 @@ const CircularProgress = ({
   );
 };
 
+interface CacheData {
+  data: AnalyticsResponse;
+  timestamp: number;
+  timeframe: DateRange;
+}
+
+interface RangeCache {
+  [key: string]: CacheData;
+}
+
 export default function HotelAnalytics({ hotelId }: { hotelId: string }) {
   const [analytics, setAnalytics] = useState<AnalyticsResponse | null>(null);
-  const [occupancyData, setOccupancyData] = useState<OccupancyData | null>(
-    null
-  );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [refreshing, setRefreshing] = useState(false);
   const [selectedRange, setSelectedRange] = useState<DateRange>("today");
   const { getToken } = useAuth();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const intervalRef = useRef<NodeJS.Timeout>();
+  const uiUpdateIntervalRef = useRef<NodeJS.Timeout>();
   const isMountedRef = useRef(true);
   const isInitialFetchRef = useRef(true);
+  const cacheRef = useRef<RangeCache>({});
+  const [calculatedAt, setCalculatedAt] = useState<Date | null>(null);
 
-  const getDateRange = (
-    range: DateRange
-  ): { startDate: string; endDate: string } => {
-    const today = new Date();
-
-    switch (range) {
-      case "today":
-        return {
-          startDate: format(today, "yyyy-MM-dd"),
-          endDate: format(addDays(today, 1), "yyyy-MM-dd"),
-        };
-      case "tomorrow":
-        return {
-          startDate: format(addDays(today, 1), "yyyy-MM-dd"),
-          endDate: format(addDays(today, 2), "yyyy-MM-dd"),
-        };
-      case "week":
-        return {
-          startDate: format(
-            startOfWeek(today, { weekStartsOn: 1 }),
-            "yyyy-MM-dd"
-          ),
-          endDate: format(endOfWeek(today, { weekStartsOn: 1 }), "yyyy-MM-dd"),
-        };
-      case "month":
-        return {
-          startDate: format(today, "yyyy-MM-01"),
-          endDate: format(today, "yyyy-MM-dd"),
-        };
-      default:
-        return {
-          startDate: format(today, "yyyy-MM-dd"),
-          endDate: format(addDays(today, 1), "yyyy-MM-dd"),
-        };
-    }
+  const getDateRange = (range: DateRange): { timeframe: Timeframe } => {
+    return { timeframe: range };
   };
 
   // Separate the data fetching logic
   const fetchAnalyticsData = async (
     token: string,
-    startDate: string,
-    endDate: string
+    timeframe: Timeframe
   ) => {
-    return await getAnalytics(hotelId, startDate, endDate, token);
+    return await getAnalytics(hotelId, timeframe, token);
   };
 
-  const fetchOccupancyData = async (
-    token: string,
-    startDate: string,
-    endDate: string
-  ) => {
-    return await getOccupancyData(hotelId, startDate, endDate, token);
+  const isCacheValid = (range: DateRange): boolean => {
+    const cache = cacheRef.current[range];
+    if (!cache) return false;
+
+    const now = Date.now();
+    const cacheAge = now - cache.timestamp;
+    return cacheAge < REFRESH_INTERVAL;
+  };
+
+  const updateCache = (range: DateRange, data: AnalyticsResponse) => {
+    const timestamp = Date.now();
+    cacheRef.current[range] = {
+      data,
+      timestamp,
+      timeframe: range,
+    };
+    setCalculatedAt(new Date(data.calculatedAt));
+  };
+
+  const startUIUpdateInterval = () => {
+    if (uiUpdateIntervalRef.current) {
+      clearInterval(uiUpdateIntervalRef.current);
+    }
+
+    // Update UI every 30 seconds to reflect accurate time based on calculatedAt
+    uiUpdateIntervalRef.current = setInterval(() => {
+      if (isMountedRef.current && calculatedAt) {
+        const cache = cacheRef.current[selectedRange];
+        if (cache) {
+          const now = Date.now();
+          const cacheAge = now - cache.timestamp;
+          if (cacheAge >= REFRESH_INTERVAL) {
+            fetchData(false);
+          }
+        }
+      }
+    }, UI_UPDATE_INTERVAL);
   };
 
   const fetchData = async (showLoading = true) => {
     if (!isMountedRef.current) return;
+
+    // Check cache first
+    if (isCacheValid(selectedRange)) {
+      const cache = cacheRef.current[selectedRange];
+      setAnalytics(cache.data);
+      setCalculatedAt(new Date(cache.data.calculatedAt));
+      return;
+    }
 
     if (showLoading) {
       setIsLoading(true);
@@ -194,29 +197,36 @@ export default function HotelAnalytics({ hotelId }: { hotelId: string }) {
       const token = await getToken();
       if (!token) throw new Error("No authentication token found");
 
-      const { startDate, endDate } = getDateRange(selectedRange);
-
-      const [analyticsData, occupancyInfo] = await Promise.all([
-        fetchAnalyticsData(token, startDate, endDate),
-        fetchOccupancyData(token, startDate, endDate),
-      ]);
+      const { timeframe } = getDateRange(selectedRange);
+      const analyticsData = await fetchAnalyticsData(token, timeframe);
 
       if (isMountedRef.current) {
+        // Compare new data with cached data to see if anything changed
+        const cache = cacheRef.current[selectedRange];
+        const hasDataChanged =
+          !cache ||
+          JSON.stringify(analyticsData) !== JSON.stringify(cache.data);
+
         setAnalytics(analyticsData);
-        setOccupancyData(occupancyInfo);
-        setLastUpdated(new Date());
         setError(null);
+        setCalculatedAt(new Date(analyticsData.calculatedAt));
+
+        // Only update cache and timestamp if data actually changed
+        if (hasDataChanged) {
+          updateCache(selectedRange, analyticsData);
+        }
 
         if (isInitialFetchRef.current) {
           isInitialFetchRef.current = false;
           startInterval();
+          startUIUpdateInterval();
         }
       }
     } catch (err) {
       if (isMountedRef.current) {
-        setError(
-          err instanceof Error ? err.message : "Failed to fetch analytics data"
-        );
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to fetch analytics data";
+        setError(errorMessage);
       }
     } finally {
       if (isMountedRef.current) {
@@ -241,19 +251,56 @@ export default function HotelAnalytics({ hotelId }: { hotelId: string }) {
     isMountedRef.current = true;
     isInitialFetchRef.current = true;
     fetchData();
+    startUIUpdateInterval();
 
     return () => {
       isMountedRef.current = false;
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
+      if (uiUpdateIntervalRef.current) {
+        clearInterval(uiUpdateIntervalRef.current);
+      }
     };
   }, [hotelId, selectedRange]);
 
+  // Auto-refresh if more than 5 minutes have passed since last fetch
+  useEffect(() => {
+    const checkAndRefresh = () => {
+      if (calculatedAt) {
+        const now = Date.now();
+        const cacheAge = now - calculatedAt.getTime();
+        if (cacheAge >= REFRESH_INTERVAL) {
+          fetchData(false);
+        }
+      }
+    };
+
+    const refreshInterval = setInterval(checkAndRefresh, UI_UPDATE_INTERVAL);
+
+    return () => clearInterval(refreshInterval);
+  }, [calculatedAt]);
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
+    // Clear cache for current range to force refresh
+    delete cacheRef.current[selectedRange];
     fetchData(false);
-  }, []);
+  }, [selectedRange]);
+
+  const handleRangeChange = (range: DateRange) => {
+    setSelectedRange(range);
+    const cache = cacheRef.current[range];
+
+    // Update calculatedAt based on cache if it exists
+    if (cache) {
+      setCalculatedAt(new Date(cache.data.calculatedAt));
+    }
+
+    if (!isCacheValid(range)) {
+      fetchData(true);
+    }
+  };
 
   const DateFilterButton = ({
     range,
@@ -263,7 +310,7 @@ export default function HotelAnalytics({ hotelId }: { hotelId: string }) {
     label: string;
   }) => (
     <Pressable
-      onPress={() => setSelectedRange(range)}
+      onPress={() => handleRangeChange(range)}
       className={`px-4 py-3 rounded-xl flex-grow items-center justify-center ${
         selectedRange === range
           ? "bg-lime-500 dark:bg-lime-600"
@@ -282,20 +329,6 @@ export default function HotelAnalytics({ hotelId }: { hotelId: string }) {
     </Pressable>
   );
 
-  // if (isLoading) {
-  //   return (
-  //     <View className="flex-1 items-center justify-center p-4">
-  //       <ActivityIndicator
-  //         size="large"
-  //         color={isDark ? "#84cc16" : "#65a30d"}
-  //       />
-  //       <Text className="mt-4 text-lg text-gray-600 dark:text-gray-300">
-  //         Loading analytics data...
-  //       </Text>
-  //     </View>
-  //   );
-  // }
-
   if (error) {
     return (
       <View className="flex-1 items-center justify-center p-4 ">
@@ -311,15 +344,13 @@ export default function HotelAnalytics({ hotelId }: { hotelId: string }) {
     );
   }
 
-  const realTimeData = analytics?.realTimeData;
-
   return (
     <View className="flex-1">
       {/* Date Filter Buttons */}
-      <View className="p-6 ">
+      <View className="px-6 py-2">
         <View className="flex-row gap-2 items-center justify-between w-full">
-          <DateFilterButton range="month" label="This Month" />
-          <DateFilterButton range="week" label="This Week" />
+          <DateFilterButton range="currentMonth" label="This Month" />
+          <DateFilterButton range="thisWeek" label="This Week" />
           <DateFilterButton range="today" label="Today" />
           <DateFilterButton range="tomorrow" label="Tomorrow" />
         </View>
@@ -331,16 +362,19 @@ export default function HotelAnalytics({ hotelId }: { hotelId: string }) {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        <View className="p-4 space-y-4">
+        <View className="px-4">
           {/* Last Updated */}
-          <View className="items-end py-2">
+          <View className="flex-row items-center justify-end py-2">
             <Text className="text-gray-500 dark:text-gray-400 text-xs">
-              Last updated {formatDistanceToNow(lastUpdated)} ago
+              Last updated{" "}
+              {calculatedAt
+                ? formatDistanceToNow(calculatedAt, { addSuffix: true })
+                : "a moment ago"}
             </Text>
           </View>
 
           {/* Revenue Card - Full Width */}
-          <View className="bg-white dark:bg-gray-800 rounded-2xl mb-2 p-6 shadow-sm">
+          <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl mb-2 p-6 shadow-sm">
             <View className="flex-row items-center mb-4">
               <FontAwesome5
                 name="money-bill-wave"
@@ -357,29 +391,30 @@ export default function HotelAnalytics({ hotelId }: { hotelId: string }) {
                   Total Revenue
                 </Text>
                 {isLoading ? (
-                  <Text className="text-sm py-1 font-light text-muted-foreground mt-1 dark:text-white">
-                    Loading...
-                  </Text>
+                  <ActivityIndicator size="small" color="#4b5563" />
                 ) : (
                   <Text className="text-2xl font-bold mt-1 dark:text-white">
-                    {realTimeData?.totalRevenue?.toFixed(2) || "0.00"}
+                    ₹{analytics?.revenue.toFixed(2) || "0.00"}
                   </Text>
                 )}
               </View>
-              <View>
-                <Text className="text-gray-500 dark:text-gray-400 text-sm">
-                  Average Revenue
-                </Text>
-                {isLoading ? (
-                  <Text className="text-sm font-light pt-1 pb-2 text-muted-foreground mt-1 dark:text-white">
-                    Loading...
+              {analytics?.revenue && (
+                <View>
+                  <Text className="text-gray-500 dark:text-gray-400 text-sm">
+                    Average Revenue
                   </Text>
-                ) : (
-                  <Text className="text-2xl font-bold mt-1 dark:text-white">
-                    ₹{realTimeData?.averageRevenue?.toFixed(2) || "0.00"}
-                  </Text>
-                )}
-              </View>
+                  {isLoading ? (
+                    <ActivityIndicator size="small" color="#4b5563" />
+                  ) : (
+                    <Text className="text-2xl font-bold mt-1 dark:text-white">
+                      ₹
+                      {(
+                        analytics?.revenue / (analytics?.confirmedBookings || 1)
+                      ).toFixed(2) || "0.00"}
+                    </Text>
+                  )}
+                </View>
+              )}
             </View>
           </View>
 
@@ -388,116 +423,132 @@ export default function HotelAnalytics({ hotelId }: { hotelId: string }) {
             {/* Total Bookings */}
             <View
               style={{ width: CARD_WIDTH }}
-              className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex justify-center items-center"
+              className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex justify-center items-center"
             >
               <CircularProgress
                 isLoading={isLoading}
-                percentage={((realTimeData?.totalBookings || 0) / 100) * 100}
+                percentage={
+                  analytics
+                    ? (analytics.confirmedBookings / analytics.totalBookings) *
+                      100
+                    : 0
+                }
                 color="#3b82f6"
                 label="Total"
-                value={realTimeData?.totalBookings || 0}
+                value={analytics?.confirmedBookings || 0}
               />
             </View>
 
+            {/* Pending Bookings */}
+            {analytics && (
+              <View
+                style={{ width: CARD_WIDTH }}
+                  className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex justify-center items-center"
+              >
+                <CircularProgress
+                  isLoading={isLoading}
+                  percentage={
+                    (analytics.pendingBookings /
+                      (analytics.availableRooms || 1)) *
+                    100
+                  }
+                  color="#eab308"
+                  label="Pending"
+                  value={analytics.pendingBookings}
+                />
+              </View>
+            )}
+
+            {/* Confirmed Bookings */}
+            {analytics && (
+              <View
+                style={{ width: CARD_WIDTH }}
+                className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex justify-center items-center"
+              >
+                <CircularProgress
+                  isLoading={isLoading}
+                  percentage={
+                    (analytics.confirmedBookings /
+                      (analytics.availableRooms || 1)) *
+                    100
+                  }
+                  color="#10b981"
+                  label="Confirmed"
+                  value={analytics.confirmedBookings}
+                />
+              </View>
+            )}
+
             {/* Occupancy Rate - Only show for today/tomorrow */}
-            {occupancyData &&
+            {analytics &&
               (selectedRange === "today" || selectedRange === "tomorrow") && (
                 <View
                   style={{ width: CARD_WIDTH }}
-                  className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm  flex justify-center items-center"
+                  className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex justify-center items-center"
                 >
                   <CircularProgress
                     isLoading={isLoading}
-                    percentage={occupancyData.occupancyRate}
+                    percentage={analytics?.occupancyRate || 0}
                     color="#6366f1"
                     label="Occupancy"
-                    value={`${occupancyData.occupancyRate.toFixed(0)}%`}
+                    value={`${analytics?.occupancyRate ? analytics.occupancyRate.toFixed(0) : 0}%`}
                   />
                 </View>
               )}
-
-            {/* Booking Status */}
-            {occupancyData && (
-              <>
-                <View
-                  style={{ width: CARD_WIDTH }}
-                  className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex justify-center items-center"
-                >
-                  <CircularProgress
-                    isLoading={isLoading}
-                    percentage={
-                      (occupancyData.pendingBookings /
-                        (occupancyData.totalRooms || 1)) *
-                      100
-                    }
-                    color="#eab308"
-                    label="Pending"
-                    value={occupancyData.pendingBookings}
-                  />
-                </View>
-                <View
-                  style={{ width: CARD_WIDTH }}
-                  className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex justify-center items-center"
-                >
-                  <CircularProgress
-                    isLoading={isLoading}
-                    percentage={
-                      (occupancyData.confirmedBookings /
-                        (occupancyData.totalRooms || 1)) *
-                      100
-                    }
-                    color="#10b981"
-                    label="Confirmed"
-                    value={occupancyData.confirmedBookings}
-                  />
-                </View>
-              </>
-            )}
           </View>
+          <View className="flex-row flex-wrap gap-2 my-2 mb-4">
 
-          {/* Historical Data */}
-          {analytics?.precomputedData &&
-            analytics.precomputedData.length > 0 &&
-            selectedRange !== "tomorrow" && (
-              <View className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">
-                <Text className="text-xl font-bold mb-4 dark:text-white">
-                  Historical Trends
+              <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex flex-grow justify-center items-center">
+                <Text className="text-gray-500 dark:text-gray-400 text-sm">
+                  Available Rooms
                 </Text>
-                <View className="space-y-4">
-                  {analytics.precomputedData.map((data, index) => (
-                    <View key={index} className="space-y-2">
-                      <View className="flex-row justify-between">
-                        <Text className="text-gray-600 dark:text-gray-300">
-                          Total Bookings
-                        </Text>
-                        <Text className="font-semibold dark:text-white">
-                          {data.totalBookings}
-                        </Text>
-                      </View>
-                      <View className="flex-row justify-between">
-                        <Text className="text-gray-600 dark:text-gray-300">
-                          Revenue
-                        </Text>
-                        <Text className="font-semibold dark:text-white">
-                          ₹{data.totalRevenue.toFixed(2)}
-                        </Text>
-                      </View>
-                      <View className="flex-row justify-between">
-                        <Text className="text-gray-600 dark:text-gray-300">
-                          Occupancy
-                        </Text>
-                        <Text className="font-semibold dark:text-white">
-                          {data.occupancyRate.toFixed(1)}%
-                        </Text>
-                      </View>
-                      {index < analytics.precomputedData.length - 1 && (
-                        <View className="border-b border-gray-200 dark:border-gray-700 my-2" />
-                      )}
-                    </View>
-                  ))}
-                </View>
+                <Text className="text-2xl font-bold mt-1 dark:text-white">
+                  {isLoading ? (
+                    <ActivityIndicator size="small" color="#4b5563" />
+                  ) : (
+                    analytics?.availableRooms || 0
+                  )}
+                </Text>
               </View>
-            )}
+
+              <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex flex-grow justify-center items-center">
+                <Text className="text-gray-500 dark:text-gray-400 text-sm">
+                  Pending Bookings
+                </Text>
+                <Text className="text-2xl font-bold mt-1 dark:text-white">
+                  {isLoading ? (
+                    <ActivityIndicator size="small" color="#4b5563" />
+                  ) : (
+                    analytics?.pendingBookings || 0
+                  )}
+                </Text>
+              </View>
+
+              <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex flex-grow justify-center items-center">
+                <Text className="text-gray-500 dark:text-gray-400 text-sm">
+                  Confirmed Bookings
+                </Text>
+                <Text className="text-2xl font-bold mt-1 dark:text-white">
+                  {isLoading ? (
+                    <ActivityIndicator size="small" color="#4b5563" />
+                  ) : (
+                    analytics?.confirmedBookings || 0
+                  )}
+                </Text>
+              </View>
+              <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex flex-grow justify-center items-center">
+                <Text className="text-gray-500 dark:text-gray-400 text-sm">
+                  Checkout
+                </Text>
+                <Text className="text-2xl font-bold mt-1 dark:text-white">
+                  {isLoading ? (
+                    <ActivityIndicator size="small" color="#4b5563" />
+                  ) : (
+                    analytics?.completedBookings || 0
+                  )}
+                </Text>
+              </View>
+          </View>
         </View>
       </ScrollView>
     </View>
