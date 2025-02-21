@@ -13,6 +13,8 @@ import { navigateTo } from "@/lib/actions/navigation";
 import { z } from "zod";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { APP_NAME } from "@/lib/constants";
+import useBookingStore from "@/lib/store/bookingStore";
+import { useHotelStore } from "@/lib/store/hotelStore";
 
 const phoneSchema = z.string().regex(/^[6-9]\d{9}$/, {
   message: "Please enter a valid 10-digit phone number starting with 6-9",
@@ -98,6 +100,14 @@ const Onboarding = () => {
       setCurrentFeature((prev) => (prev + 1) % features.length);
     }, 3000);
     return () => clearInterval(interval);
+  }, []);
+
+  const initializeBookingStore = useBookingStore((state) => state.initializeFromStorage);
+  const initializeHotelStore = useHotelStore((state) => state.initializeFromStorage);
+
+  useEffect(() => {
+    initializeBookingStore();
+    initializeHotelStore();
   }, []);
 
   const validatePhone = (value: string) => {

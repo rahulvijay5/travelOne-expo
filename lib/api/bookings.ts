@@ -88,6 +88,23 @@ export const getBookingsFromStorage = async () => {
   }
 };
 
+export const getCurrentBookingOfUser = async (userId: string, token?: string) => {
+  try {
+    const res = await fetch(`${API_URL}/api/bookings/current-booking/${userId}`, {
+      method: "GET",
+      headers: getHeaders(token),
+    });
+    const response = await res.json();
+    if (res.status === 404) {
+      return { error: "Booking not found" };
+    }
+    return response;
+  } catch (error) {
+    console.error("Error getting current booking of user:", error);
+    throw error;
+  }
+};
+
 // Modified getFilteredHotelBookings to use storage
 export const getFilteredHotelBookings = async (
   hotelId: string,

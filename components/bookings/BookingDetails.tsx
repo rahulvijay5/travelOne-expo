@@ -47,7 +47,9 @@ export default function BookingDetails({
 
       const response = await checkOutBooking(booking.id, token);
       if (response?.status === 200) {
-        Alert.alert("Success", "Booking checked out successfully");
+        Platform.OS === "ios" ? 
+        Alert.alert("Success", "Booking checked out successfully") :
+        ToastAndroid.show("Booking checked out successfully", ToastAndroid.SHORT);
         onBookingUpdated();
         router.push('/bookings');
       } else {

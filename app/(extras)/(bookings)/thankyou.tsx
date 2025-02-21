@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, ActivityIndicator, Pressable } from "react-native";
+import { View, ActivityIndicator, Pressable, BackHandler, Alert } from "react-native";
 import { Text } from "@/components/ui/text";
 import { useAuth } from "@clerk/clerk-expo";
 import { router, useLocalSearchParams } from "expo-router";
@@ -7,6 +7,7 @@ import { useUserStorage } from "@/hooks/useUserStorage";
 import { checkBookingStatusFromApi } from "@lib/api";
 import { format } from "date-fns";
 import { CheckBookingStatusResponse } from "@/types/booking";
+import useBookingStore from "@/lib/store/bookingStore";
 
 const ThankYou = () => {
   const { getToken } = useAuth();
@@ -17,6 +18,20 @@ const ThankYou = () => {
   const [bookingDetails, setBookingDetails] =
     useState<CheckBookingStatusResponse | null>(null);
   const { passedBookingId } = useLocalSearchParams();
+  const setCurrentBooking = useBookingStore((state) => state.setCurrentBooking);
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      Alert.alert(
+        'Please Wait',
+        'Please do not leave this page while your booking is being processed.',
+        [{ text: 'OK' }]
+      );
+      return true;
+    });
+
+    return () => backHandler.remove();
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -43,7 +58,7 @@ const ThankYou = () => {
         }
 
         const response = await checkBookingStatusFromApi(bookingId, token);
-        // console.log("Received booking details:", response);
+        console.log("Received booking details:", response);
 
         if (!mounted) return;
 
@@ -61,6 +76,9 @@ const ThankYou = () => {
           setMessage("Booking confirmed! Thank you for booking with us.");
           setLoading(false);
           stopPolling();
+          
+          // Store the confirmed booking
+          setCurrentBooking(response.booking);
 
           setTimeout(() => {
             router.replace("/");
@@ -215,6 +233,10 @@ const ThankYou = () => {
           <Text className="text-lg mt-4 dark:text-white text-center">
             Please wait while we process your booking...
           </Text>
+
+          <Text className=" mt-12 text-xs text-center">
+        Please do not close or leave this page while your booking is being processed
+      </Text>
         </>
       )}
     </View>

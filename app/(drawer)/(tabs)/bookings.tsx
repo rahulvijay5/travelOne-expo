@@ -26,9 +26,11 @@ import RoomCard from "@/components/RoomCard";
 import BookingManagementView from "@/components/bookings/BookingManagementView";
 import BookingListView from "@/components/bookings/BookingListView";
 import BookingModal from "@/components/bookings/BookingModal";
+import BookingDetails from "@/components/bookings/BookingDetails";
+import useBookingStore from "@/lib/store/bookingStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { startOfDay, isSameDay, isAfter, addDays, set } from "date-fns";
-import { getHotelRoomsByStatus, getAvailableRooms } from "@lib/api";
+import { getHotelRoomsByStatus, getAvailableRooms, getBookingById } from "@lib/api";
 import { navigateTo } from "@/lib/actions/navigation";
 
 const getAdjustedCheckInTime = (selectedDate: Date, checkInTimeMinutes: number, currentHotelDetails: any) => {
@@ -76,6 +78,8 @@ const Bookings = () => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const theme = useTheme();
   const [currentHotelId, setCurrentHotelId] = useState<string | null>(null);
+  const currentBooking = useBookingStore((state) => state.currentBooking);
+  const [currentBookingDetails, setCurrentBookingDetails] = useState<BookingDataInDb | null>(null);
   
   const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
   
@@ -163,6 +167,25 @@ const Bookings = () => {
       fetchRooms();
     }
   }, [currentHotelId]);
+
+  // Fetch complete booking details when there's a current booking
+  useEffect(() => {
+    const fetchBookingDetails = async () => {
+      if (currentBooking && userRole === "CUSTOMER") {
+        try {
+          const token = await getToken();
+          if (!token) return;
+
+          const bookingDetails = await getBookingById(currentBooking.id, token);
+          setCurrentBookingDetails(bookingDetails);
+        } catch (error) {
+          console.error("Error fetching booking details:", error);
+        }
+      }
+    };
+
+    fetchBookingDetails();
+  }, [currentBooking, userRole]);
 
   const handleCreateBooking = (roomId: string, price: number) => {
     navigateTo("/confirmBooking", {
@@ -335,7 +358,29 @@ const Bookings = () => {
     );
   }
 
-  // For guests
+  // For customers with active booking
+  if (userRole === "CUSTOMER" && currentBooking) {
+    if (!currentBookingDetails) {
+      return (
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" color="#84cc16" />
+          <Text className="text-lg mt-4 dark:text-white">Loading booking details...</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View className="flex-1">
+        <BookingDetails
+          booking={currentBookingDetails}
+          onClose={() => {}}
+          onBookingUpdated={() => {}}
+        />
+      </View>
+    );
+  }
+
+  // For guests without booking
   return currentHotelId ? (
     <ScrollView className="flex-1 p-4">
       <View className="flex gap-2 mb-4">
