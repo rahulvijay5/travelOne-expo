@@ -112,7 +112,7 @@ export default function BookingDetails({
   }
 
   return (
-    <ScrollView className="flex-1  p-4">
+    <ScrollView className="flex-1  nb p-4">
       {/* Booking Header */}
       <View className="flex-row justify-between items-center mb-4">
         <Text className="text-xl font-bold dark:text-white">

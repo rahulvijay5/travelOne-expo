@@ -1,109 +1,131 @@
-import React, { useEffect, useState } from 'react';
-import { View, ActivityIndicator, Pressable } from 'react-native';
-import { Text } from '@/components/ui/text';
-import { useAuth } from '@clerk/clerk-expo';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router } from 'expo-router';
-import { useUserStorage } from '@/hooks/useUserStorage';
-import { getBookingById } from '@lib/api';
-import { format } from 'date-fns';
+import React, { useEffect, useState } from "react";
+import { View, ActivityIndicator, Pressable } from "react-native";
+import { Text } from "@/components/ui/text";
+import { useAuth } from "@clerk/clerk-expo";
+import { router, useLocalSearchParams } from "expo-router";
+import { useUserStorage } from "@/hooks/useUserStorage";
+import { checkBookingStatusFromApi } from "@lib/api";
+import { format } from "date-fns";
+import { CheckBookingStatusResponse } from "@/types/booking";
 
 const ThankYou = () => {
   const { getToken } = useAuth();
   const { getUserData } = useUserStorage();
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState('Creating your booking...');
+  const [message, setMessage] = useState("Creating your booking...");
   const [error, setError] = useState<string | null>(null);
-  const [bookingDetails, setBookingDetails] = useState<any>(null);
+  const [bookingDetails, setBookingDetails] =
+    useState<CheckBookingStatusResponse | null>(null);
+  const { passedBookingId } = useLocalSearchParams();
 
   useEffect(() => {
     let mounted = true;
-    let pollInterval: NodeJS.Timeout;
+    let pollInterval: NodeJS.Timeout | null = null;
+    let startPollingTimeout: NodeJS.Timeout | null = null;
     let pollCount = 0;
-    const MAX_POLLS = 20; // Maximum number of polling attempts (30 seconds)
+    const MAX_POLLS = 20;
 
     const checkBookingStatus = async () => {
-      console.log("checking booking status at", format(new Date().getTime(), "HH:mm:ss"));
+      if (!mounted) return;
+      
+      pollCount++;
+      console.log(
+        `[Poll #${pollCount}] Checking booking status at ${format(new Date(), "HH:mm:ss")}`
+      );
+
       try {
-        const bookingId = await AsyncStorage.getItem('currentBookingId');
+        const bookingId = passedBookingId as string;
         const token = await getToken();
         const userData = await getUserData();
 
         if (!bookingId || !token) {
-          throw new Error('Booking information not found');
+          throw new Error("Booking information not found");
         }
 
-        const response = await getBookingById(bookingId, token);
+        const response = await checkBookingStatusFromApi(bookingId, token);
+        // console.log("Received booking details:", response);
 
         if (!mounted) return;
 
-        // Store booking details for display
         setBookingDetails(response);
 
-        if (response.status === 'CONFIRMED') {
-          setMessage('Booking confirmed! Thank you for booking with us.');
-          setLoading(false);
-          clearInterval(pollInterval);
-          
-          // After 4 seconds, redirect to bookings page
-          setTimeout(() => {
-            router.replace('/');
-          }, 3000);
-        } else if (response.status === 'CANCELLED') {
-          setError('Booking was cancelled');
-          setLoading(false);
-          clearInterval(pollInterval);
-        } else if (response.status === 'PENDING') {
-          // For owners/managers, we don't need to wait for confirmation
-
-          //practically no use because if they are creating a booking then response is Confirmed by default.
-          //also booking will not be fetched as in their storage we are not storing current booking Id
-          if (userData?.role === 'OWNER' || userData?.role === 'MANAGER') {
-            setMessage('Booking created successfully!');
-            setLoading(false);
+        const stopPolling = () => {
+          if (pollInterval) {
             clearInterval(pollInterval);
-            
-            // Clear the current booking ID
-            await AsyncStorage.removeItem('currentBookingId');
-            
-            // After 4 seconds, redirect to bookings page
+            pollInterval = null;
+          }
+        };
+
+        if (response.booking.status === "CONFIRMED") {
+          console.log("Booking confirmed, stopping polls");
+          setMessage("Booking confirmed! Thank you for booking with us.");
+          setLoading(false);
+          stopPolling();
+
+          setTimeout(() => {
+            router.replace("/");
+          }, 3000);
+        } else if (response.booking.status === "CANCELLED") {
+          console.log("Booking cancelled, stopping polls");
+          setError("Booking was cancelled");
+          setLoading(false);
+          stopPolling();
+        } else if (response.booking.status === "PENDING") {
+          if (userData?.role === "OWNER" || userData?.role === "MANAGER") {
+            console.log("Manager/Owner booking, stopping polls");
+            setMessage("Booking created successfully!");
+            setLoading(false);
+            stopPolling();
+
             setTimeout(() => {
-              router.replace('/(drawer)/(tabs)/bookings');
-            }, 4000);
+              router.replace("/(drawer)/(tabs)/bookings");
+            }, 3000);
           } else {
-            pollCount++;
             if (pollCount >= MAX_POLLS) {
-              setMessage('Your booking is pending approval from the hotel.');
+              console.log("Max polls reached, stopping");
+              setMessage("Your booking is pending approval from the hotel.");
               setLoading(false);
-              clearInterval(pollInterval);
+              stopPolling();
             } else {
-              setMessage('Waiting for confirmation from hotel...');
+              setMessage("Waiting for confirmation from hotel...");
             }
           }
         }
       } catch (error) {
         if (!mounted) return;
-        console.error('Error checking booking status:', error);
-        setError('Failed to check booking status');
+        console.error("Error checking booking status:", error);
+        setError("Failed to check booking status");
         setLoading(false);
-        clearInterval(pollInterval);
+        if (pollInterval) {
+          clearInterval(pollInterval);
+          pollInterval = null;
+        }
       }
     };
 
-    // Start polling after 15 seconds
-    console.log("polling will be started after 30 seconds");
-    console.log("current time in seconds:", format(new Date().getTime(), "HH:mm:ss"));
-    setTimeout(() => {
-      console.log("polling started at", format(new Date().getTime(), "HH:mm:ss"));
-      pollInterval = setInterval(checkBookingStatus, 4000);
+    // Initial check
+    console.log("Starting initial check");
+    checkBookingStatus();
+
+    // Start polling after 30 seconds
+    console.log("Will start polling in 30 seconds");
+    startPollingTimeout = setTimeout(() => {
+      console.log("Starting polling interval");
+      if (mounted && !pollInterval) {
+        pollInterval = setInterval(checkBookingStatus, 4500);
+      }
     }, 30000);
 
-    // Initial check
-    checkBookingStatus();
-    
     return () => {
+      console.log("Cleaning up polling");
       mounted = false;
-      clearInterval(pollInterval);
+      if (startPollingTimeout) {
+        clearTimeout(startPollingTimeout);
+      }
+      if (pollInterval) {
+        clearInterval(pollInterval);
+        pollInterval = null;
+      }
     };
   }, []);
 
@@ -111,7 +133,7 @@ const ThankYou = () => {
     return (
       <View className="flex-1 justify-center items-center p-4">
         <Text className="text-red-500 text-lg mb-4">{error}</Text>
-        <Pressable 
+        <Pressable
           onPress={() => router.back()}
           className="bg-blue-500 px-4 py-2 rounded-lg"
         >
@@ -127,45 +149,60 @@ const ThankYou = () => {
         {message}
       </Text>
 
-      {bookingDetails && (
+      {bookingDetails?.booking && (
         <View className="bg-white dark:bg-gray-800 rounded-lg p-4 w-full mb-6 border border-gray-200 dark:border-gray-700">
-          <Text className="text-lg font-bold dark:text-white mb-4">Booking Details</Text>
-          
+          <Text className="text-lg font-bold dark:text-white mb-4">
+            Booking Details
+          </Text>
+
           <View className="space-y-2">
+            <View className="flex-row justify-between">
+              <Text className="dark:text-white">Room</Text>
+              <Text className="dark:text-white font-semibold">
+                {bookingDetails.booking.room.roomNumber} ({bookingDetails.booking.room.type})
+              </Text>
+            </View>
+
             <View className="flex-row justify-between">
               <Text className="dark:text-white">Check-in</Text>
               <Text className="dark:text-white font-semibold">
-                {new Date(bookingDetails.checkIn).toLocaleDateString()}
+                {format(new Date(bookingDetails.booking.checkIn), "d MMM, yyyy")}
               </Text>
             </View>
-            
+
             <View className="flex-row justify-between">
               <Text className="dark:text-white">Check-out</Text>
               <Text className="dark:text-white font-semibold">
-                {new Date(bookingDetails.checkOut).toLocaleDateString()}
+                {format(new Date(bookingDetails.booking.checkOut), "d MMM, yyyy")}
               </Text>
             </View>
 
             <View className="flex-row justify-between">
               <Text className="dark:text-white">Guests</Text>
-              <Text className="dark:text-white font-semibold">{bookingDetails.guests}</Text>
+              <Text className="dark:text-white font-semibold">
+                {bookingDetails.booking.guests}
+              </Text>
             </View>
 
             <View className="h-px bg-gray-200 dark:bg-gray-700 my-2" />
 
             <View className="flex-row justify-between">
               <Text className="dark:text-white font-bold">Total Amount</Text>
-              <Text className="dark:text-white font-bold">₹{bookingDetails.payment.totalAmount}</Text>
+              <Text className="dark:text-white font-bold">
+                ₹{bookingDetails.booking.payment?.totalAmount || 0}
+              </Text>
             </View>
 
             <View className="flex-row justify-between">
               <Text className="dark:text-white">Payment Status</Text>
-              <Text className={`font-semibold ${
-                bookingDetails.payment.status === 'COMPLETED' 
-                  ? 'text-green-500' 
-                  : 'text-yellow-500'
-              }`}>
-                {bookingDetails.payment.status}
+              <Text
+                className={`font-semibold ${
+                  bookingDetails.booking.payment?.status === "PAID"
+                    ? "text-green-500"
+                    : "text-yellow-500"
+                }`}
+              >
+                {bookingDetails.booking.payment?.status || "PENDING"}
               </Text>
             </View>
           </View>
@@ -184,4 +221,4 @@ const ThankYou = () => {
   );
 };
 
-export default ThankYou; 
+export default ThankYou;

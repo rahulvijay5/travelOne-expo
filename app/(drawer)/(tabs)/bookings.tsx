@@ -274,14 +274,6 @@ const Bookings = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <View className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
-
   // For owners/managers
   if (userRole === "OWNER" || userRole === "MANAGER") {
     return currentHotelId ? (
@@ -400,6 +392,9 @@ const Bookings = () => {
                   setFilters((prev) => ({ ...prev, type: itemValue }))
                 }
                 className="dark:text-white h-40"
+                style={{
+                  color: theme.colors.text,
+                }}
               >
                 <Picker.Item label="All Types" value="" />
                 {/* Add unique room types dynamically */}
@@ -524,9 +519,9 @@ const Bookings = () => {
         )}
 
         {/* Price Range Info */}
-        {searchInitiated && priceRange && (
+        {!loading && searchInitiated && priceRange && (
           <View className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg mt-4 flex flex-row justify-between items-center">
-            <Text className="text-lg font-semibold dark:text-white mb-2">
+            <Text className="text-lg font-semibold dark:text-white">
               Available Price Range:
             </Text>
             <Text className="dark:text-white">

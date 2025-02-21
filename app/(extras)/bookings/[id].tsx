@@ -3,7 +3,6 @@ import { View, ActivityIndicator, Text } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
 import { BookingDataInDb } from '@/types/index';
-import api from '@/lib/api';
 import BookingDetails from '@/components/bookings/BookingDetails';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getBookingById } from '@lib/api';

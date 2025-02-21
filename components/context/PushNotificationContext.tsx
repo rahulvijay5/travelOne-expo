@@ -78,6 +78,7 @@ export const PushNotificationProvider = ({
     notificationListener.current =
       Notifications.addNotificationReceivedListener((notification) => {
         console.log("Notification Received:", notification);
+        console.log("Data within it:", notification.request.content.data);
     });
 
     responseListener.current =

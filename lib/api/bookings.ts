@@ -1,4 +1,4 @@
-import { BookingData, BookingStatus, RoomStatus } from "@/types";
+import { BookingData, BookingStatus, CheckBookingStatusResponse, RoomStatus } from "@/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "@lib/config/index";
 import { getHeaders } from "@lib/utils";
@@ -40,6 +40,23 @@ export const getBookingById = async (bookingId: string, token?: string) => {
     return handleResponse(res);
   } catch (error) {
     console.error("Error getting booking details:", error);
+    throw error;
+  }
+};
+
+export const checkBookingStatusFromApi = async (bookingId: string, token?: string): Promise<CheckBookingStatusResponse> => {
+  try {
+    const res = await fetch(`${API_URL}/api/bookings/check-booking-status/${bookingId}`, {
+      method: "GET",
+      headers: getHeaders(token),
+    });
+
+    if (res.status === 404) {
+      throw new Error("Booking not found");
+    }
+    return handleResponse(res);
+  } catch (error) {
+    console.error("Error checking booking status:", error);
     throw error;
   }
 };

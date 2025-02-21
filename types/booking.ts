@@ -65,3 +65,22 @@ export type BookingDataInDb = {
     transactionId?: string;
   };
 };
+
+export interface CheckBookingStatusResponse {
+  booking: {
+    id: string;
+    status: BookingStatus;
+    checkIn: string;
+    checkOut: string;
+    guests: number;
+    payment: {
+      paidAmount: number;
+      totalAmount: number;
+      status: PaymentStatus;
+    };
+    room: {
+      roomNumber: string;
+      type: string;
+    };
+  };
+}
