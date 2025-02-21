@@ -5,7 +5,15 @@ import { useUserStorage } from "@/hooks/useUserStorage";
 import { router } from "expo-router";
 import * as React from "react";
 import { useState, useEffect, useRef } from "react";
-import { Alert, Pressable, View, ActivityIndicator, useColorScheme, TextInput, ScrollView, Dimensions } from "react-native";
+import {
+  Alert,
+  Pressable,
+  View,
+  ActivityIndicator,
+  useColorScheme,
+  TextInput,
+  ScrollView,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getUserByClerkId, updateUserRole, createUser } from "@lib/api";
 import { Feather } from "@expo/vector-icons";
@@ -15,6 +23,8 @@ import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { APP_NAME } from "@/lib/constants";
 import useBookingStore from "@/lib/store/bookingStore";
 import { useHotelStore } from "@/lib/store/hotelStore";
+import { getCurrentBookingOfUser } from "@/lib/api/bookings";
+import { processCode } from "@/lib/actions/processCode";
 
 const phoneSchema = z.string().regex(/^[6-9]\d{9}$/, {
   message: "Please enter a valid 10-digit phone number starting with 6-9",
@@ -32,23 +42,23 @@ const features: Feature[] = [
   {
     icon: "smartphone",
     title: "Easy Booking",
-    description: "Book your perfect stay in just a few taps"
+    description: "Book your perfect stay in just a few taps",
   },
   {
     icon: "key",
     title: "Digital Keys",
-    description: "Access your room with your phone"
+    description: "Access your room with your phone",
   },
   {
     icon: "bell",
     title: "Real-time Updates",
-    description: "Get instant notifications about your stay"
+    description: "Get instant notifications about your stay",
   },
   {
     icon: "coffee",
     title: "Room Service",
-    description: "Order food and services directly from the app"
-  }
+    description: "Order food and services directly from the app",
+  },
 ];
 
 const Onboarding = () => {
@@ -59,13 +69,21 @@ const Onboarding = () => {
   const [phoneError, setPhoneError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const isDark = colorScheme === "dark";
   const scrollViewRef = useRef(null);
   const [currentFeature, setCurrentFeature] = useState(0);
   const [isInitialCheck, setIsInitialCheck] = useState(true);
 
   const user = useUser();
-  const { getToken } = useAuth();
+  const { getToken, userId } = useAuth();
+
+  const initializeBookingStore = useBookingStore(
+    (state) => state.initializeFromStorage
+  );
+  const initializeHotelStore = useHotelStore(
+    (state) => state.initializeFromStorage
+  );
+  const setCurrentBooking = useBookingStore((state) => state.setCurrentBooking);
 
   useEffect(() => {
     const initializeUser = async () => {
@@ -79,8 +97,12 @@ const Onboarding = () => {
       // Set initial name from user data
       if (user.user?.firstName || user.user?.externalAccounts[0]?.firstName) {
         setName(
-          `${user.user?.firstName || user.user?.externalAccounts[0]?.firstName} ${
-            user.user?.lastName || user.user?.externalAccounts[0]?.lastName || ""
+          `${
+            user.user?.firstName || user.user?.externalAccounts[0]?.firstName
+          } ${
+            user.user?.lastName ||
+            user.user?.externalAccounts[0]?.lastName ||
+            ""
           }`
         );
       }
@@ -100,14 +122,6 @@ const Onboarding = () => {
       setCurrentFeature((prev) => (prev + 1) % features.length);
     }, 3000);
     return () => clearInterval(interval);
-  }, []);
-
-  const initializeBookingStore = useBookingStore((state) => state.initializeFromStorage);
-  const initializeHotelStore = useHotelStore((state) => state.initializeFromStorage);
-
-  useEffect(() => {
-    initializeBookingStore();
-    initializeHotelStore();
   }, []);
 
   const validatePhone = (value: string) => {
@@ -143,7 +157,29 @@ const Onboarding = () => {
       console.log("DB User response:", dbUser);
 
       if (dbUser && !dbUser.error) {
-        console.log("User exists in DB, storing data and redirecting");
+        console.log("User exists in DB, checking for current bookings");
+
+        // Check for current booking using DB user ID
+        const currentBooking = await getCurrentBookingOfUser(dbUser.id, token);
+
+        if (currentBooking && !currentBooking.error) {
+          // Store the current booking
+          console.log("Found a current booking, setting it");
+          await setCurrentBooking(currentBooking);
+
+          // Process hotel code to set up hotel data if booking exists
+          if (currentBooking.hotel?.code) {
+            await processCode({
+              code: currentBooking.hotel.code,
+              token,
+              getToken,
+              getUserData,
+              forceRefetch: true,
+            });
+          }
+        }
+
+        // Store user data and redirect
         await storeUserData({
           userId: dbUser.id.toString(),
           name: dbUser.name,
@@ -285,16 +321,23 @@ const Onboarding = () => {
           <View className="absolute inset-0 justify-center items-center">
             <View className="grid  gap-6 flex-wrap items-center">
               {Array.from({ length: 132 }).map((_, index) => (
-                <View key={index} className="w-4 h-4 bg-white/5 rounded-full " />
+                <View
+                  key={index}
+                  className="w-4 h-4 bg-white/5 rounded-full "
+                />
               ))}
             </View>
           </View>
-          <Animated.View 
+          <Animated.View
             entering={FadeInUp}
             className="flex-1 justify-center items-center z-10"
           >
             <View className="w-16 h-16 bg-white/20 rounded-full items-center justify-center mb-6">
-              <Feather name={features[currentFeature].icon} size={32} color="white" />
+              <Feather
+                name={features[currentFeature].icon}
+                size={32}
+                color="white"
+              />
             </View>
             <Text className="text-white text-2xl font-bold text-center mb-2">
               {features[currentFeature].title}
@@ -317,7 +360,7 @@ const Onboarding = () => {
 
         {/* Simple Form */}
         <View className="px-6">
-          <Animated.View 
+          <Animated.View
             entering={FadeInDown.delay(200)}
             className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md flex gap-2"
           >
@@ -373,8 +416,8 @@ const Onboarding = () => {
               onPress={() => navigateTo("/terms")}
             >
               Terms
-            </Text>
-            {" "}and{" "}
+            </Text>{" "}
+            and{" "}
             <Text
               className="text-blue-500"
               onPress={() => navigateTo("/privacy")}

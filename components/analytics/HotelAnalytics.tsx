@@ -132,10 +132,7 @@ export default function HotelAnalytics({ hotelId }: { hotelId: string }) {
   };
 
   // Separate the data fetching logic
-  const fetchAnalyticsData = async (
-    token: string,
-    timeframe: Timeframe
-  ) => {
+  const fetchAnalyticsData = async (token: string, timeframe: Timeframe) => {
     return await getAnalytics(hotelId, timeframe, token);
   };
 
@@ -401,7 +398,7 @@ export default function HotelAnalytics({ hotelId }: { hotelId: string }) {
               {analytics?.revenue && (
                 <View>
                   <Text className="text-gray-500 dark:text-gray-400 text-sm">
-                    Average Revenue
+                    Average Revenue per room
                   </Text>
                   {isLoading ? (
                     <ActivityIndicator size="small" color="#4b5563" />
@@ -409,7 +406,9 @@ export default function HotelAnalytics({ hotelId }: { hotelId: string }) {
                     <Text className="text-2xl font-bold mt-1 dark:text-white">
                       ₹
                       {(
-                        analytics?.revenue / (analytics?.confirmedBookings || 1)
+                        analytics?.revenue /
+                        (analytics?.confirmedBookings +
+                          analytics?.completedBookings || 1)
                       ).toFixed(2) || "0.00"}
                     </Text>
                   )}
@@ -429,13 +428,18 @@ export default function HotelAnalytics({ hotelId }: { hotelId: string }) {
                 isLoading={isLoading}
                 percentage={
                   analytics
-                    ? (analytics.confirmedBookings / analytics.totalBookings) *
+                    ? ((analytics.confirmedBookings +
+                        analytics.completedBookings) /
+                      analytics.totalBookings) *
                       100
                     : 0
                 }
                 color="#3b82f6"
                 label="Total"
-                value={analytics?.confirmedBookings || 0}
+                value={
+                  (analytics?.confirmedBookings || 0) +
+                  (analytics?.completedBookings || 0)
+                }
               />
             </View>
 
@@ -443,7 +447,7 @@ export default function HotelAnalytics({ hotelId }: { hotelId: string }) {
             {analytics && (
               <View
                 style={{ width: CARD_WIDTH }}
-                  className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex justify-center items-center"
+                className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex justify-center items-center"
               >
                 <CircularProgress
                   isLoading={isLoading}
@@ -491,63 +495,66 @@ export default function HotelAnalytics({ hotelId }: { hotelId: string }) {
                     percentage={analytics?.occupancyRate || 0}
                     color="#6366f1"
                     label="Occupancy"
-                    value={`${analytics?.occupancyRate ? analytics.occupancyRate.toFixed(0) : 0}%`}
+                    value={`${
+                      analytics?.occupancyRate
+                        ? analytics.occupancyRate.toFixed(0)
+                        : 0
+                    }%`}
                   />
                 </View>
               )}
           </View>
           <View className="flex-row flex-wrap gap-2 my-2 mb-4">
+            <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex flex-grow justify-center items-center">
+              <Text className="text-gray-500 dark:text-gray-400 text-sm">
+                Available Rooms
+              </Text>
+              <Text className="text-2xl font-bold mt-1 dark:text-white">
+                {isLoading ? (
+                  <ActivityIndicator size="small" color="#4b5563" />
+                ) : (
+                  analytics?.availableRooms || 0
+                )}
+              </Text>
+            </View>
 
-              <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex flex-grow justify-center items-center">
-                <Text className="text-gray-500 dark:text-gray-400 text-sm">
-                  Available Rooms
-                </Text>
-                <Text className="text-2xl font-bold mt-1 dark:text-white">
-                  {isLoading ? (
-                    <ActivityIndicator size="small" color="#4b5563" />
-                  ) : (
-                    analytics?.availableRooms || 0
-                  )}
-                </Text>
-              </View>
+            <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex flex-grow justify-center items-center">
+              <Text className="text-gray-500 dark:text-gray-400 text-sm">
+                Pending Bookings
+              </Text>
+              <Text className="text-2xl font-bold mt-1 dark:text-white">
+                {isLoading ? (
+                  <ActivityIndicator size="small" color="#4b5563" />
+                ) : (
+                  analytics?.pendingBookings || 0
+                )}
+              </Text>
+            </View>
 
-              <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex flex-grow justify-center items-center">
-                <Text className="text-gray-500 dark:text-gray-400 text-sm">
-                  Pending Bookings
-                </Text>
-                <Text className="text-2xl font-bold mt-1 dark:text-white">
-                  {isLoading ? (
-                    <ActivityIndicator size="small" color="#4b5563" />
-                  ) : (
-                    analytics?.pendingBookings || 0
-                  )}
-                </Text>
-              </View>
-
-              <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex flex-grow justify-center items-center">
-                <Text className="text-gray-500 dark:text-gray-400 text-sm">
-                  Confirmed Bookings
-                </Text>
-                <Text className="text-2xl font-bold mt-1 dark:text-white">
-                  {isLoading ? (
-                    <ActivityIndicator size="small" color="#4b5563" />
-                  ) : (
-                    analytics?.confirmedBookings || 0
-                  )}
-                </Text>
-              </View>
-              <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex flex-grow justify-center items-center">
-                <Text className="text-gray-500 dark:text-gray-400 text-sm">
-                  Checkout
-                </Text>
-                <Text className="text-2xl font-bold mt-1 dark:text-white">
-                  {isLoading ? (
-                    <ActivityIndicator size="small" color="#4b5563" />
-                  ) : (
-                    analytics?.completedBookings || 0
-                  )}
-                </Text>
-              </View>
+            <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex flex-grow justify-center items-center">
+              <Text className="text-gray-500 dark:text-gray-400 text-sm">
+                Confirmed Bookings
+              </Text>
+              <Text className="text-2xl font-bold mt-1 dark:text-white">
+                {isLoading ? (
+                  <ActivityIndicator size="small" color="#4b5563" />
+                ) : (
+                  analytics?.confirmedBookings || 0
+                )}
+              </Text>
+            </View>
+            <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex flex-grow justify-center items-center">
+              <Text className="text-gray-500 dark:text-gray-400 text-sm">
+                Checkout
+              </Text>
+              <Text className="text-2xl font-bold mt-1 dark:text-white">
+                {isLoading ? (
+                  <ActivityIndicator size="small" color="#4b5563" />
+                ) : (
+                  analytics?.completedBookings || 0
+                )}
+              </Text>
+            </View>
           </View>
         </View>
       </ScrollView>

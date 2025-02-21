@@ -103,6 +103,10 @@ const CreateBooking = () => {
       };
 
       const response = await createBooking(bookingData, token);
+      if (response.error) {
+        setError(response.error);
+        return;
+      }
 
       // Save booking data to storage
       await saveBookingToStorage(response);

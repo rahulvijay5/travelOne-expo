@@ -19,6 +19,12 @@ export const createBooking = async (
       headers: getHeaders(token),
       body: JSON.stringify(bookingData),
     });
+    console.log("Here is the response", res);
+    if(res.status === 400) {
+      const response = await res.json();
+      console.log("Here is the response", response);
+      return response;
+    }
     const response = await res.json();
     return response;
   } catch (error) {
@@ -88,9 +94,9 @@ export const getBookingsFromStorage = async () => {
   }
 };
 
-export const getCurrentBookingOfUser = async (userId: string, token?: string) => {
+export const  getCurrentBookingOfUser = async (clerkId: string, token?: string) => {
   try {
-    const res = await fetch(`${API_URL}/api/bookings/current-booking/${userId}`, {
+    const res = await fetch(`${API_URL}/api/bookings/current-booking/${clerkId}`, {
       method: "GET",
       headers: getHeaders(token),
     });

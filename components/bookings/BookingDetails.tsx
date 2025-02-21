@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   ScrollView,
@@ -10,13 +10,14 @@ import {
   ToastAndroid,
 } from "react-native";
 import { Text } from "@/components/ui/text";
-import { format } from "date-fns";
+import { format, isAfter } from "date-fns";
 import { useAuth } from "@clerk/clerk-expo";
 import { BookingDataInDb } from "@/types/index";
 import { router } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
 import { checkOutBooking, updateBookingPaymentStatus } from "@lib/api";
+import useBookingStore from "@/lib/store/bookingStore";
 
 interface BookingDetailsProps {
   booking: BookingDataInDb;
@@ -37,6 +38,31 @@ export default function BookingDetails({
   );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const clearCurrentBooking = useBookingStore((state) => state.clearCurrentBooking);
+
+  // Check if checkout time has passed
+  useEffect(() => {
+    const checkOutTime = new Date(booking.checkOut);
+    const now = new Date();
+    
+    if (isAfter(now, checkOutTime)) {
+      Alert.alert(
+        "Booking Ended",
+        "Your booking period has ended. Would you like to check out now?",
+        [
+          {
+            text: "Not Now",
+            style: "cancel"
+          },
+          {
+            text: "Check Out",
+            style: "default",
+            onPress: handleCheckOut
+          }
+        ]
+      );
+    }
+  }, [booking.checkOut]);
 
   const handleCheckOut = async () => {
     try {
@@ -47,6 +73,9 @@ export default function BookingDetails({
 
       const response = await checkOutBooking(booking.id, token);
       if (response?.status === 200) {
+        // Clear the booking from store
+        await clearCurrentBooking();
+        
         Platform.OS === "ios" ? 
         Alert.alert("Success", "Booking checked out successfully") :
         ToastAndroid.show("Booking checked out successfully", ToastAndroid.SHORT);

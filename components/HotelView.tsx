@@ -5,18 +5,24 @@ import {
   Pressable,
   Dimensions,
   Linking,
+  Alert,
 } from "react-native";
 import { Text } from "@/components/ui/text";
-import React, { useRef, useCallback } from "react";
+import React, { useRef, useCallback, useEffect } from "react";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { router } from "expo-router";
 import { Nullable, HotelDetails } from "@/types";
 import { formatTimeFromMinutes } from "@/lib/utils";
-import { AntDesign, Feather, Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import HotelAnalytics from "@/components/analytics/HotelAnalytics";
 import BottomSheet, { BottomSheetBackdrop } from "@gorhom/bottom-sheet";
 import QRCodeBottomSheet from "@/components/QRCodeBottomSheet";
 import { APP_URL } from "@/lib/config/index";
+import useBookingStore from "@/lib/store/bookingStore";
+import { isAfter } from "date-fns";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { checkOutBooking } from "@lib/api";
+import { useAuth } from "@clerk/clerk-expo";
 
 const HotelView = ({
   currentHotel,
@@ -29,6 +35,56 @@ const HotelView = ({
   const isDark = colorScheme === "dark";
   const width = Dimensions.get("window").width;
   const bottomSheetRef = useRef<BottomSheet>(null);
+  const currentBooking = useBookingStore((state) => state.currentBooking);
+  const clearCurrentBooking = useBookingStore(
+    (state) => state.clearCurrentBooking
+  );
+  const { getToken } = useAuth();
+
+  const handleCheckOut = async () => {
+    try {
+      const token = await getToken();
+      if (!token || !currentBooking) return;
+
+      const response = await checkOutBooking(currentBooking.id, token);
+      if (response?.status === 200) {
+        // Clear both hotel and booking from storage
+        await clearCurrentBooking();
+        await AsyncStorage.removeItem("@current_hotel_details");
+        Alert.alert("Success", "Checked out successfully");
+        router.push("/");
+      }
+    } catch (error) {
+      console.error("Error checking out:", error);
+      Alert.alert("Error", "Failed to check out. Please try again.");
+    }
+  };
+
+  // Check for expired booking
+  useEffect(() => {
+    if (!UserIsManager && currentBooking) {
+      const checkOutTime = new Date(currentBooking.checkOut);
+      const now = new Date();
+
+      if (isAfter(now, checkOutTime)) {
+        Alert.alert(
+          "Booking Ended",
+          "Your booking period has ended. Would you like to check out now?",
+          [
+            {
+              text: "Not Now",
+              style: "cancel",
+            },
+            {
+              text: "Check Out",
+              style: "default",
+              onPress: handleCheckOut,
+            },
+          ]
+        );
+      }
+    }
+  }, [currentBooking, UserIsManager]);
 
   const handleOpenQRCode = useCallback(() => {
     console.log("open qr code");
@@ -53,9 +109,9 @@ const HotelView = ({
           <Text className="text-2xl font-bold">Scan QR Code</Text>
         </Pressable>
         <Text className="text-xl text-center px-6 dark:text-white text-black">
-          It looks like you don't have an active hotel stay. Please scan a QR code to begin your stay.
+          It looks like you don't have an active hotel stay. Please scan a QR
+          code to begin your stay.
         </Text>
-        
       </View>
     );
   }
@@ -64,32 +120,6 @@ const HotelView = ({
     return (
       <View className="flex-1 bg-white dark:bg-black">
         <View className="flex-1">
-          {/* Manager Header */}
-          {/* <View className="flex justify-between gap-2 items-center flex-row p-4">
-            <View className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-3">
-              <Text className="text-2xl font-bold dark:text-white">
-                {currentHotel.hotelName}
-              </Text>
-              <Text className="text-gray-500 dark:text-gray-400 mt-1">
-                Hotel Code: {currentHotel.code}
-              </Text>
-            </View>
-            <Pressable
-              onPress={() => {
-                if (bottomSheetRef.current) {
-                  bottomSheetRef.current.snapToIndex(0);
-                }
-              }}
-              className="bg-white dark:bg-gray-800 p-3 rounded-xl shadow-sm"
-            >
-              <AntDesign
-                name="qrcode"
-                size={32}
-                color={isDark ? "#9ca3af" : "#4b5563"}
-              />
-            </Pressable>
-          </View> */}
-
           {/* Analytics Section */}
           <HotelAnalytics hotelId={currentHotel.id} />
         </View>
@@ -166,14 +196,25 @@ const HotelView = ({
         </View>
 
         <View className="flex justify-center items-center">
-          <Pressable
-            onPress={() => router.push("/bookings")}
-            className="dark:bg-lime-500 bg-lime-300 w-full rounded-2xl shadow-sm py-4 px-2 shadow-black/50"
-          >
-            <Text className="text-2xl text-center font-bold">
-              Book a Room Now
-            </Text>
-          </Pressable>
+          {currentBooking ? (
+            <Pressable
+              onPress={() => router.push("/bookings")}
+              className="dark:bg-lime-500 bg-lime-300 w-full rounded-2xl shadow-sm py-4 px-2 shadow-black/50"
+            >
+              <Text className="text-2xl text-center font-bold">
+                View Booking
+              </Text>
+            </Pressable>
+          ) : (
+            <Pressable
+              onPress={() => router.push("/bookings")}
+              className="dark:bg-lime-500 bg-lime-300 w-full rounded-2xl shadow-sm py-4 px-2 shadow-black/50"
+            >
+              <Text className="text-2xl text-center font-bold">
+                Book a Room Now
+              </Text>
+            </Pressable>
+          )}
         </View>
 
         {/* Rules */}
