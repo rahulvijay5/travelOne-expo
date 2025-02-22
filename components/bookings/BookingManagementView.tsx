@@ -23,6 +23,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import BookingModal from "./BookingModal";
 import DropDownPicker from "react-native-dropdown-picker";
 import { getFilteredHotelBookings } from "@lib/api";
+import { useRoomStore } from "@/lib/store/roomStore";
+
 interface BookingManagementViewProps {
   hotelId: string;
 }
@@ -72,7 +74,7 @@ export default function BookingManagementView({
   const [filteredBookings, setFilteredBookings] = useState<BookingDataInDb[]>(
     []
   );
-  const [rooms, setRooms] = useState<any[]>([]);
+  const { rooms } = useRoomStore();
   const [startDate, setStartDate] = useState(
     subDays(startOfDay(new Date()), 0)
   );
@@ -115,33 +117,6 @@ export default function BookingManagementView({
     { label: "Check Out", value: "checkOut" as SortByType },
     { label: "Booking Time", value: "bookingTime" as SortByType },
   ];
-
-  // Load rooms from storage
-  useEffect(() => {
-  const loadRooms = async () => {
-    try {
-        const roomsData = await AsyncStorage.getItem("@current_hotel_rooms");
-        if (roomsData) {
-          const parsedData = JSON.parse(roomsData);
-          console.log("roomsData in BookingManagementView", parsedData);
-          if (parsedData.hotelId === hotelId) {
-            const roomsArray = Array.isArray(parsedData.rooms)
-              ? parsedData.rooms
-              : [];
-            const sortedRooms = roomsArray.sort(
-              (a: any, b: any) =>
-                parseInt(a.roomNumber) - parseInt(b.roomNumber)
-        );
-            console.log("Loaded sorted rooms in BookingManagementView");
-            setRooms(sortedRooms);
-          }
-      }
-    } catch (error) {
-      console.error("Error loading rooms:", error);
-    }
-  };
-    loadRooms();
-  }, [hotelId]);
 
   const fetchData = async () => {
     try {
@@ -224,9 +199,9 @@ export default function BookingManagementView({
           <View>
             {/* Fixed Header */}
             <View style={[styles.headerRow, isDark && styles.headerRowDark]}>
-                <View
+              <View
                 style={[styles.roomHeader, isDark && styles.roomHeaderDark]}
-                >
+              >
                 <Text
                   style={[styles.headerText, isDark && styles.headerTextDark]}
                 >
@@ -269,62 +244,70 @@ export default function BookingManagementView({
                   </Text>
                 </View>
 
-                {loading ? (    
+                {loading ? (
                   <View className="justify-center items-start ">
-                    <ActivityIndicator size="small" color={isDark ? "white" : "black"} />
+                    <ActivityIndicator
+                      size="small"
+                      color={isDark ? "white" : "black"}
+                    />
                   </View>
                 ) : (
                   days.map((day) => {
-                    const bookingsForDay = filteredBookings.filter((booking) => {
-                    const bookingStart = parseISO(booking.checkIn);
-                    const bookingEnd = parseISO(booking.checkOut);
-                    const dayStart = startOfDay(day);
-                    const dayEnd = addDays(dayStart, 1);
-                    return (
-                      booking.room.roomNumber === room.roomNumber &&
-                      bookingStart < dayEnd &&
-                      bookingEnd > dayStart
-                    );
-                  });
-
-                  return (
-                    <View
-                      key={day.toISOString()}
-                      style={[styles.dayCell, isDark && styles.dayCellDark]}
-                    >
-                      {bookingsForDay.map((booking) => {
-                        const { left, width } = calculateBookingPosition(
-                          booking.checkIn,
-                          booking.checkOut,
-                          startOfDay(day)
-                        );
-
+                    const bookingsForDay = filteredBookings.filter(
+                      (booking) => {
+                        const bookingStart = parseISO(booking.checkIn);
+                        const bookingEnd = parseISO(booking.checkOut);
+                        const dayStart = startOfDay(day);
+                        const dayEnd = addDays(dayStart, 1);
                         return (
-                          <Pressable
-                            key={booking.id}
-                            style={[
-                              styles.bookingChip,
-                              {
-                                backgroundColor: getStatusColor(booking.status),
-                                position: "absolute",
-                                left,
-                                width: Math.max(width, 50), // Minimum width for visibility
-                              },
-                            ]}
-                            onPress={() => handleBookingPress(booking)}
-                          >
-                            <Text style={styles.bookingText} numberOfLines={1}>
-                              {booking.customer.name} | {booking.guests}
-                            </Text>
-                          </Pressable>
+                          booking.room.roomNumber === room.roomNumber &&
+                          bookingStart < dayEnd &&
+                          bookingEnd > dayStart
                         );
-                      })}
-                    </View>
-                  );
-                })
-              )
-            }
-              
+                      }
+                    );
+
+                    return (
+                      <View
+                        key={day.toISOString()}
+                        style={[styles.dayCell, isDark && styles.dayCellDark]}
+                      >
+                        {bookingsForDay.map((booking) => {
+                          const { left, width } = calculateBookingPosition(
+                            booking.checkIn,
+                            booking.checkOut,
+                            startOfDay(day)
+                          );
+
+                          return (
+                            <Pressable
+                              key={booking.id}
+                              style={[
+                                styles.bookingChip,
+                                {
+                                  backgroundColor: getStatusColor(
+                                    booking.status
+                                  ),
+                                  position: "absolute",
+                                  left,
+                                  width: Math.max(width, 50), // Minimum width for visibility
+                                },
+                              ]}
+                              onPress={() => handleBookingPress(booking)}
+                            >
+                              <Text
+                                style={styles.bookingText}
+                                numberOfLines={1}
+                              >
+                                {booking.customer.name} | {booking.guests}
+                              </Text>
+                            </Pressable>
+                          );
+                        })}
+                      </View>
+                    );
+                  })
+                )}
               </View>
             ))}
           </View>
@@ -356,7 +339,7 @@ export default function BookingManagementView({
   return (
     <View className="flex-1">
       <View className="py-4 flex-row items-center justify-between px-4">
-      {renderDateNavigation()}
+        {renderDateNavigation()}
       </View>
       <View className="flex-1">{renderTimelineGrid()}</View>
       <BookingModal
@@ -396,11 +379,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
-
   },
   headerRowDark: {
     borderBottomColor: "#374151",
-
   },
   roomHeader: {
     width: ROOM_COLUMN_WIDTH,
@@ -457,11 +438,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderRightWidth: 1,
     borderRightColor: "#e5e7eb",
-
   },
   roomCellDark: {
     borderRightColor: "#374151",
-
   },
   roomText: {
     fontSize: 14,
@@ -494,10 +473,8 @@ const styles = StyleSheet.create({
   },
   dropdown: {
     borderColor: "#d1d5db",
-
   },
   dropdownContainer: {
     borderColor: "#d1d5db",
-
   },
 });

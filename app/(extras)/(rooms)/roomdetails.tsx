@@ -16,6 +16,7 @@ import { useAuth } from "@clerk/clerk-expo";
 import CustomImagePicker from "@/components/ImagePicker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { uploadImages, createMultipleRooms, getHotelRooms } from "@lib/api";
+import { useRoomStore } from "@/lib/store/roomStore";
 
 type HotelRulesPageParams = {
   hotelId: string;
@@ -30,6 +31,8 @@ const RoomDetails = () => {
   const { getToken } = useAuth();
   const [hotelId, setHotelId] = useState<string | null>(null);
   const [creatingNewHotel, setCreatingNewHotel] = useState(false);
+  const { setRooms: setStoreRooms, rooms: storedRooms } = useRoomStore();
+  const [isDuplicateRoom, setIsDuplicateRoom] = useState(false);
 
   const [currentRoom, setCurrentRoom] = useState<RoomForm>({
     roomNumber: "",
@@ -100,6 +103,19 @@ const RoomDetails = () => {
     }
   };
 
+  // Add function to check for duplicate room numbers
+  const checkDuplicateRoom = (roomNumber: string) => {
+    // Check in temporary rooms
+    const tempDuplicate = rooms.some(room => room.roomNumber === roomNumber);
+    
+    // Check in stored rooms
+    const storeDuplicate = storedRooms ? storedRooms.some(room => room.roomNumber === roomNumber) : false;
+    
+    const isDuplicate = tempDuplicate || storeDuplicate;
+    setIsDuplicateRoom(isDuplicate);
+    return isDuplicate;
+  };
+
   const addRoom = async () => {
     // Validate required fields
     const requiredFields = ["type", "roomNumber", "price", "maxOccupancy"];
@@ -107,7 +123,7 @@ const RoomDetails = () => {
       (field) => !currentRoom[field as keyof RoomForm]
     );
 
-    if (rooms.find((room) => room.roomNumber == currentRoom.roomNumber)) {
+    if (checkDuplicateRoom(currentRoom.roomNumber)) {
       setError("Room number already exists");
       return;
     }
@@ -209,19 +225,14 @@ const RoomDetails = () => {
           throw new Error(res.error);
         }
 
-        // Update rooms in AsyncStorage
+        // Update rooms in store
         await AsyncStorage.removeItem("@temp_rooms");
 
         const rooms = await getHotelRooms(hotelId as string, token);
         if (rooms && !rooms.error) {
-          await AsyncStorage.setItem(
-            "@current_hotel_rooms",
-              JSON.stringify({
-                hotelId: hotelId,
-                rooms: rooms.data || rooms,
-              })
-            );
-          }
+          // Update room store
+          setStoreRooms(rooms.data || rooms, hotelId as string);
+        }
 
         if (creatingNewHotel) {
           router.replace("/");
@@ -260,15 +271,21 @@ const RoomDetails = () => {
               Room Number
             </Text>
             <TextInput
-              className="border border-gray-300 w-1/3 dark:border-gray-600 rounded-lg p-3 dark:text-white"
+              className={`border ${isDuplicateRoom ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} w-1/3 dark:border-gray-600 rounded-lg p-3 dark:text-white`}
               value={currentRoom.roomNumber}
-              onChangeText={(text) =>
-                setCurrentRoom((prev) => ({ ...prev, roomNumber: text }))
-              }
+              onChangeText={(text) => {
+                setCurrentRoom((prev) => ({ ...prev, roomNumber: text }));
+                checkDuplicateRoom(text);
+              }}
               placeholder="Enter room number"
               placeholderTextColor="#666"
             />
           </View>
+          {isDuplicateRoom && (
+            <Text className="text-red-500 text-sm text-right">
+              Room number already exists
+            </Text>
+          )}
 
           <View className="flex-row items-center gap-4 justify-between">
             <Text className="text-base mb-2 dark:text-white">Room Type </Text>

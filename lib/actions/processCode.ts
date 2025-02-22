@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getHotelByCode, getHotelRooms } from "@/lib/api/hotels";
+import { useRoomStore } from "@/lib/store/roomStore";
 
 interface ProcessCodeOptions {
   code: string;
@@ -54,13 +55,9 @@ export const processCode = async ({
               if (authToken) {
                 const rooms = await getHotelRooms(cachedHotel.id, authToken);
                 if (rooms && !rooms.error) {
-                  await AsyncStorage.setItem(
-                    "@current_hotel_rooms",
-                    JSON.stringify({
-                      hotelId: cachedHotel.id,
-                      rooms: rooms.data || rooms,
-                    })
-                  );
+                  // Update room store
+                  const roomStore = useRoomStore.getState();
+                  roomStore.setRooms(rooms.data || rooms, cachedHotel.id);
                 }
               }
             }
@@ -103,13 +100,9 @@ export const processCode = async ({
           if (authToken) {
             const rooms = await getHotelRooms(response.data.id, authToken);
             if (rooms && !rooms.error) {
-              await AsyncStorage.setItem(
-                "@current_hotel_rooms",
-                JSON.stringify({
-                  hotelId: response.data.id,
-                  rooms: rooms.data || rooms,
-                })
-              );
+              // Update room store
+              const roomStore = useRoomStore.getState();
+              roomStore.setRooms(rooms.data || rooms, response.data.id);
             }
           }
         }

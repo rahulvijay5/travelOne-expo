@@ -7,12 +7,13 @@ import { Room } from "@/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getHotelRooms } from "@lib/api";
 import { navigateTo } from "@/lib/actions/navigation";
+import { useRoomStore } from "@/lib/store/roomStore";
 
 const manageRooms = () => {
   const { hotelId } = useLocalSearchParams<{ hotelId: string }>();
-  const [rooms, setRooms] = useState<Room[]>([]);
   const { getToken } = useAuth();
   const [reload, setReload] = useState<boolean>(false);
+  const { rooms, setRooms } = useRoomStore();
 
   const navigateToHotelRooms = (hotelId: string) => {
     navigateTo("/roomdetails", { hotelId });
@@ -25,38 +26,16 @@ const manageRooms = () => {
   useEffect(() => {
     const loadRooms = async () => {
       try {
-        const roomsData = await AsyncStorage.getItem("@current_hotel_rooms");
-        if (roomsData) {
-          const parsedData = JSON.parse(roomsData);
-          if (parsedData.hotelId === hotelId) {
-            const roomsArray = Array.isArray(parsedData.rooms)
-              ? parsedData.rooms
-              : [];
-            const sortedRooms = roomsArray.sort(
-              (a: any, b: any) =>
-                parseInt(a.roomNumber) - parseInt(b.roomNumber)
-            );
-            console.log("Rooms loaded in manageRooms");
-            setRooms(sortedRooms);
-          }
-        } else {
-          const token = await getToken();
-          if (!token) {
-            navigateTo("/not-authenticated");
-            return;
-          }
-          const roomsFromDb = await getHotelRooms(hotelId, token!);
-          console.log("Rooms from db:", roomsFromDb);
-          if (roomsFromDb && !roomsFromDb.error) {
-            setRooms(roomsFromDb);
-            await AsyncStorage.setItem(
-              "@current_hotel_rooms",
-              JSON.stringify({
-                hotelId: hotelId,
-                rooms: roomsFromDb,
-              })
-            );
-          }
+        const token = await getToken();
+        if (!token) {
+          navigateTo("/not-authenticated");
+          return;
+        }
+        const roomsFromDb = await getHotelRooms(hotelId, token!);
+        console.log("Rooms from db:", roomsFromDb);
+        if (roomsFromDb && !roomsFromDb.error) {
+          // Update room store
+          setRooms(roomsFromDb.data || roomsFromDb, hotelId);
         }
       } catch (error) {
         console.error("Error loading rooms:", error);
@@ -65,7 +44,7 @@ const manageRooms = () => {
     loadRooms();
   }, [hotelId, reload]);
 
-  if (rooms.length === 0) {
+  if (!rooms || rooms.length === 0) {
     return (
       <View className="flex-1 items-center justify-center">
         <Text className="text-xl font-semibold dark:text-white">

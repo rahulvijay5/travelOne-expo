@@ -17,6 +17,7 @@ import { RoomDetailsByID, UpdateRoomForm } from "@/types";
 import { defaultRoomFeatures } from "@/lib/constants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getRoomById, deleteRoom, updateRoom, getHotelRooms } from "@lib/api";
+import { useRoomStore } from "@/lib/store/roomStore";
 
 export default function RoomPage() {
   const params = useLocalSearchParams();
@@ -27,6 +28,7 @@ export default function RoomPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editedRoom, setEditedRoom] = useState<UpdateRoomForm | null>(null);
   const [customFeature, setCustomFeature] = useState("");
+  const { deleteRoom: deleteRoomFromStore, updateRoom: updateRoomInStore } = useRoomStore();
 
   useEffect(() => {
     loadRoomDetails();
@@ -104,27 +106,9 @@ export default function RoomPage() {
               }
 
               await deleteRoom(params.roomId as string, token);
-
-              const cachedHotel = await AsyncStorage.getItem("@current_hotel");
-              const cachedRoomsStr = await AsyncStorage.getItem(
-                "@current_hotel_rooms"
-              );
-              const cachedRooms = cachedRoomsStr
-                ? JSON.parse(cachedRoomsStr)
-                : { rooms: [] };
-
-              // Remove the deleted room from cached rooms
-              const updatedRooms = cachedRooms.rooms.filter(
-                (room: any) => room.roomId !== params.roomId
-              );
-
-              await AsyncStorage.setItem(
-                "@current_hotel_rooms",
-                JSON.stringify({
-                  hotelId: cachedHotel ? JSON.parse(cachedHotel).hotelId : null,
-                  rooms: updatedRooms,
-                })
-              );
+              
+              // Update room store
+              deleteRoomFromStore(params.roomId as string);
 
               Alert.alert("Success", "Room deleted successfully");
               router.back();
@@ -162,21 +146,14 @@ export default function RoomPage() {
       if (result.success) {
         Alert.alert("Success", "Room updated successfully");
 
-        // Update the cached hotel rooms
-        if(room?.roomNumber !== editedRoom.roomNumber){
-        const cachedHotel = await AsyncStorage.getItem("@current_hotel");
-        const hotelId = cachedHotel ? JSON.parse(cachedHotel).hotelId : null;
-
-        const rooms = await getHotelRooms(hotelId as string, token);
-        if (rooms && !rooms.error) {
-          await AsyncStorage.setItem(
-            "@current_hotel_rooms",
-              JSON.stringify({
-                hotelId: hotelId,
-                rooms: rooms.data || rooms,
-              })
-            );
-          }
+        // Update the room store
+        if (room) {
+          updateRoomInStore({
+            ...room,
+            ...editedRoom,
+            price: parseInt(editedRoom.price),
+            maxOccupancy: parseInt(editedRoom.maxOccupancy),
+          });
         }
           
         setIsEditing(false);

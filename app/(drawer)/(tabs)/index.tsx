@@ -15,6 +15,7 @@ import { useAuth } from "@clerk/clerk-expo";
 import { getHotelById, getHotelRooms } from "@lib/api";
 import HotelView from "@/components/HotelView";
 import { useHotelStore } from "@/lib/store/hotelStore";
+import { useRoomStore } from "@/lib/store/roomStore";
 
 const { width } = Dimensions.get("window");
 
@@ -27,6 +28,7 @@ export default function HomeScreen() {
   const { getToken } = useAuth();
   const params = useLocalSearchParams();
   const { currentHotel, setCurrentHotel } = useHotelStore();
+  const { setRooms } = useRoomStore();
 
   useEffect(() => {
     loadCurrentHotel();
@@ -69,13 +71,7 @@ export default function HomeScreen() {
             if (user?.role === "OWNER" || user?.role === "MANAGER") {
               const rooms = await getHotelRooms(hotelIdParam, token);
               if (rooms && !rooms.error) {
-                await AsyncStorage.setItem(
-                  "@current_hotel_rooms",
-                  JSON.stringify({
-                    hotelId: hotelIdParam,
-                    rooms: rooms.data || rooms,
-                  })
-                );
+                setRooms(rooms.data || rooms, hotelIdParam);
               }
             }
 
