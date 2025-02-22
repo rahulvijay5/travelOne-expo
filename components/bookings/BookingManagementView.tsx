@@ -22,7 +22,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import BookingModal from "./BookingModal";
 import DropDownPicker from "react-native-dropdown-picker";
-import { getFilteredHotelBookings } from "@lib/api";
+import { getFilteredHotelBookings, getHotelRooms } from "@lib/api";
 import { useRoomStore } from "@/lib/store/roomStore";
 
 interface BookingManagementViewProps {
@@ -64,6 +64,33 @@ function calculateBookingPosition(
   };
 }
 
+const SkeletonTimelineHeader = ({ isDark, days }: { isDark: boolean; days: Date[] }) => (
+  <View style={[styles.headerRow, isDark && styles.headerRowDark]}>
+    <View style={[styles.roomHeader, isDark && styles.roomHeaderDark]}>
+      <View className={`h-4 w-12 rounded-md ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`} />
+    </View>
+    {days.map((day) => (
+      <View key={day.toISOString()} style={[styles.dayHeader, isDark && styles.dayHeaderDark]}>
+        <View className={`h-4 w-16 rounded-md mb-1 ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`} />
+        <View className={`h-3 w-20 rounded-md ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`} />
+      </View>
+    ))}
+  </View>
+);
+
+const SkeletonTimelineRow = ({ isDark, days }: { isDark: boolean; days: Date[] }) => (
+  <View style={[styles.roomRow, isDark && styles.roomRowDark]}>
+    <View style={[styles.roomCell, isDark && styles.roomCellDark]}>
+      <View className={`h-4 w-16 rounded-md ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`} />
+    </View>
+    {days.map((day) => (
+      <View key={day.toISOString()} style={[styles.dayCell, isDark && styles.dayCellDark]}>
+        <View className={`h-8 w-full rounded-md ${isDark ? 'bg-gray-800/50' : 'bg-gray-200/50'}`} />
+      </View>
+    ))}
+  </View>
+);
+
 export default function BookingManagementView({
   hotelId,
 }: BookingManagementViewProps) {
@@ -71,16 +98,12 @@ export default function BookingManagementView({
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const [bookings, setBookings] = useState<BookingDataInDb[]>([]);
-  const [filteredBookings, setFilteredBookings] = useState<BookingDataInDb[]>(
-    []
-  );
-  const { rooms } = useRoomStore();
-  const [startDate, setStartDate] = useState(
-    subDays(startOfDay(new Date()), 0)
-  );
+  const [filteredBookings, setFilteredBookings] = useState<BookingDataInDb[]>([]);
+  const { rooms, initializeFromStorage, setRooms } = useRoomStore();
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [startDate, setStartDate] = useState(subDays(startOfDay(new Date()), 0));
   const [loading, setLoading] = useState(true);
-  const [selectedBooking, setSelectedBooking] =
-    useState<BookingDataInDb | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<BookingDataInDb | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
 
@@ -146,6 +169,33 @@ export default function BookingManagementView({
   };
 
   useEffect(() => {
+    const initialize = async () => {
+      setIsInitializing(true);
+      try {
+        // First try to get rooms from storage
+        await initializeFromStorage();
+        
+        // If no rooms in store or rooms are for a different hotel, fetch them
+        if (!rooms || (rooms.length > 0 && rooms[0].hotelId !== hotelId)) {
+          const token = await getToken();
+          if (token) {
+            const response = await getHotelRooms(hotelId, token);
+            if (response && !response.error) {
+              setRooms(response.data || response, hotelId);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error initializing rooms:', error);
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+
+    initialize();
+  }, [hotelId]);
+
+  useEffect(() => {
     fetchData();
   }, [hotelId, startDate, filters]);
 
@@ -180,6 +230,26 @@ export default function BookingManagementView({
   );
 
   const renderTimelineGrid = () => {
+    const days = eachDayOfInterval({
+      start: startDate,
+      end: addDays(startDate, 6),
+    });
+
+    if (isInitializing) {
+      return (
+        <View style={[styles.gridContainer, isDark && styles.gridContainerDark]}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View>
+              <SkeletonTimelineHeader isDark={isDark} days={days} />
+              {[...Array(10)].map((_, index) => (
+                <SkeletonTimelineRow key={index} isDark={isDark} days={days} />
+              ))}
+            </View>
+          </ScrollView>
+        </View>
+      );
+    }
+
     if (!rooms || rooms.length === 0) {
       return (
         <View className="flex-1 justify-center items-center">
@@ -187,11 +257,6 @@ export default function BookingManagementView({
         </View>
       );
     }
-
-    const days = eachDayOfInterval({
-      start: startDate,
-      end: addDays(startDate, 6),
-    });
 
     return (
       <View style={[styles.gridContainer, isDark && styles.gridContainerDark]}>
@@ -244,14 +309,7 @@ export default function BookingManagementView({
                   </Text>
                 </View>
 
-                {loading ? (
-                  <View className="justify-center items-start ">
-                    <ActivityIndicator
-                      size="small"
-                      color={isDark ? "white" : "black"}
-                    />
-                  </View>
-                ) : (
+                {(
                   days.map((day) => {
                     const bookingsForDay = filteredBookings.filter(
                       (booking) => {

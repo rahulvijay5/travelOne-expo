@@ -14,6 +14,30 @@ interface BookingListViewProps {
   setShowModal?: (show: boolean) => void;
 }
 
+const SkeletonBookingItem = ({ isDark }: { isDark: boolean }) => (
+  <View className={`p-4 border w-full border-gray-200 dark:border-gray-700 ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
+    <View className="flex-row justify-between items-start">
+      <View>
+        <View className={`h-6 w-24 rounded-md ${isDark ? 'bg-gray-800' : 'bg-gray-200'} mb-2`} />
+        <View className={`h-4 w-32 rounded-md ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`} />
+      </View>
+      <View className="items-end">
+        <View className={`h-4 w-20 rounded-md ${isDark ? 'bg-gray-800' : 'bg-gray-200'} mb-2`} />
+        <View className={`h-4 w-24 rounded-md ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`} />
+      </View>
+    </View>
+    <View className="mt-2">
+      <View className={`h-4 w-48 rounded-md ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`} />
+    </View>
+  </View>
+);
+
+const SkeletonDateHeader = ({ isDark }: { isDark: boolean }) => (
+  <View className="py-4 px-4 bg-gray-100 dark:bg-gray-800">
+    <View className={`h-5 w-48 rounded-md ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`} />
+  </View>
+);
+
 export default function BookingListView({ 
   hotelId, 
   onBookingPress,
@@ -136,8 +160,13 @@ export default function BookingListView({
 
   if (loading && page === 1) {
     return (
-      <View className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" color={isDark ? '#ffffff' : '#000000'} />
+      <View className="flex-1">
+        {[1, 2, 3, 4, 5].map((index) => (
+          <View key={index}>
+            {index === 1 && <SkeletonDateHeader isDark={isDark} />}
+            <SkeletonBookingItem isDark={isDark} />
+          </View>
+        ))}
       </View>
     );
   }

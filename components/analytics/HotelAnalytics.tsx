@@ -503,6 +503,9 @@ export default function HotelAnalytics({ hotelId }: { hotelId: string }) {
                 </View>
               )}
           </View>
+          {
+            analytics && (selectedRange === "today" || selectedRange === "tomorrow") && 
+          (
           <View className="flex-row flex-wrap gap-2 my-2 mb-4">
             <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex flex-grow justify-center items-center">
               <Text className="text-gray-500 dark:text-gray-400 text-sm">
@@ -555,6 +558,7 @@ export default function HotelAnalytics({ hotelId }: { hotelId: string }) {
               )}
             </View>
           </View>
+          )}
         </View>
       </ScrollView>
     </View>

@@ -6,6 +6,7 @@ import { getHeaders } from "@lib/utils";
 import { API_URL } from "@lib/config/index";
 import { getUserByClerkId } from "@/lib/api";
 import { isDevice } from "expo-device";
+import { router } from "expo-router";
 
 const PushNotificationContext = createContext(null);
 
@@ -28,7 +29,7 @@ export const PushNotificationProvider = ({
 
   useEffect(() => {
     const register = async () => {
-      if(!isDevice){
+      if (!isDevice) {
         return;
       }
       if (hasRegistered.current || !userId) return;
@@ -86,6 +87,13 @@ export const PushNotificationProvider = ({
     responseListener.current =
       Notifications.addNotificationResponseReceivedListener((response) => {
         console.log("User interacted with notification:", response);
+        const bookingId = response.notification.request.content.data.bookingId;
+
+        if (bookingId) {
+          router.push(`/bookings/${bookingId}`);
+        } else {
+          console.warn("No bookingId found in notification data.");
+        }
       });
 
     return () => {
@@ -107,7 +115,6 @@ export const usePushNotifications = () => {
   return useContext(PushNotificationContext);
 };
 
-// Helper function remains the same
 async function registerForPushNotificationsAsync(): Promise<string | null> {
   if (!isDevice) {
     // Alert.alert('Must use a physical device for Push Notifications');

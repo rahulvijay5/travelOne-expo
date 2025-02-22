@@ -5,11 +5,37 @@ import { useUserStorage } from "@/hooks/useUserStorage";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/clerk-expo";
 import { UserData } from "@/types";
-
-import { ArrowUpRightFromCircle } from "lucide-react-native";
+import { ArrowUpRight } from "lucide-react-native";
 import { processCode } from "@/lib/actions/processCode";
 import { getOwnedHotels } from "@lib/api";
 import { navigateTo } from "@/lib/actions/navigation";
+import { useColorScheme } from "nativewind";
+
+const SkeletonHotelCard = ({ isDark }: { isDark: boolean }) => (
+  <View className="px-2 py-4 my-2 rounded-lg border border-gray-200 dark:border-gray-800">
+    <View className={`h-20 rounded-lg ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`} />
+    <View className="flex gap-1">
+      <View className="flex items-center justify-between flex-row mt-2">
+        <View className={`h-8 w-48 rounded-md ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`} />
+        <View className={`h-6 w-6 rounded-full ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`} />
+      </View>
+      <View className="flex-row justify-between items-end">
+        <View className={`h-4 w-20 rounded-md ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`} />
+        <View className={`h-6 w-16 rounded-md ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`} />
+      </View>
+      <View className="flex-row justify-between items-start">
+        <View className={`h-4 w-16 rounded-md ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`} />
+        <View className={`h-4 w-40 rounded-md ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`} />
+      </View>
+    </View>
+    <View className="flex-row justify-between mt-4 gap-2 items-center">
+      <View className={`h-10 flex-grow rounded-lg ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`} />
+      <View className={`h-10 flex-grow rounded-lg ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`} />
+    </View>
+    <View className={`h-10 mt-2 rounded-lg ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`} />
+  </View>
+);
+
 const OwnedHotels = () => {
   const { getUserData, storeUserData } = useUserStorage();
   const { getToken } = useAuth();
@@ -17,6 +43,8 @@ const OwnedHotels = () => {
   const [ownerId, setOwnerId] = useState<string | null>(null);
   const [hotels, setHotels] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   useEffect(() => {
     let mounted = true;
@@ -70,9 +98,11 @@ const OwnedHotels = () => {
 
   if (loading) {
     return (
-      <SafeAreaView>
-        <Text>Loading...</Text>
-      </SafeAreaView>
+      <ScrollView className="p-4">
+        {[1, 2, 3].map((index) => (
+          <SkeletonHotelCard key={index} isDark={isDark} />
+        ))}
+      </ScrollView>
     );
   }
 
@@ -133,7 +163,7 @@ const OwnedHotels = () => {
                     }
                   }}
                 >
-                  <ArrowUpRightFromCircle size={20} color="gray" />
+                  <ArrowUpRight size={20} color="gray" />
                 </Pressable>
               </View>
 
