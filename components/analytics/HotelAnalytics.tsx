@@ -6,6 +6,7 @@ import {
   RefreshControl,
   Pressable,
   Dimensions,
+  Alert,
 } from "react-native";
 import { Text } from "@/components/ui/text";
 import { getAnalytics } from "@lib/api/analytics";
@@ -62,7 +63,7 @@ const CircularProgress = ({
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke={color + "20"}
+            stroke={`${color}20`}
             strokeWidth={strokeWidth}
             fill="none"
           />
@@ -90,9 +91,7 @@ const CircularProgress = ({
               <Text className="text-2xl font-bold dark:text-white">
                 {value}
               </Text>
-              <Text className="text-sm text-gray-500 dark:text-gray-400">
-                {label}
-              </Text>
+              <Text className="text-sm dark:text-gray-300">{label}</Text>
             </>
           )}
         </View>
@@ -509,51 +508,51 @@ export default function HotelAnalytics({ hotelId }: { hotelId: string }) {
               <Text className="text-gray-500 dark:text-gray-400 text-sm">
                 Available Rooms
               </Text>
-              <Text className="text-2xl font-bold mt-1 dark:text-white">
-                {isLoading ? (
-                  <ActivityIndicator size="small" color="#4b5563" />
-                ) : (
-                  analytics?.availableRooms || 0
-                )}
-              </Text>
+              {isLoading ? (
+                <ActivityIndicator size="small" color="#4b5563" />
+              ) : (
+                <Text className="text-2xl font-bold mt-1 dark:text-white">
+                  {analytics?.availableRooms || 0}
+                </Text>
+              )}
             </View>
 
             <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex flex-grow justify-center items-center">
               <Text className="text-gray-500 dark:text-gray-400 text-sm">
                 Pending Bookings
               </Text>
-              <Text className="text-2xl font-bold mt-1 dark:text-white">
-                {isLoading ? (
-                  <ActivityIndicator size="small" color="#4b5563" />
-                ) : (
-                  analytics?.pendingBookings || 0
-                )}
-              </Text>
+              {isLoading ? (
+                <ActivityIndicator size="small" color="#4b5563" />
+              ) : (
+                <Text className="text-2xl font-bold mt-1 dark:text-white">
+                  {analytics?.pendingBookings || 0}
+                </Text>
+              )}
             </View>
 
             <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex flex-grow justify-center items-center">
               <Text className="text-gray-500 dark:text-gray-400 text-sm">
                 Confirmed Bookings
               </Text>
-              <Text className="text-2xl font-bold mt-1 dark:text-white">
-                {isLoading ? (
-                  <ActivityIndicator size="small" color="#4b5563" />
-                ) : (
-                  analytics?.confirmedBookings || 0
-                )}
-              </Text>
+              {isLoading ? (
+                <ActivityIndicator size="small" color="#4b5563" />
+              ) : (
+                <Text className="text-2xl font-bold mt-1 dark:text-white">
+                  {analytics?.confirmedBookings || 0}
+                </Text>
+              )}
             </View>
             <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex flex-grow justify-center items-center">
               <Text className="text-gray-500 dark:text-gray-400 text-sm">
                 Checkout
               </Text>
-              <Text className="text-2xl font-bold mt-1 dark:text-white">
-                {isLoading ? (
-                  <ActivityIndicator size="small" color="#4b5563" />
-                ) : (
-                  analytics?.completedBookings || 0
-                )}
-              </Text>
+              {isLoading ? (
+                <ActivityIndicator size="small" color="#4b5563" />
+              ) : (
+                <Text className="text-2xl font-bold mt-1 dark:text-white">
+                  {analytics?.completedBookings || 0}
+                </Text>
+              )}
             </View>
           </View>
         </View>

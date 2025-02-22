@@ -19,10 +19,19 @@ import { Room, HotelDetails } from "@/types";
 import RoomCard from "@/components/RoomCard";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { startOfDay, isSameDay, isAfter, addDays, set } from "date-fns";
-import { getHotelById, getHotelRoomsByStatus, getAvailableRooms, searchUserByPhone } from "@lib/api";
+import {
+  getHotelById,
+  getHotelRoomsByStatus,
+  getAvailableRooms,
+  searchUserByPhone,
+} from "@lib/api";
 import { navigateTo } from "@/lib/actions/navigation";
 
-const getAdjustedCheckInTime = (selectedDate: Date, checkInTimeMinutes: number, currentHotelDetails: any) => {
+const getAdjustedCheckInTime = (
+  selectedDate: Date,
+  checkInTimeMinutes: number,
+  currentHotelDetails: any
+) => {
   const now = new Date();
   const today = startOfDay(now);
   console.log("Selected Date:", selectedDate);
@@ -32,7 +41,7 @@ const getAdjustedCheckInTime = (selectedDate: Date, checkInTimeMinutes: number, 
     hours: Math.floor(checkInTimeMinutes / 60),
     minutes: checkInTimeMinutes % 60,
     seconds: 0,
-    milliseconds: 0
+    milliseconds: 0,
   });
   console.log("checkInTime:", checkInTime);
 
@@ -56,13 +65,16 @@ const getAdjustedCheckInTime = (selectedDate: Date, checkInTimeMinutes: number, 
   return checkInTime;
 };
 
-const getAdjustedCheckOutTime = (checkOutDate: Date, checkOutTimeMinutes: number) => {
+const getAdjustedCheckOutTime = (
+  checkOutDate: Date,
+  checkOutTimeMinutes: number
+) => {
   console.log("checkOutDate:", checkOutDate);
   const checkOutTime = set(checkOutDate, {
     hours: Math.floor(checkOutTimeMinutes / 60),
     minutes: checkOutTimeMinutes % 60,
     seconds: 0,
-    milliseconds: 0
+    milliseconds: 0,
   });
   console.log("checkOutTime:", checkOutTime);
   return checkOutTime;
@@ -89,7 +101,10 @@ const CreateBookingByManager = () => {
   const [noRoomsAvailable, setNoRoomsAvailable] = useState(false);
   const [searchInitiated, setSearchInitiated] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
-  const [priceRange, setPriceRange] = useState<{ min: number; max: number } | null>(null);
+  const [priceRange, setPriceRange] = useState<{
+    min: number;
+    max: number;
+  } | null>(null);
 
   // Fetch user data and initialize
   useEffect(() => {
@@ -154,7 +169,7 @@ const CreateBookingByManager = () => {
             setCurrentHotelId(hotelId);
           } else {
             setError("Please select a hotel first. Redirecting...");
-            setTimeout(() => {  
+            setTimeout(() => {
               router.push("/scanqr");
             }, 2500);
           }
@@ -174,13 +189,13 @@ const CreateBookingByManager = () => {
       console.log("Fetching rooms for hotel:", hotelId);
       const response = await getHotelRoomsByStatus(hotelId, "AVAILABLE");
       console.log("Rooms response:", response);
-      
+
       // Sort rooms by room number
       const sortedRooms = response.sort((a: Room, b: Room) =>
         a.roomNumber.localeCompare(b.roomNumber, undefined, { numeric: true })
       );
 
-      if(sortedRooms.length == 0){
+      if (sortedRooms.length == 0) {
         setNoRoomsAvailable(true);
         return;
       }
@@ -220,7 +235,10 @@ const CreateBookingByManager = () => {
   }, [rooms, guests, roomSearch, extraMattress]);
 
   const handleSearchCustomer = async () => {
-    console.log("extra mattress:", hotelDetails?.rules.extraMattressOnAvailability);
+    console.log(
+      "extra mattress:",
+      hotelDetails?.rules.extraMattressOnAvailability
+    );
     try {
       setLoading(true);
       setError(null);
@@ -229,7 +247,7 @@ const CreateBookingByManager = () => {
       if (!token) {
         throw new Error("Not authenticated");
       }
-      if(!currentHotelId){
+      if (!currentHotelId) {
         setError("No hotel selected. Please select a hotel first.");
         setTimeout(() => {
           router.push("/scanqr");
@@ -279,13 +297,16 @@ const CreateBookingByManager = () => {
     try {
       setLoading(true);
       setSearchError(null);
-      
+
       if (!customerPhone.trim()) {
         setSearchError("Please enter customer's phone number");
         return;
       }
 
-      if (!hotelDetails?.rules?.checkInTime || !hotelDetails?.rules?.checkOutTime) {
+      if (
+        !hotelDetails?.rules?.checkInTime ||
+        !hotelDetails?.rules?.checkOutTime
+      ) {
         setSearchError("Hotel check-in/out times not configured");
         return;
       }
@@ -319,19 +340,13 @@ const CreateBookingByManager = () => {
       setFilteredRooms(response.availableRooms);
     } catch (error) {
       console.error("Error searching rooms:", error);
-      setSearchError(error instanceof Error ? error.message : "Failed to search rooms");
+      setSearchError(
+        error instanceof Error ? error.message : "Failed to search rooms"
+      );
     } finally {
       setLoading(false);
     }
   };
-
-  if (loading) {
-    return (
-      <View className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
 
   return (
     <ScrollView className="flex-1 p-4">
@@ -351,25 +366,31 @@ const CreateBookingByManager = () => {
                 Customer Phone Number
               </Text>
               <View className="flex-row gap-2 mb-4">
-                <TextInput
-                  className="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg p-3 dark:text-white"
-                  value={customerPhone}
-                  onChangeText={setCustomerPhone}
-                  keyboardType="phone-pad"
-                  placeholder="Enter customer's phone number"
-                  placeholderTextColor="#666"
-                />
-                <Pressable
-                  onPress={handleSearchCustomer}
-                  className="bg-blue-500 rounded-lg p-3"
-                  disabled={loading || !customerPhone}
-                >
-                  <Text className="text-white">Search</Text>
-                </Pressable>
+                {loading ? (
+                  <View className="h-12 w-full bg-gray-100 dark:bg-gray-800 rounded-lg p-3" />
+                ) : (
+                  <>
+                    <TextInput
+                      className="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg p-3 dark:text-white"
+                      value={customerPhone}
+                      onChangeText={setCustomerPhone}
+                      keyboardType="phone-pad"
+                      placeholder="Enter customer's phone number"
+                      placeholderTextColor="#666"
+                    />
+                    <Pressable
+                      onPress={handleSearchCustomer}
+                      className="bg-blue-500 rounded-lg p-3"
+                      disabled={loading || !customerPhone}
+                    >
+                      <Text className="text-white">Search</Text>
+                    </Pressable>
+                  </>
+                )}
               </View>
             </>
           ) : (
-            <Text className="text-xl font-semibold mb-2 dark:text-white">
+            <Text className="text-xl h-12 w-full rounded-lg py-3 font-semibold mb-2 dark:text-white">
               Name: {customerName}
             </Text>
           )}
@@ -382,7 +403,7 @@ const CreateBookingByManager = () => {
               </Text>
               <View className="flex-row items-center">
                 <Pressable
-                  disabled={parseInt(guests) === 1}
+                  disabled={parseInt(guests) === 1 || loading}
                   onPress={() =>
                     setGuests((prev) => (parseInt(prev) - 1).toString())
                   }
@@ -394,11 +415,13 @@ const CreateBookingByManager = () => {
                   className="border border-gray-300 text-center text-xl font-semibold dark:border-gray-600 rounded-full w-12 h-12 dark:text-white"
                   value={guests}
                   onChangeText={setGuests}
+                  editable={!loading}
                   keyboardType="numeric"
                   placeholder="2"
                   placeholderTextColor="#666"
                 />
                 <Pressable
+                  disabled={loading}
                   onPress={() =>
                     setGuests((prev) => (parseInt(prev) + 1).toString())
                   }
@@ -474,7 +497,9 @@ const CreateBookingByManager = () => {
 
           {searchError && (
             <View className="bg-red-100 dark:bg-red-900 p-3 rounded-lg mt-4">
-              <Text className="text-red-500 dark:text-red-100">{searchError}</Text>
+              <Text className="text-red-500 dark:text-red-100">
+                {searchError}
+              </Text>
             </View>
           )}
 
@@ -493,7 +518,9 @@ const CreateBookingByManager = () => {
 
         {noRoomsAvailable && (
           <View className="bg-red-100 dark:bg-red-900 p-3 rounded-lg my-4">
-            <Text className="text-red-500 dark:text-red-100">No Rooms Available for today</Text>
+            <Text className="text-red-500 dark:text-red-100">
+              No Rooms Available for today
+            </Text>
           </View>
         )}
 
@@ -503,19 +530,33 @@ const CreateBookingByManager = () => {
               <Text className="text-xl font-bold dark:text-white">
                 Available Rooms
               </Text>
-              <View className="flex-row items-center bg-gray-100 dark:bg-gray-800 rounded-lg px-3 gap-2 max-w-1/2 w-1/3">
+              <View className="flex-row items-center bg-gray-100 dark:bg-gray-800 rounded-lg py-2 px-3 gap-2 max-w-1/2 w-1/3">
                 <Search size={20} color={theme.colors.text} />
                 <TextInput
                   className="flex-1 py-0 w-full dark:text-white"
                   value={roomSearch}
                   onChangeText={setRoomSearch}
+                  editable={!loading}
                   placeholder="Search room number"
                   placeholderTextColor="#666"
                 />
               </View>
             </View>
             <View className="space-y-4">
-              {filteredRooms.length === 0 ? (
+              {loading ? (
+                <View className="flex gap-4">
+                  {[...Array(3)].map((_, index) => (
+                    <View
+                      key={index}
+                      className="h-44 w-full flex justify-center items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-3"
+                    >
+                      <Text className="text-center dark:text-white">
+                        Getting Available Rooms...
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              ) : filteredRooms.length === 0 ? (
                 <Text className="text-center dark:text-white mt-4">
                   No rooms available matching your criteria
                 </Text>
@@ -524,7 +565,9 @@ const CreateBookingByManager = () => {
                   <RoomCard
                     key={room.id}
                     room={room}
-                    onBookNow={(roomId, price) => handleSelectRoom(roomId, price)}
+                    onBookNow={(roomId, price) =>
+                      handleSelectRoom(roomId, price)
+                    }
                     hideImage={true}
                   />
                 ))

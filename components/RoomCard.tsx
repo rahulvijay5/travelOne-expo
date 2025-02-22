@@ -1,8 +1,8 @@
-import React from 'react';
-import { View, Image, Pressable } from 'react-native';
-import { Text } from '@/components/ui/text';
-import { Button } from '@/components/ui/button';
-import { Room } from '@/types';
+import React from "react";
+import { View, Image, Pressable } from "react-native";
+import { Text } from "@/components/ui/text";
+import { Button } from "@/components/ui/button";
+import { Room } from "@/types";
 
 interface RoomCardProps {
   room: Room;
@@ -12,7 +12,7 @@ interface RoomCardProps {
 
 const RoomCard = ({ room, onBookNow, hideImage = false }: RoomCardProps) => {
   return (
-    <View className="mb-4 bg-white border border-gray-600 shadow-lg shadow-black dark:shadow-gray-300 dark:bg-gray-800 rounded-lg overflow-hidden">
+    <View className="mb-4 bg-gray-100 shadow dark:bg-gray-800 rounded-lg overflow-hidden">
       {!hideImage && room.images[0] && (
         <Image
           source={{ uri: room.images[0] }}
@@ -22,9 +22,7 @@ const RoomCard = ({ room, onBookNow, hideImage = false }: RoomCardProps) => {
       )}
       <View className="p-4">
         <View className="flex-row justify-between items-center">
-          <Text className="text-xl font-bold dark:text-white">
-            {room.type}
-          </Text>
+          <Text className="text-xl font-bold dark:text-white">{room.type}</Text>
           <Text className="text-gray-600 text-lg dark:text-gray-300">
             Room {room.roomNumber}
           </Text>
@@ -60,4 +58,4 @@ const RoomCard = ({ room, onBookNow, hideImage = false }: RoomCardProps) => {
   );
 };
 
-export default RoomCard; 
+export default RoomCard;

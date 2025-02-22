@@ -22,15 +22,17 @@ export const PushNotificationProvider = ({
   useEffect(() => {
     console.log("Is Device:", isDevice);
     if (!isDevice) {
-      // Alert.alert('Error', 'Must use a physical device for Push Notifications');
       return;
-      }
+    }
   }, []);
 
   useEffect(() => {
     const register = async () => {
+      if(!isDevice){
+        return;
+      }
       if (hasRegistered.current || !userId) return;
-    
+
       console.log(
         "Attempting to register user for push notifications",
         userId?.toString()
@@ -45,41 +47,41 @@ export const PushNotificationProvider = ({
       console.log("Push token:", token);
       if (token && userId) {
         console.log("Registering push token:", token);
-    try {
+        try {
           const response = await fetch(
             `${API_URL}/api/notifications/register-token`,
             {
               method: "POST",
-        headers: getHeaders(authToken),
-        body: JSON.stringify({
-          userId: user.id,
-          pushToken: token,
-        }),
+              headers: getHeaders(authToken),
+              body: JSON.stringify({
+                userId: user.id,
+                pushToken: token,
+              }),
             }
           );
 
-      if (!response.ok) {
+          if (!response.ok) {
             console.error(
               "Failed to register push token:",
               response.statusText
             );
-      } else {
+          } else {
             hasRegistered.current = true;
             console.log("Push token registered successfully");
-      }
-    } catch (error) {
+          }
+        } catch (error) {
           console.error("Error registering push token:", error);
         }
-    }
-  };
+      }
+    };
 
     register();
-    
+
     notificationListener.current =
       Notifications.addNotificationReceivedListener((notification) => {
         console.log("Notification Received:", notification);
         console.log("Data within it:", notification.request.content.data);
-    });
+      });
 
     responseListener.current =
       Notifications.addNotificationResponseReceivedListener((response) => {
@@ -109,21 +111,21 @@ export const usePushNotifications = () => {
 async function registerForPushNotificationsAsync(): Promise<string | null> {
   if (!isDevice) {
     // Alert.alert('Must use a physical device for Push Notifications');
-      return null;
-    }
+    return null;
+  }
   console.log("I am here");
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  let finalStatus = existingStatus;
 
   if (existingStatus !== "granted") {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
+    const { status } = await Notifications.requestPermissionsAsync();
+    finalStatus = status;
+  }
 
   if (finalStatus !== "granted") {
     Alert.alert("Failed to get push token for push notification!");
-        return null;
-      }
+    return null;
+  }
 
   const token = (await Notifications.getExpoPushTokenAsync()).data;
   console.log("I am here2 ");
@@ -134,7 +136,7 @@ async function registerForPushNotificationsAsync(): Promise<string | null> {
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: "#FF231F7C",
-      });
+    });
   }
 
   return token;

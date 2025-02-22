@@ -10,11 +10,11 @@ import React, { useEffect, useState } from "react";
 import { useLocalSearchParams, router } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 
-import {  HotelRulesChange } from "@/types";
+import { HotelRulesChange } from "@/types";
 import TimePicker from "@/components/TimePicker";
 import { updateHotelRules } from "@lib/api";
 import { navigateTo } from "@/lib/actions/navigation";
-
+import { useHotelStore } from "@/lib/store/hotelStore";
 type HotelRulesPageParams = {
   hotelId: string;
   createNewHotel?: string;
@@ -27,16 +27,38 @@ export default function HotelRulesPage() {
   const params = useLocalSearchParams<HotelRulesPageParams>();
   const [hotelId, setHotelId] = useState<string | null>(null);
   const [creatingNewHotel, setCreatingNewHotel] = useState(false);
+  const { currentHotel, setCurrentHotel } = useHotelStore();
 
   useEffect(() => {
-    console.log("params in hotelrules", params);
     if (params.hotelId) {
       setHotelId(params.hotelId);
     }
     if (params.createNewHotel === "true") {
       setCreatingNewHotel(true);
     }
-  }, [params.hotelId, params.createNewHotel]);
+
+    // Initialize rules from currentHotel if available
+    if (currentHotel?.rules && !creatingNewHotel) {
+      setRules({
+        petsAllowed: currentHotel.rules.petsAllowed ?? false,
+        maxPeopleInOneRoom: currentHotel.rules.maxPeopleInOneRoom ?? 2,
+        extraMattressOnAvailability:
+          currentHotel.rules.extraMattressOnAvailability ?? false,
+        parking: currentHotel.rules.parking ?? true,
+        swimmingPool: currentHotel.rules.swimmingPool ?? false,
+        swimmingPoolTimings:
+          currentHotel.rules.swimmingPoolTimings ?? "6:00 AM - 8:00 PM",
+        ownRestaurant: currentHotel.rules.ownRestaurant ?? false,
+        checkInTime: currentHotel.rules.checkInTime ?? 660,
+        checkOutTime: currentHotel.rules.checkOutTime ?? 600,
+        guestInfoNeeded: currentHotel.rules.guestInfoNeeded ?? true,
+        smokingAllowed: currentHotel.rules.smokingAllowed ?? false,
+        alcoholAllowed: currentHotel.rules.alcoholAllowed ?? false,
+        eventsAllowed: currentHotel.rules.eventsAllowed ?? false,
+        minimumAgeForCheckIn: currentHotel.rules.minimumAgeForCheckIn ?? 18,
+      });
+    }
+  }, [params.hotelId, params.createNewHotel, currentHotel]);
 
   const [rules, setRules] = useState<HotelRulesChange>({
     petsAllowed: false,
@@ -57,9 +79,8 @@ export default function HotelRulesPage() {
 
   const handleSubmit = async () => {
     try {
-      console.log("hotelId in hotelrules", hotelId);
-        if(rules.swimmingPool ==false){
-          rules.swimmingPoolTimings = ""
+      if (rules.swimmingPool == false) {
+        rules.swimmingPoolTimings = "";
       }
       setLoading(true);
       const token = await getToken();
@@ -67,12 +88,25 @@ export default function HotelRulesPage() {
         throw new Error("Missing required data");
       }
 
-      console.log("rules before sending to backend", rules);
-      await updateHotelRules(hotelId as string, rules, token);
+      const response = await updateHotelRules(hotelId as string, rules, token);
+
+      // Update hotel store with new rules
+      if (response?.status === 200 && currentHotel) {
+        setCurrentHotel({
+          ...currentHotel,
+          rules: {
+            ...currentHotel.rules,
+            ...rules,
+            hotelId: currentHotel.rules.hotelId,
+            id: currentHotel.rules.id,
+          },
+        });
+      }
+
       if (creatingNewHotel) {
-        navigateTo("/roomdetails", { 
+        navigateTo("/roomdetails", {
           hotelId,
-          createNewHotel: "true"
+          createNewHotel: "true",
         });
       } else {
         navigateTo("/", { hotelId });
@@ -100,7 +134,9 @@ export default function HotelRulesPage() {
         <View className="flex-row justify-between items-center">
           <TimePicker
             value={rules.checkInTime}
-            onChange={(time) => setRules((prev) => ({ ...prev, checkInTime: time }))}
+            onChange={(time) =>
+              setRules((prev) => ({ ...prev, checkInTime: time }))
+            }
             label="Check-in Time"
           />
         </View>
@@ -108,7 +144,9 @@ export default function HotelRulesPage() {
         <View className="flex-row justify-between items-center">
           <TimePicker
             value={rules.checkOutTime}
-            onChange={(time) => setRules((prev) => ({ ...prev, checkOutTime: time }))}
+            onChange={(time) =>
+              setRules((prev) => ({ ...prev, checkOutTime: time }))
+            }
             label="Check-out Time"
           />
         </View>
@@ -234,12 +272,12 @@ export default function HotelRulesPage() {
 
         <View className="flex-row justify-between border-y-2 border-gray-100 py-2 items-center">
           <View className="flex-col gap-1">
-          <Text className="text-lg dark:text-white text-black">
-            Guest Documents Required
-          </Text>
-          <Text className="text-xs dark:text-white text-black">
-            Like aadhar card, pan card, driving license, or something?
-          </Text>
+            <Text className="text-lg dark:text-white text-black">
+              Guest Documents Required
+            </Text>
+            <Text className="text-xs dark:text-white text-black">
+              Like aadhar card, pan card, driving license, or something?
+            </Text>
           </View>
           <Switch
             value={rules.guestInfoNeeded}
@@ -285,29 +323,33 @@ export default function HotelRulesPage() {
           />
         </View>
 
-        <Text className="text-xs text-center dark:text-orange-200 text-orange-700">Hotel Rules will be applied to New Hotel Bookings Only</Text>
-        {error && <Text className="text-sm text-center dark:text-orange-200 bg-red-500 text-white p-2 rounded-lg">{error}</Text>}
+        <Text className="text-xs text-center dark:text-orange-200 text-orange-700">
+          Hotel Rules will be applied to New Hotel Bookings Only
+        </Text>
+        {error && (
+          <Text className="text-sm text-center dark:text-orange-200 bg-red-500 text-white p-2 rounded-lg">
+            {error}
+          </Text>
+        )}
         <View className="flex-row gap-2 my-4 ">
           {!creatingNewHotel && (
             <TouchableOpacity
               className="bg-blue-500 p-3 rounded-lg text-center"
               onPress={() => router.back()}
               disabled={loading}
-        >
-          <Text className="text-white text-center">
-            {"Go Back"}
-          </Text>
-        </TouchableOpacity>
-        )}
-        <TouchableOpacity
-          className="bg-blue-500 p-3 flex-grow rounded-lg text-center"
-          onPress={handleSubmit}
-          disabled={loading}
-        >
-          <Text className="text-white text-center">
-            {loading ? "Updating..." : "Update Rules"}
-          </Text>
-        </TouchableOpacity>
+            >
+              <Text className="text-white text-center">{"Go Back"}</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            className="bg-blue-500 p-3 flex-grow rounded-lg text-center"
+            onPress={handleSubmit}
+            disabled={loading}
+          >
+            <Text className="text-white text-center">
+              {loading ? "Updating..." : "Update Rules"}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>

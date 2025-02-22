@@ -351,7 +351,7 @@ const Bookings = () => {
       </View>
     ) : (
       <View className="flex-1 justify-center items-center">
-        <Text className="text-2xl font-bold dark:text-white">
+        <Text className="text-2xl dark:text-white">
           No hotel selected
         </Text>
       </View>
@@ -600,11 +600,11 @@ const Bookings = () => {
       </View>
     </ScrollView>
   ) : (
-    <View className="flex-1 justify-center items-center gap-4">
+    <View className="flex-1 justify-center items-center gap-8">
       <Pressable onPress={() => router.push('/scanqr')} className="dark:bg-lime-500 bg-lime-300 h-56 w-56 rounded-full flex items-center justify-center shadow-md shadow-black/50">
           <Text className="text-2xl font-bold">Scan QR Code</Text>
         </Pressable>
-      <Text className="text-2xl font-bold dark:text-white">
+      <Text className="text-2xl dark:text-white">
         No hotel selected
       </Text>
     </View>

@@ -157,7 +157,6 @@ const Onboarding = () => {
       console.log("DB User response:", dbUser);
 
       if (dbUser && !dbUser.error) {
-        console.log("User exists in DB, checking for current bookings");
 
         // Check for current booking using DB user ID
         const currentBooking = await getCurrentBookingOfUser(dbUser.id, token);

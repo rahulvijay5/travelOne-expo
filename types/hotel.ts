@@ -7,7 +7,6 @@ export interface HotelDetails extends Entity {
   description: string;
   location: string;
   address: string;
-  totalRooms: number;
   code: string;
   contactNumber: string;
   amenities: string[];
@@ -21,7 +20,6 @@ export interface HotelFormData {
   description: string;
   location: string;
   address: string;
-  totalRooms: number;
   contactNumber: string;
   amenities: string[];
   hotelImages: string[];

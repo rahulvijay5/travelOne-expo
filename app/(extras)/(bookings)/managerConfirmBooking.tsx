@@ -130,17 +130,9 @@ const ManagerConfirmBooking = () => {
   const totalAmount = nights * parseFloat(price as string);
 
   return (
-    <SafeAreaView className="flex-1">
       <ScrollView className="flex-1 p-4">
         <View className="flex gap-4">
-          <View className="flex-row justify-start items-center">
-            <Pressable onPress={() => router.back()}>
-              <ChevronLeft size={24} color={colors.text} />
-            </Pressable>
-            <Text className="text-2xl font-bold dark:text-white">
-              Confirm Booking
-            </Text>
-          </View>
+          
 
           {error && (
             <View className="bg-red-100 dark:bg-red-900 p-3 rounded-lg">
@@ -293,7 +285,6 @@ const ManagerConfirmBooking = () => {
           </Pressable>
         </View>
       </ScrollView>
-    </SafeAreaView>
   );
 };
 

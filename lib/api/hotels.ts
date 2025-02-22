@@ -210,7 +210,7 @@ export const updateHotelRules = async (
       throw new Error("Failed to update hotel rules");
     }
 
-    return response;
+    return response.json();
   } catch (error) {
     console.error("Error updating hotel rules:", error);
     throw error;
@@ -309,8 +309,6 @@ export const getHotelById = async (hotelId: string, token?: string) => {
       headers: getHeaders(token),
     });
 
-    console.log("res in getHotelById", res);
-
     return handleResponse(res);
   } catch (error) {
     console.error("Error getting hotel details:", error);
@@ -355,7 +353,6 @@ export const getHotelRooms = async (hotelId: string, token?: string) => {
       method: "GET",
       headers: getHeaders(token),
     });
-    console.log("res in getHotelRooms", res);
     if (res.status === 404) {
       return { error: "Rooms not found" };
     }

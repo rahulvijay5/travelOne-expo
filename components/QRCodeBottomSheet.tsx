@@ -58,7 +58,7 @@ export default function QRCodeBottomSheet({
           : null;
         setCurrentHotel(currentHotelDetails);
       } finally {
-        console.log("currentHotel", currentHotel);
+//do nothing
       }
     };
     initialize();

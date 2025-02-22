@@ -289,7 +289,7 @@ const ManagePeople = () => {
         ) : null}
 
         {searchResult ? (
-          <View className="mt-4 p-4 rounded-lg border dark:border-gray-300 border-gray-80 flex-row justify-between items-center">
+          <View className="mt-4 p-4 rounded-lg border dark:border-gray-300 border-gray-800 flex-row justify-between items-center">
             <View className="">
               <Text className="font-semibold text-xl truncate dark:text-white text-black">
                 {searchResult.name}
@@ -326,7 +326,7 @@ const ManagePeople = () => {
             {managers.map((manager) => (
               <View
                 key={manager.id}
-                className="flex-row justify-between items-center bg-gray-100 dark:bg-gray-900 p-4 rounded-lg my-1 shadow-lg dark:shadow-white shadow-black"
+                className="flex-row justify-between items-center bg-gray-100 dark:bg-gray-900 p-4 rounded-lg my-1 shadow"
               >
                 <View>
                   <Text className="font-semibold text-lg dark:text-white text-black">

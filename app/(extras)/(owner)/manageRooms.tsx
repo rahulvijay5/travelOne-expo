@@ -65,10 +65,12 @@ const manageRooms = () => {
     loadRooms();
   }, [hotelId, reload]);
 
-  if(rooms.length === 0){
+  if (rooms.length === 0) {
     return (
       <View className="flex-1 items-center justify-center">
-        <Text className="text-xl font-semibold dark:text-white">No rooms found</Text>
+        <Text className="text-xl font-semibold dark:text-white">
+          No rooms found
+        </Text>
         <TouchableOpacity
           className="flex flex-row items-center gap-2 bg-blue-500 p-2 px-4 my-4 rounded-md"
           onPress={() => navigateToHotelRooms(hotelId)}
@@ -76,7 +78,6 @@ const manageRooms = () => {
           <Text className="text-lg text-white">Add Rooms</Text>
           <PlusCircleIcon color="white" className="w-4 h-4" />
         </TouchableOpacity>
-        
       </View>
     );
   }
@@ -86,20 +87,19 @@ const manageRooms = () => {
       <View className="flex flex-row justify-between items-center">
         <Text className="text-2xl font-bold dark:text-white">Manage Rooms</Text>
         <View className="flex flex-row items-center gap-2">
-        <TouchableOpacity
-          className="flex flex-row items-center gap-2 bg-blue-500 p-2 px-4 my-4 rounded-md"
-          onPress={() => navigateToHotelRooms(hotelId)}
-        >
-          <Text className="text-lg text-white">Add Rooms</Text>
-          <PlusCircleIcon color="white" className="w-4 h-4" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          className="flex flex-row items-center gap-2 bg-gray-500 p-2 px-2 my-4 rounded-md"
-          onPress={() => setReload(!reload)}
-        >
-
-          <RefreshCcw color="white" className="w-2 h-2 " />
-        </TouchableOpacity>
+          <TouchableOpacity
+            className="flex flex-row items-center gap-2 bg-blue-500 p-2 px-4 my-4 rounded-md"
+            onPress={() => navigateToHotelRooms(hotelId)}
+          >
+            <Text className="text-lg text-white">Add Rooms</Text>
+            <PlusCircleIcon color="white" className="w-4 h-4" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="flex flex-row items-center gap-2 bg-gray-500 p-2 px-2 my-4 rounded-md"
+            onPress={() => setReload(!reload)}
+          >
+            <RefreshCcw color="white" className="w-2 h-2 " />
+          </TouchableOpacity>
         </View>
       </View>
       <View className="flex flex-row flex-wrap justify-center gap-2 mt-4">

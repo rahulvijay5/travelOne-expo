@@ -123,6 +123,7 @@ export default function BookingManagementView({
         const roomsData = await AsyncStorage.getItem("@current_hotel_rooms");
         if (roomsData) {
           const parsedData = JSON.parse(roomsData);
+          console.log("roomsData in BookingManagementView", parsedData);
           if (parsedData.hotelId === hotelId) {
             const roomsArray = Array.isArray(parsedData.rooms)
               ? parsedData.rooms
@@ -269,8 +270,8 @@ export default function BookingManagementView({
                 </View>
 
                 {loading ? (    
-                  <View className="justify-center items-start">
-                    <ActivityIndicator size="large" color={isDark ? "white" : "black"} />
+                  <View className="justify-center items-start ">
+                    <ActivityIndicator size="small" color={isDark ? "white" : "black"} />
                   </View>
                 ) : (
                   days.map((day) => {

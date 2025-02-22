@@ -3,7 +3,7 @@ import { router, Slot, Stack } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft } from "lucide-react-native";
+import { ChevronLeft, Plus, PlusCircle } from "lucide-react-native";
 import { Pressable } from "react-native";
 
 const ExtrasLayout = () => {
@@ -78,6 +78,11 @@ const ExtrasLayout = () => {
             headerShown: true,
             headerBackButtonDisplayMode: "minimal",
             headerTitle: "Your Owned Hotels",
+            headerRight: () => (
+              <Pressable onPress={() => router.push("/newhotel")}>
+                <Text className="text-black dark:text-white"><PlusCircle color="gray" size={24} /></Text>
+              </Pressable>
+            ),
           }}
         />
         <Stack.Screen
@@ -133,7 +138,6 @@ const ExtrasLayout = () => {
           options={{
             headerShown: true,
             headerBackButtonDisplayMode: "minimal",
-            // headerBackVisible: true,
             headerLeft: () => (
               <Pressable onPress={() => router.back()}>
                 <Text className="text-black dark:text-white"><ChevronLeft size={24} /></Text>
@@ -145,7 +149,14 @@ const ExtrasLayout = () => {
         <Stack.Screen
           name="(bookings)/managerConfirmBooking"
           options={{
-            headerShown: false,
+            headerShown: true,
+            headerBackButtonDisplayMode: "minimal",
+            headerLeft: () => (
+              <Pressable onPress={() => router.back()}>
+                <Text className="text-black dark:text-white"><ChevronLeft size={24} /></Text>
+              </Pressable>
+            ),
+            headerTitle: "Confirm Booking",
           }}
         />
         <Stack.Screen

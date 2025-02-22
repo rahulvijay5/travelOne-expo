@@ -22,6 +22,7 @@ export const processCode = async ({
     // Check cache first if not forcing refetch
     if (!forceRefetch) {
       const cachedHotelsStr = await AsyncStorage.getItem("@cached_hotels");
+      console.log("cachedHotelsStr", cachedHotelsStr);
       if (cachedHotelsStr) {
         const cachedHotels = JSON.parse(cachedHotelsStr);
         const cachedHotel = cachedHotels.find((h: any) => h.code === code);
@@ -73,6 +74,7 @@ export const processCode = async ({
     // If not in cache or force refetch, get from API
     const response = await getHotelByCode(code);
     console.log("Got hotel by code. ");
+    console.log("response", response);
 
     if (response.status === 200 && response.data) {
       // Store in cache

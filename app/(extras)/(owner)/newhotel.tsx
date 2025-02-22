@@ -27,7 +27,6 @@ const NewHotel = () => {
     description: "",
     location: "",
     address: "",
-    totalRooms: 0,
     contactNumber: "",
     amenities: [],
     hotelImages: [],
@@ -97,7 +96,6 @@ const NewHotel = () => {
         "description",
         "location",
         "address",
-        "totalRooms",
         "contactNumber",
       ] as const;
       const missingFields = requiredFields.filter(field => !formData[field]);
@@ -137,7 +135,6 @@ const NewHotel = () => {
         description: formData.description,
         location: formData.location,
         address: formData.address,
-        totalRooms: formData.totalRooms,
         contactNumber: formData.contactNumber,
         amenities: formData.amenities,
         hotelImages: uploadedImageUrls,
@@ -256,23 +253,6 @@ const NewHotel = () => {
             />
           </View>
 
-          <View className="flex-row items-center gap-2 justify-between">
-            <Text className="text-base mb-2 dark:text-white">Total Rooms *</Text>
-            <TextInput
-              className="border border-gray-300 dark:border-gray-600 rounded-lg p-3 dark:text-white"
-              value={formData.totalRooms.toString()}
-              onChangeText={(text) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  totalRooms: parseInt(text.replace(/[^0-9]/g, "") || "0"),
-                }))
-              }
-              placeholder="Enter total number of rooms"
-              placeholderTextColor="#666"
-              keyboardType="numeric"
-            />
-          </View>
-
           <View>
             <Text className="text-base mb-2 dark:text-white">Contact Number *</Text>
             <TextInput
@@ -294,7 +274,7 @@ const NewHotel = () => {
                 <Pressable
                   key={amenity}
                   onPress={() => handleAmenityToggle(amenity)}
-                  className={`px-3 py-2 ${
+                  className={`px-3 py-2 rounded-lg ${
                     formData.amenities.includes(amenity)
                       ? "bg-blue-500"
                       : "bg-gray-200 dark:bg-gray-700"
@@ -337,18 +317,18 @@ const NewHotel = () => {
                   setFormData(prev => ({ ...prev, customAmenity: "" }));
                 }
               }} 
-              className="bg-blue-500 p-3"
+              className="bg-blue-500 p-3 rounded-lg"
             >
               <Text className="text-white">Add</Text>
             </Pressable>
           </View>
 
           {error ? <Text className="text-red-500 mt-4">{error}</Text> : null}
-          <View className="flex-row gap-2">
+          <View className="flex-row gap-2 mt-4">
           {!loading && <Pressable
             onPress={() => router.back()}
             disabled={loading}
-            className={`mt-6 bg-blue-500 ${loading ? "opacity-50" : ""}`}
+            className={` bg-blue-500 rounded-lg p-3 ${loading ? "opacity-50" : ""}`}
           >
             <Text className="text-lg text-white">
               {"Go Back"}
@@ -357,9 +337,9 @@ const NewHotel = () => {
           <Pressable
             onPress={handleSubmit}
             disabled={loading}
-            className={`mt-6 bg-blue-500 flex-grow ${loading ? "opacity-50" : ""}`}
+            className={` bg-blue-500 rounded-lg p-3 flex-grow ${loading ? "opacity-50" : ""}`}
           >
-            <Text className="text-lg text-white">
+            <Text className="text-lg text-white text-center">
               {loading ? "Creating..." : "Create Hotel"}
             </Text>
           </Pressable>
