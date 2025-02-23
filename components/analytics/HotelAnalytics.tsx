@@ -429,7 +429,7 @@ export default function HotelAnalytics({ hotelId }: { hotelId: string }) {
                   analytics
                     ? ((analytics.confirmedBookings +
                         analytics.completedBookings) /
-                      analytics.totalBookings) *
+                        analytics.totalBookings) *
                       100
                     : 0
                 }
@@ -503,62 +503,61 @@ export default function HotelAnalytics({ hotelId }: { hotelId: string }) {
                 </View>
               )}
           </View>
-          {
-            analytics && (selectedRange === "today" || selectedRange === "tomorrow") && 
-          (
-          <View className="flex-row flex-wrap gap-2 my-2 mb-4">
-            <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex flex-grow justify-center items-center">
-              <Text className="text-gray-500 dark:text-gray-400 text-sm">
-                Available Rooms
-              </Text>
-              {isLoading ? (
-                <ActivityIndicator size="small" color="#4b5563" />
-              ) : (
-                <Text className="text-2xl font-bold mt-1 dark:text-white">
-                  {analytics?.availableRooms || 0}
-                </Text>
-              )}
-            </View>
+          {analytics &&
+            (selectedRange === "today" || selectedRange === "tomorrow") && (
+              <View className="flex-row flex-wrap gap-2 my-2 mb-4">
+                <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex flex-grow justify-center items-center">
+                  <Text className="text-gray-500 dark:text-gray-400 text-sm">
+                    Available Rooms
+                  </Text>
+                  {isLoading ? (
+                    <ActivityIndicator size="small" color="#4b5563" />
+                  ) : (
+                    <Text className="text-2xl font-bold mt-1 dark:text-white">
+                      {analytics?.availableRooms || 0}
+                    </Text>
+                  )}
+                </View>
 
-            <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex flex-grow justify-center items-center">
-              <Text className="text-gray-500 dark:text-gray-400 text-sm">
-                Pending Bookings
-              </Text>
-              {isLoading ? (
-                <ActivityIndicator size="small" color="#4b5563" />
-              ) : (
-                <Text className="text-2xl font-bold mt-1 dark:text-white">
-                  {analytics?.pendingBookings || 0}
-                </Text>
-              )}
-            </View>
+                <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex flex-grow justify-center items-center">
+                  <Text className="text-gray-500 dark:text-gray-400 text-sm">
+                    Pending Bookings
+                  </Text>
+                  {isLoading ? (
+                    <ActivityIndicator size="small" color="#4b5563" />
+                  ) : (
+                    <Text className="text-2xl font-bold mt-1 dark:text-white">
+                      {analytics?.pendingBookings || 0}
+                    </Text>
+                  )}
+                </View>
 
-            <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex flex-grow justify-center items-center">
-              <Text className="text-gray-500 dark:text-gray-400 text-sm">
-                Confirmed Bookings
-              </Text>
-              {isLoading ? (
-                <ActivityIndicator size="small" color="#4b5563" />
-              ) : (
-                <Text className="text-2xl font-bold mt-1 dark:text-white">
-                  {analytics?.confirmedBookings || 0}
-                </Text>
-              )}
-            </View>
-            <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex flex-grow justify-center items-center">
-              <Text className="text-gray-500 dark:text-gray-400 text-sm">
-                Checkout
-              </Text>
-              {isLoading ? (
-                <ActivityIndicator size="small" color="#4b5563" />
-              ) : (
-                <Text className="text-2xl font-bold mt-1 dark:text-white">
-                  {analytics?.completedBookings || 0}
-                </Text>
-              )}
-            </View>
-          </View>
-          )}
+                <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex flex-grow justify-center items-center">
+                  <Text className="text-gray-500 dark:text-gray-400 text-sm">
+                    Confirmed Bookings
+                  </Text>
+                  {isLoading ? (
+                    <ActivityIndicator size="small" color="#4b5563" />
+                  ) : (
+                    <Text className="text-2xl font-bold mt-1 dark:text-white">
+                      {analytics?.confirmedBookings || 0}
+                    </Text>
+                  )}
+                </View>
+                <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 shadow-sm flex flex-grow justify-center items-center">
+                  <Text className="text-gray-500 dark:text-gray-400 text-sm">
+                    Checkout
+                  </Text>
+                  {isLoading ? (
+                    <ActivityIndicator size="small" color="#4b5563" />
+                  ) : (
+                    <Text className="text-2xl font-bold mt-1 dark:text-white">
+                      {analytics?.completedBookings || 0}
+                    </Text>
+                  )}
+                </View>
+              </View>
+            )}
         </View>
       </ScrollView>
     </View>

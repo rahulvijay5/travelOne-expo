@@ -22,7 +22,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import BookingModal from "./BookingModal";
 import DropDownPicker from "react-native-dropdown-picker";
-import { getFilteredHotelBookings, getHotelRooms } from "@lib/api";
+import { getBookingById, getFilteredHotelBookings, getHotelRooms } from "@lib/api";
 import { useRoomStore } from "@/lib/store/roomStore";
 
 interface BookingManagementViewProps {
@@ -203,9 +203,22 @@ export default function BookingManagementView({
     setStartDate((prev) => addDays(prev, days));
   };
 
-  const handleBookingPress = (booking: BookingDataInDb) => {
-    setSelectedBooking(booking);
-    setShowModal(true);
+  const handleBookingPress = async (booking:any) => {
+    try {
+      const token = await getToken();
+      if (!token) return;
+  
+      const bookingDetails = await getBookingById(booking.id, token);
+      if (!bookingDetails.error) {
+        setSelectedBooking(bookingDetails);
+        setShowModal(true);
+      }
+    } catch (error) {
+      console.error("Error fetching booking details:", error);
+      // Fallback to basic booking data if fetch fails
+      setSelectedBooking(booking);
+      setShowModal(true);
+    }
   };
 
   const renderDateNavigation = () => (

@@ -1,8 +1,6 @@
 import { View, Text, ScrollView, Image, Alert, Pressable } from "react-native";
 import React, { useEffect, useState } from "react";
-import { router, useLocalSearchParams } from "expo-router";
 import { useUserStorage } from "@/hooks/useUserStorage";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/clerk-expo";
 import { UserData } from "@/types";
 import { ArrowUpRight } from "lucide-react-native";

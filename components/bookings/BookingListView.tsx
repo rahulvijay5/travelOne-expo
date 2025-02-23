@@ -5,7 +5,7 @@ import { Text } from '@/components/ui/text';
 import { BookingDataInDb } from '@/types/index';
 import { useAuth } from '@clerk/clerk-expo';
 import { useColorScheme } from 'nativewind';
-import { getFilteredHotelBookings } from '@lib/api';
+import { getBookingById, getFilteredHotelBookings } from '@lib/api';
 
 interface BookingListViewProps {
   hotelId: string;
@@ -47,7 +47,7 @@ export default function BookingListView({
   const { getToken } = useAuth();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const [bookings, setBookings] = useState<BookingDataInDb[]>([]);
+  const [bookings, setBookings] = useState<any>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -71,7 +71,7 @@ export default function BookingListView({
       if (pageNum === 1) {
         setBookings(response.data);
       } else {
-        setBookings(prev => [...prev, ...response.data]);
+        setBookings((prev: any) => [...prev, ...response.data]);
       }
       
       setHasMore(response.data.length === ITEMS_PER_PAGE);
@@ -86,12 +86,28 @@ export default function BookingListView({
     fetchBookings(1);
   }, [hotelId]);
 
-  const handleBookingPress = (booking: BookingDataInDb) => {
-    if (onBookingPress) {
-      onBookingPress(booking);
-    } else if (setSelectedBooking && setShowModal) {
-      setSelectedBooking(booking);
-      setShowModal(true);
+  const handleBookingPress = async (booking: BookingDataInDb) => {
+    try {
+      const token = await getToken();
+      if (!token) return;
+  
+      const bookingDetails = await getBookingById(booking.id, token);
+      if (!bookingDetails.error) {
+        if (onBookingPress) {
+          onBookingPress(bookingDetails);
+        } else if (setSelectedBooking && setShowModal) {
+          setSelectedBooking(bookingDetails);
+          setShowModal(true);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching booking details:", error);
+      if (onBookingPress) {
+        onBookingPress(booking);
+      } else if (setSelectedBooking && setShowModal) {
+        setSelectedBooking(booking);
+        setShowModal(true);
+      }
     }
   };
 
