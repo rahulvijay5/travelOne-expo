@@ -25,6 +25,7 @@ import useBookingStore from "@/lib/store/bookingStore";
 import { useHotelStore } from "@/lib/store/hotelStore";
 import { getCurrentBookingOfUser } from "@/lib/api/bookings";
 import { processCode } from "@/lib/actions/processCode";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const phoneSchema = z.string().regex(/^[6-9]\d{9}$/, {
   message: "Please enter a valid 10-digit phone number starting with 6-9",
@@ -210,7 +211,7 @@ const Onboarding = () => {
       // If we get here, user needs to be onboarded
       setIsLoading(false);
     } catch (error) {
-      console.error("Error in checkOnboardingStatus:", error);
+      console.log("Error in checkOnboardingStatus:", error);
       setIsLoading(false);
     }
   };
@@ -289,7 +290,7 @@ const Onboarding = () => {
     } catch (error: any) {
       // console.error("Error in handleOnboardingSubmit:", error);
       if (error.message === "User with this phone number already exists") {
-        Alert.alert("Error", "This phone number is already registered with us");
+        setPhoneError("User with this phone number already exists")
         setPhone("");
       } else {
         Alert.alert("Error", "Failed to create account. Please try again.");
@@ -313,10 +314,11 @@ const Onboarding = () => {
   }
 
   return (
-    <View className="flex-1">
+
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Feature Showcase */}
         <View className="h-[45vh] bg-blue-500 dark:bg-blue-600 p-6 relative w-screen">
+      
           <View className="absolute inset-0 justify-center items-center">
             <View className="grid  gap-6 flex-wrap items-center">
               {Array.from({ length: 132 }).map((_, index) => (
@@ -408,7 +410,7 @@ const Onboarding = () => {
             </Pressable>
           </Animated.View>
 
-          <Text className="text-center text-gray-500 dark:text-gray-400 mt-6 text-sm px-4">
+          <Text className="text-center text-gray-500 dark:text-gray-400 mt-6 mb-10 text-sm px-4">
             By continuing, you agree to our{" "}
             <Text
               className="text-blue-500"
@@ -426,7 +428,6 @@ const Onboarding = () => {
           </Text>
         </View>
       </ScrollView>
-    </View>
   );
 };
 

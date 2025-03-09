@@ -4,12 +4,13 @@ import { Text } from "@/components/ui/text";
 import { useSignUp, useSSO, useUser } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Button } from "@/components/ui/button";
 import { Feather } from "@expo/vector-icons";
 import { useCallback, useEffect, useState } from "react";
 import { navigateTo } from "@/lib/actions/navigation";
 import * as WebBrowser from "expo-web-browser";
 import GoogleLogo from "@/components/icons/google";
+import Animated, { FadeInDown } from "react-native-reanimated";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const useWarmUpBrowser = () => {
   useEffect(() => {
@@ -148,113 +149,164 @@ export default function SignUpScreen() {
 
   if (pendingVerification) {
     return (
-      <SafeAreaView className="flex-1 p-4 gap-2">
-        <Text className="dark:text-white text-black text-2xl font-semibold">
-          Verify your email
-        </Text>
-        <TextInput
-          value={code}
-          placeholder="Enter your verification code"
-          onChangeText={(code) => setCode(code)}
-          className="border border-gray-300 p-4 rounded-md dark:text-white text-black"
-        />
-        <Pressable
-          className="bg-blue-500 p-4 rounded-md"
-          onPress={onVerifyPress}
-        >
-          <Text className="text-white">Verify</Text>
-        </Pressable>
-      </SafeAreaView>
-    );
+      <View className="flex-1 ">
+        <View className=" flex-1 px-6 justify-center">
+          {/* Header */}
+          <View className="mb-8">
+            <Text className="text-3xl font-bold dark:text-white text-black text-center">Verify Your Email</Text>
+            <Text className="text-gray-500 dark:text-gray-400 text-center mt-2">
+              We've sent a code to your email address
+            </Text>
+          </View>
+
+          {/* Verification Form */}
+          <Animated.View
+            entering={FadeInDown.delay(200)}
+            className="bg-white shadow dark:bg-gray-800 p-6 gap-4 rounded-2xl space-y-5"
+          >
+            <View>
+              <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Verification Code</Text>
+              <TextInput
+                value={code}
+                placeholder="Enter your verification code"
+                onChangeText={(code) => setCode(code)}
+                className="dark:text-white text-black p-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-transparent"
+                keyboardType="number-pad"
+              />
+            </View>
+
+            {/* Verify Button */}
+            <Pressable className="bg-blue-500 rounded-xl overflow-hidden" onPress={onVerifyPress}>
+              <View className="px-6 py-4 flex-row items-center justify-center">
+                <Text className="text-white font-semibold text-lg mr-2">Verify</Text>
+                <Feather name="check-circle" size={20} color="white" />
+              </View>
+            </Pressable>
+          </Animated.View>
+        </View>
+      </View>
+    )
   }
 
   return (
-    <View className="flex-1 p-4">
-      <View className="flex-1 gap-2">
-        <Text className="text-2xl font-semibold dark:text-white text-black">
-          Sign up
-        </Text>
-        <TextInput
-          autoCapitalize="none"
-          value={emailAddress}
-          placeholder="Enter email"
-          onChangeText={(email) => setEmailAddress(email)}
-          className="border border-gray-300 p-4 rounded-md dark:text-white text-black"
-        />
-        <View className="relative">
-          <TextInput
-            value={password}
-            placeholder="Enter password"
-            secureTextEntry={!showPassword}
-            onChangeText={(password) => setPassword(password)}
-            className="border border-gray-300 p-4 rounded-md dark:text-white text-black pr-12"
-          />
-          <Pressable
-            onPress={() => setShowPassword(!showPassword)}
-            className="absolute right-4 top-4"
-          >
-            <Feather
-              name={showPassword ? "eye-off" : "eye"}
-              size={18}
-              color={isDarkColorScheme ? "#fff" : "#000"}
-            />
-          </Pressable>
+    <SafeAreaView className="flex-1">
+      <View className="flex-1 px-6 py-8 justify-center">
+        {/* Header */}
+        <View className="mb-8">
+          <Text className="text-3xl font-bold dark:text-white text-black text-center">Create Account</Text>
+          <Text className="text-gray-500 dark:text-gray-400 text-center mt-2">Sign up to get started</Text>
         </View>
-        <View className="relative">
-          <TextInput
-            value={confirmPassword}
-            placeholder="Re-enter password"
-            secureTextEntry={!showPassword}
-            onChangeText={(password) => setConfirmPassword(password)}
-            className="border border-gray-300 p-4 rounded-md dark:text-white text-black pr-12"
-          />
-          <Pressable
-            onPress={() => setShowPassword(!showPassword)}
-            className="absolute right-4 top-4"
-          >
-            <Feather
-              name={showPassword ? "eye-off" : "eye"}
-              size={18}
-              color={isDarkColorScheme ? "#fff" : "#000"}
-            />
-          </Pressable>
-        </View>
-        {error && <Text className="text-red-500 text-center">{error}</Text>}
-        {tryAgain && (
-          <Text className="dark:text-lime-300 text-lime-800 font-extrabold text-center">
-            Try again
-          </Text>
-        )}
 
-        <Pressable
-          className="bg-blue-500 p-4 py-4 text-center rounded-md"
-          onPress={onSignUpPress}
+        {/* Form */}
+        <Animated.View
+          entering={FadeInDown.delay(200)}
+          className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow gap-4 space-y-5"
         >
-          <Text className="text-white dark:text-white font-semibold text-center text-lg">
-            Continue
-          </Text>
-        </Pressable>
-        <Text className="text-center text-black dark:text-white my-4">
-          --- OR ---
-        </Text>
-        <Pressable
-          className="border border-blue-500 p-2 py-4 text-center rounded-md"
-          onPress={onPressGoogleSignIn}
-        >
-          <View className="flex-row items-center justify-center gap-2">
-            <GoogleLogo />
-            <Text className="text-blue-500 text-center">Sign In with Google</Text>
+          {/* Email Input */}
+          <View>
+            <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email Address</Text>
+            <TextInput
+              autoCapitalize="none"
+              value={emailAddress}
+              placeholder="Enter email"
+              onChangeText={(email) => setEmailAddress(email)}
+              className="dark:text-white text-black p-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-transparent"
+            />
           </View>
-        </Pressable>
-        <View className="flex-row justify-center gap-2 flex">
-          <Text className="dark:text-white text-black">
-            Already have an account?
-          </Text>
+
+          {/* Password Input */}
+          <View>
+            <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</Text>
+            <View className="relative">
+              <TextInput
+                value={password}
+                placeholder="Enter password"
+                secureTextEntry={!showPassword}
+                onChangeText={(password) => setPassword(password)}
+                className="dark:text-white text-black p-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-transparent pr-12"
+              />
+              <Pressable onPress={() => setShowPassword(!showPassword)} className="absolute right-4 top-4">
+                <Feather
+                  name={showPassword ? "eye-off" : "eye"}
+                  size={18}
+                  color={isDarkColorScheme ? "#fff" : "#000"}
+                />
+              </Pressable>
+            </View>
+          </View>
+
+          {/* Confirm Password Input */}
+          <View>
+            <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Confirm Password</Text>
+            <View className="relative">
+              <TextInput
+                value={confirmPassword}
+                placeholder="Re-enter password"
+                secureTextEntry={!showPassword}
+                onChangeText={(password) => setConfirmPassword(password)}
+                className="dark:text-white text-black p-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-transparent pr-12"
+              />
+              <Pressable onPress={() => setShowPassword(!showPassword)} className="absolute right-4 top-4">
+                <Feather
+                  name={showPassword ? "eye-off" : "eye"}
+                  size={18}
+                  color={isDarkColorScheme ? "#fff" : "#000"}
+                />
+              </Pressable>
+            </View>
+          </View>
+
+          {/* Error Messages */}
+          {error && (
+            <Animated.Text entering={FadeInDown} className="text-red-500 text-center">
+              {error}
+            </Animated.Text>
+          )}
+
+          {tryAgain && (
+            <Animated.Text
+              entering={FadeInDown}
+              className="dark:text-lime-300 text-lime-800 font-extrabold text-center"
+            >
+              Try again
+            </Animated.Text>
+          )}
+
+          {/* Sign Up Button */}
+          <Pressable className="bg-blue-500 rounded-xl overflow-hidden" onPress={onSignUpPress}>
+            <View className="px-6 py-4 flex-row items-center justify-center">
+              <Text className="text-white font-semibold text-lg mr-2">Continue</Text>
+              <Feather name="arrow-right" size={20} color="white" />
+            </View>
+          </Pressable>
+        </Animated.View>
+
+        {/* Divider */}
+        <View className="flex-row items-center my-8">
+          <View className="flex-1 h-[1px] bg-gray-300 dark:bg-gray-700" />
+          <Text className="mx-4 text-gray-500 dark:text-gray-400">OR</Text>
+          <View className="flex-1 h-[1px] bg-gray-300 dark:bg-gray-700" />
+        </View>
+
+        {/* Google Sign In */}
+        <Animated.View entering={FadeInDown.delay(400)}>
+          <Pressable
+            className="bg-white dark:bg-gray-800 border-2 gap-2 border-gray-200 dark:border-gray-700 p-4 rounded-xl flex-row items-center justify-center space-x-3"
+            onPress={onPressGoogleSignIn}
+          >
+            <GoogleLogo />
+            <Text className="text-gray-800 dark:text-white font-medium">Sign In with Google</Text>
+          </Pressable>
+        </Animated.View>
+
+        {/* Sign In Link */}
+        <View className="flex-row justify-center mt-8">
+          <Text className="dark:text-white text-black">Already have an account? </Text>
           <Link href="/(auth)/sign-in">
-            <Text className="text-blue-500 text-center">Sign In</Text>
+            <Text className="text-blue-500 font-medium">Sign In</Text>
           </Link>
         </View>
       </View>
-    </View>
-  );
+    </SafeAreaView>
+  )
 }

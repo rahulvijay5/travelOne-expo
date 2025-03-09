@@ -372,11 +372,13 @@ export default function HotelAnalytics({ hotelId }: { hotelId: string }) {
           {/* Revenue Card - Full Width */}
           <View className="bg-gray-100 dark:bg-gray-800 rounded-2xl mb-2 p-6 shadow-sm">
             <View className="flex-row items-center mb-4">
-              <FontAwesome5
+              <Text>
+                <FontAwesome5
                 name="money-bill-wave"
                 size={20}
                 color={isDark ? "#9ca3af" : "#4b5563"}
-              />
+                />
+                </Text>
               <Text className="text-lg font-bold ml-2 dark:text-white">
                 Revenue
               </Text>
