@@ -169,13 +169,14 @@ const ExtrasLayout = () => {
           name="(helpers)/terms"
           options={{
             headerShown: true,
-            
+            headerBackButtonDisplayMode: "minimal",
           }}
         />
         <Stack.Screen
           name="(helpers)/privacy"
           options={{
             headerShown: true,
+            headerBackButtonDisplayMode: "minimal",
           }}
         />
       </Stack>

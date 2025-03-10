@@ -38,9 +38,9 @@ export {
 } from "expo-router";
 
 export default function RootLayout() {
-  const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
+  const CLERK_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 
-  if (!publishableKey) {
+  if (!CLERK_KEY) {
     throw new Error("Add EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in your .env");
   }
 
@@ -67,7 +67,7 @@ export default function RootLayout() {
   }
 
   return (
-    <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
+    <ClerkProvider tokenCache={tokenCache} publishableKey={CLERK_KEY}>
       <ClerkLoaded>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <PushNotificationProvider >

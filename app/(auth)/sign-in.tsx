@@ -135,6 +135,7 @@ export default function Page() {
               autoCapitalize="none"
               value={emailAddress}
               placeholder="Enter email"
+              placeholderTextColor={isDarkColorScheme ? "#9CA3AF" : "#6B7280"}
               onChangeText={(email) => setEmailAddress(email)}
               className="dark:text-white text-black p-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-transparent"
             />
@@ -147,6 +148,7 @@ export default function Page() {
               <TextInput
                 value={password}
                 placeholder="Enter password"
+                placeholderTextColor={isDarkColorScheme ? "#9CA3AF" : "#6B7280"}
                 secureTextEntry={!showPassword}
                 onChangeText={(password) => setPassword(password)}
                 className="dark:text-white text-black p-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-transparent pr-12"

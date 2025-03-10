@@ -26,7 +26,7 @@ export const getAnalytics = async (
     const data: AnalyticsResponse = await response.json();
     return data;
   } catch (error) {
-    console.error("Error fetching analytics data:", error);
+    console.log("Error fetching analytics data:", error);
     throw error;
   }
 };

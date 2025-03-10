@@ -16,7 +16,7 @@ export const handleResponse = async (res: Response) => {
         
         // If not JSON, try to get text
         const text = await res.text();
-        console.error("Error Response Text: ", text);
+        console.log("Error Response Text: ", text);
         console.log(`API error: ${res.status} - ${res.statusText}`);
       } catch (error) {
         if (error instanceof Error) {
@@ -42,7 +42,7 @@ export const handleResponse = async (res: Response) => {
         return text;
       }
     } catch (error) {
-      console.error("Error parsing response:", error);
+      console.log("Error parsing response:", error);
       throw new Error("Failed to parse response");
     }
   };

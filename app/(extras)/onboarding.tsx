@@ -31,7 +31,7 @@ const phoneSchema = z.string().regex(/^[6-9]\d{9}$/, {
   message: "Please enter a valid 10-digit phone number starting with 6-9",
 });
 
-type FeatureIcon = "smartphone" | "key" | "bell" | "coffee";
+type FeatureIcon = "smartphone" | "key" | "bell" | "coffee" | "calendar";
 
 interface Feature {
   icon: FeatureIcon;
@@ -46,14 +46,14 @@ const features: Feature[] = [
     description: "Book your perfect stay in just a few taps",
   },
   {
-    icon: "key",
-    title: "Digital Keys",
-    description: "Access your room with your phone",
-  },
-  {
     icon: "bell",
     title: "Real-time Updates",
     description: "Get instant notifications about your stay",
+  },
+  {
+    icon: "calendar",
+    title: "Real Time Bookings",
+    description: "Create bookings based on availabilty",
   },
   {
     icon: "coffee",

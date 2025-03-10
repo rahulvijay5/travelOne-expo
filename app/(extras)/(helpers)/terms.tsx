@@ -5,6 +5,7 @@ import { Stack } from 'expo-router';
 import { APP_URL } from '@/lib/config/index';
 export default function TermsScreen() {
   const { isDarkColorScheme } = useColorScheme();
+  console.log(APP_URL)
 
   return (
     <View className="flex-1">
