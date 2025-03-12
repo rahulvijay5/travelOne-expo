@@ -21,7 +21,7 @@ import { PortalHost } from "@rn-primitives/portal";
 import { setAndroidNavigationBar } from "@/lib/android-navigation-bar";
 import { PushNotificationProvider } from "@/components/context/PushNotificationContext";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { Toaster } from "react-native-customizable-toast";
+import { CLERK_KEY } from "../lib/config/index";
 
 const LIGHT_THEME: Theme = {
   ...DefaultTheme,
@@ -38,7 +38,7 @@ export {
 } from "expo-router";
 
 export default function RootLayout() {
-  const CLERK_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
+  // const CLERK_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 
   if (!CLERK_KEY) {
     throw new Error("Add EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in your .env");

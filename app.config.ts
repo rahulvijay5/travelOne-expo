@@ -4,6 +4,8 @@ import { ConfigContext, ExpoConfig } from "expo/config";
 const IS_DEV = process.env.APP_VARIANT === "development";
 const IS_PREVIEW = process.env.APP_VARIANT === "preview";
 
+// console.log("CLERK KEY:", process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY);
+
 const getUniqueIdentifier = () => {
   if (IS_DEV) {
     return "site.rahulvijay.travelone.dev";
@@ -47,7 +49,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     adaptiveIcon: {
-      foregroundImage: "./assets/images/icon.png", // Make sure this has transparency
+      foregroundImage: "./assets/images/splash-icon.png", // Make sure this has transparency
       backgroundColor: "#ffffff",
     },
     package: getUniqueIdentifier(),
